@@ -10,6 +10,7 @@ export default class Home extends React.Component{
     constructor(props) {
         super(props);
         this.state = null
+        this.mounted = false;
     }
 
     setView(){
@@ -23,11 +24,18 @@ export default class Home extends React.Component{
     }
 
     componentDidMount() {
+        this.mounted = true;
         this.setView();
+        console.log('[Mounted]');
         Events.on('reset-view', ()=>{
             console.log('[Reset]');
             this.setView();
-        })
+        },this)
+    }
+
+    componentWillUnmount() {
+        this.mounted = false;
+        console.log('[unmounted]');
     }
 
     render() {

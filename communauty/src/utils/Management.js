@@ -7,6 +7,7 @@ import Dashboard from "../pages/view/Dashboard";
 import Communauty from "../pages/view/Communauty";
 import Messages from "../pages/view/Messages";
 import Redactor from "../pages/view/Redactor";
+import Category from "../pages/view/Category";
 
 export default class Management{
     static storage = null;
@@ -44,6 +45,12 @@ export default class Management{
                 icon: "mail-bulk",
                 text: "Messagerie",
                 view: <Messages/>
+            },
+            "/studio/category":{
+                view: <Category/>
+            },
+            "/writing/category":{
+                view: <Category/>
             }
         };
     }

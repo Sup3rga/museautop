@@ -2,8 +2,10 @@ import React from 'react';
 import Field from "../components/Field";
 import Management from "../utils/Management";
 import Ressources from "../utils/Ressources";
-import DialogBox from "../components/DialogBox";
 import Events from "../utils/Events";
+import {Box, Button, LinearProgress} from "@mui/material";
+import Route from "../utils/Route";
+import Main from './Main';
 
 export default class Login extends React.Component{
 
@@ -17,7 +19,9 @@ export default class Login extends React.Component{
         }
         this.state = {
             textError : this.text.errors[0],
-            loader: this.text.message[0]
+            loader: this.text.message[0],
+            loading: false,
+            message: false
         };
         this.login = this.login.bind(this);
     }
@@ -30,34 +34,45 @@ export default class Login extends React.Component{
         if(!this.username.length || !this.password.length){
             this.setState(state => { return {
                 ...state,
-                textError:  this.text.errors[0]
+                loader: null,
+                textError:  this.text.errors[0],
+                message: true
             }})
-            Events.emit("show-modal-box-alert");
+            // Events.emit("show-modal-box-alert");
             return;
         }
         this.setState(state => { return {
             ...state,
-            loader: this.text.message[1]
+            loader: this.text.message[1],
+            textError: null,
+            message: true,
+            loading: true
         }})
-        Events.emit("show-modal-box-loader");
+        // Events.emit("show-modal-box-loader");
         try {
             let result = await Management.connect(this.username, this.password)
             this.setState(state => { return {
                 ...state,
-                loader: this.text.message[1]
+                loader: this.text.message[1],
+                textError: null,
+                loading: false
             }});
-            console.log('[Result]',result);
+            console.log('[Ok]');
             if(!result.error) {
-                Events.on('reset-view');
+                Events.emit('reset-view');
             }
         }catch(e){
+            console.log('[Err]',this.state.loading);
             this.setState(state => { return {
                 ...state,
-                textError: e
+                textError: e,
+                loader: null,
+                loading: false,
+                message: true
             }})
-            Events
-                .emit("close-modal-box-loader")
-                .emit("show-modal-box-alert");
+            // Events
+            //     .emit("close-modal-box-loader")
+            //     .emit("show-modal-box-alert");
         }
     }
 
@@ -95,27 +110,42 @@ export default class Login extends React.Component{
                                 />
                             </div>
                             <div className="ui-container ui-size-fluid actions">
-                                <button className="ui-element ui-button primary-theme" onClick={this.login}>Connexion</button>
+                                <button className="ui-element ui-button primary-theme" onClick={this.state.loading ? null : this.login}>Connexion</button>
                             </div>
+                            {
+                                !this.state.loading ? null :
+                                (
+                                    <div className="ui-container ui-size-fluid ui-absolute ui-bottom-close ui-left-close">
+                                        <Box sx={{ width: '100%' }}>
+                                            <LinearProgress />
+                                        </Box>
+                                    </div>
+                                )
+                            }
                         </div>
                         <div className="footer ui-container ui-size-fluid ui-horizontal-right ui-vertical-center ui-absolute ui-right-close ui-bottom-close">
                             &copy; 2022 Muse Au Top communauty !
                         </div>
                     </div>
                 </div>
-                <DialogBox role="loader" unmaskable={false}>
-                    {this.state.loader}
-                </DialogBox>
-                <DialogBox role="alert">
-                    <div className="ui-container ui-size-fluid ui-horizontal-left">
-                        {this.state.textError}
-                    </div>
-                    <div className="ui-container ui-size-fluid ui-horizontal-right actions">
-                        <button className="ui-element ui-button light"
-                                onClick={()=>Events.emit("close-modal-box-alert")}
-                        >Ok</button>
-                    </div>
-                </DialogBox>
+                <Main.DialogBox
+                    title={null}
+                    open={this.state.message}
+                    content={
+                        this.state.loader ? this.state.loader : this.state.textError
+                    }
+                    buttons={ this.state.loader ? null : [
+                        <Button variant="text" onClick={()=>{
+                            console.log('[Cool]')
+                            this.setState(state => {
+                                return {
+                                    ...state,
+                                    message: false
+                                }
+                            })
+                        }}>Ok</Button>
+                    ]}
+                />
             </>
         );
     }

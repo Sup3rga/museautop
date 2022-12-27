@@ -5,17 +5,20 @@ import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import Events from "../../utils/Events";
 import UploadAdapter from "../../utils/UploadAdapter";
 import Main from "../Main";
-import {Button, TextField} from "@mui/material";
+import {Button, CircularProgress, TextField, Typography, Box} from "@mui/material";
 import Management from "../../utils/Management";
+import Writing from "./Writing";
+import AlertableComponent from "./AlertableComponent";
 
 
-export default class Redactor extends React.Component{
+export default class Redactor extends AlertableComponent{
 
     constructor(props) {
         super(props);
         this.state = {
+            ...super.state,
             title: '',
-            content: 'Write your article'
+            content: ''
         }
     }
 
@@ -30,9 +33,32 @@ export default class Redactor extends React.Component{
 
     submit(){
         console.log('[Submit]',this.state,Management.data);
+        if(!this.state.title.length || !this.state.content.length){
+            this.toggleDialog({
+                open: true,
+                content: "Vous devez soumettre un article avec au moins un titre et un contenu"
+            });
+            return;
+        }
+        this.toggleDialog({
+            content: (
+                <Box>
+                    <CircularProgress/>
+                    <Typography>
+                        Requête en cours...
+                    </Typography>
+                </Box>
+            ),
+            manual: false
+        });
         Main.socket.emit("submit-article", {
-            ...this.state,
-            cmid: Management.data.id
+            title: this.state.title,
+            content: this.state.content,
+            cmid: Management.data.id,
+            bhid: Main.branch,
+            cmtk: Management.data.token
+        }).on('article-set', (data)=>{
+
         });
     }
 
@@ -40,21 +66,30 @@ export default class Redactor extends React.Component{
         return (
             <div className="ui-container editor ui-size-fluid ui-fluid-height">
                 <div className="ui-container ui-size-fluid head">
-                    <div className="ui-container ui-size-9 ui-md-size-6">
-                        <TextField className="ui-element ui-size-fluid"
-                                   label="Le titre de l'article"
-                                   variant="outlined"
-                                   value={this.state.title}
-                                   onChange={(e)=>{
-                                       this.setState(state => {
-                                           return {
-                                               ...state,
-                                               title: e.target.value
-                                           }
-                                       });
-                                   }}
+                    <div className="ui-container ui-size-6">
+                        <TextField
+                           className="ui-element ui-size-fluid"
+                           label="Le titre de l'article"
+                           variant="outlined"
+                           value={this.state.title}
+                           onChange={(e)=>{
+                               this.setState(state => {
+                                   return {
+                                       ...state,
+                                       title: e.target.value
+                                   }
+                               });
+                           }}
                         />
                         {/*<Field placeholder="Le titre de l'article" className="field ui-element ui-size-fluid"/>*/}
+                    </div>
+                    <div className="ui-container ui-size-3">
+                        <Writing.RenderSelect
+                            label="Catégorie"
+                            list={{
+                                empty: ''
+                            }}
+                        />
                     </div>
                     <div className="ui-container ui-size-3 actions">
                         <Button className="ui-element ui-size-fluid"
@@ -88,6 +123,7 @@ export default class Redactor extends React.Component{
                         } }
                     />
                 </div>
+                {super.renderDialog()}
             </div>
         )
     }

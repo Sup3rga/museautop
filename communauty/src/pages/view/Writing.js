@@ -6,8 +6,25 @@ import Link from "../../components/Link";
 import {Icon} from "../../components/Header";
 import {FormControl, InputLabel, MenuItem, Select, SpeedDial, SpeedDialAction, SpeedDialIcon} from "@mui/material";
 import Route from "../../utils/Route";
+import BlankLoader from "./BlankLoader";
+import Main from "../Main";
 
 export default class Writing extends Component{
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            loading: true
+        }
+    }
+
+    componentDidMount() {
+        Main.socket
+        .emit("fetch-categories", {type: 'writing', branch: Main.branch})
+        .on("get-categories", (e)=>{
+            console.log('[E]',e);
+        });
+    }
 
     static RenderSelect(props){
         let {list} = props;
@@ -27,6 +44,11 @@ export default class Writing extends Component{
     }
 
     render() {
+
+        if(this.state.loading){
+            return <BlankLoader/>
+        }
+
         return (
             <div className="ui-container ui-size-fluid ui-fluid-height presentation">
                 <div className="ui-container ui-size-fluid ui-unwrap grid-filter ui-vertical-center ui-height-2">
@@ -35,6 +57,7 @@ export default class Writing extends Component{
                             className="ui-element ui-size-fluid field"
                             label = "Catégorie"
                             value = "all"
+                            sx={{height: 40}}
                             list = {{
                                 all: "Tout"
                             }}
@@ -45,16 +68,7 @@ export default class Writing extends Component{
                             className="ui-element ui-size-fluid field"
                             label = "Année"
                             value = "all"
-                            list = {{
-                                all: "Tout"
-                            }}
-                        />
-                    </div>
-                    <div className="ui-element field-group ui-size-3">
-                        <Writing.RenderSelect
-                            className="ui-element ui-size-fluid field"
-                            label = "Filiale"
-                            value = "all"
+                            sx={{height: 40}}
                             list = {{
                                 all: "Tout"
                             }}
@@ -70,8 +84,14 @@ export default class Writing extends Component{
                     <SpeedDialAction
                         name="new"
                         icon={<Icon icon="feather"/>}
-                        title={"bien"}
+                        title={"Nouvel article"}
                         onClick={()=>Route.pushState('./writing/new')}
+                    />
+                    <SpeedDialAction
+                        title="Catégorie"
+                        name="category"
+                        icon={<Icon icon="layer-group"/>}
+                        onClick={()=>Route.pushState('./writing/category')}
                     />
                 </SpeedDial>
             </div>

@@ -38,6 +38,14 @@ export default class Main extends React.Component{
         ];
         this.routes = Management.getRoutes();
         this.mounted = false;
+        this.branches = {};
+        for(let i in Management.data.branches){
+            if(!Main.branch){
+                Main.branch = Management.data.branches[i].id;
+            }
+            this.branches[Management.data.branches[i].id] = Management.data.branches[i].domain;
+        }
+        console.log('[Man]',this.branches);
         Main.socket.on("connected", ()=>{
             console.log('[Connected]');
         })
@@ -47,6 +55,7 @@ export default class Main extends React.Component{
             back: false,
             bottomValue: 0,
             userMenu: null,
+            branch: Main.branch,
             dialogBox: {
                 open: false,
                 title: null,
@@ -88,16 +97,24 @@ export default class Main extends React.Component{
     }
 
     changeBranch(e){
-        console.log('[Branch]',e);
+        Main.branch = e;
+        Events.emit('branch-switch', e);
+        this.setState(state => {
+            return {
+                ...state,
+                branch: e
+            }
+        })
     }
 
     static DialogBox(props){
+        let {title = null} = props;
         return (
             <Dialog
                 open={props.open}
                 onClose={props.onClose}
             >
-                <DialogTitle>{props.title}</DialogTitle>
+                <DialogTitle>{title}</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
                         {props.content}
@@ -128,6 +145,7 @@ export default class Main extends React.Component{
         return (
             <Menu
             anchorEl={props.el}
+            onClose={props.onClose}
             anchorOrigin={{
                 vertical: 'top',
                 horizontal: 'right'
@@ -234,10 +252,8 @@ export default class Main extends React.Component{
                         sx = {{
                             height: 30
                         }}
-                        value={1}
-                        list={{
-                            1: 'Rap au Top'
-                        }}
+                        value={this.state.branch}
+                        list={this.branches}
                     />
                     <IconButton onClick={(e)=>{
                         this.setState(state=>{
@@ -251,11 +267,19 @@ export default class Main extends React.Component{
                     </IconButton>
                     <Main.MenuList
                         el={this.state.userMenu}
+                        onClose={()=>{
+                            this.setState(state=>{
+                                return {...state, userMenu: null};
+                            })
+                        }}
                         list={[
                             {
                                 icon: <Icon icon="sign-out-alt"/>,
                                 label: "Déconnexion",
                                 click: (e)=>{
+                                    this.setState(state=>{
+                                        return {...state, userMenu: null};
+                                    })
                                     this.toggleDialogBox(true)
                                 }
                             }
@@ -325,6 +349,8 @@ export default class Main extends React.Component{
                             this.toggleDialogBox(false);
                             Management.storage.setItem('agent', null).then(()=>{
                                 Events.emit('reset-view');
+                                Route.pushState('/');
+                                Main.socket.close();
                             });
                         }}>Oui</Button>
                     ]}

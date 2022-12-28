@@ -8,27 +8,60 @@ import {FormControl, InputLabel, MenuItem, Select, SpeedDial, SpeedDialAction, S
 import Route from "../../utils/Route";
 import BlankLoader from "./BlankLoader";
 import Main from "../Main";
+import Management from "../../utils/Management";
 
 export default class Writing extends Component{
 
     constructor(props) {
         super(props);
         this.state = {
-            loading: true
+            loading: true,
+            categories: {},
+            articles: []
         }
     }
 
+    fetchDatas(){
+        return new Promise((res)=>{
+            if('categories' in Management.data){
+                if('writing' in Management.data.categories){
+                    return res(Management.data.categories.writing);
+                }
+            }
+            Main.socket
+            .emit("/writing", {branch: Main.branch})
+            .on("/writing/data", (e)=>{
+                Management.setCategoriesStorage()
+                          .data.categories.writing = e.categories;
+                Management.data.articles = e.articles;
+                res(e);
+            });
+        })
+    }
+
     componentDidMount() {
+        this.fetchDatas().then(e => {
+            let r = {};
+            for(let i in e.categories){
+                r[e.categories[i].id] = e.categories[i].name;
+            }
+            this.setState(state => {
+                return  {
+                    ...state,
+                    loading: false,
+                    categories: r
+                }
+            })
+        })
+    }
+
+    componentWillUnmount() {
         Main.socket
-        .emit("fetch-categories", {type: 'writing', branch: Main.branch})
-        .on("get-categories", (e)=>{
-            console.log('[E]',e);
-        });
+        .off("get-categories");
     }
 
     static RenderSelect(props){
         let {list} = props;
-        // delete props.list;
         return (
             <FormControl fullWidth>
                 <InputLabel id="demo-simple-select-label">{props.label}</InputLabel>
@@ -58,20 +91,7 @@ export default class Writing extends Component{
                             label = "Catégorie"
                             value = "all"
                             sx={{height: 40}}
-                            list = {{
-                                all: "Tout"
-                            }}
-                        />
-                    </div>
-                    <div className="ui-element field-group ui-size-3">
-                        <Writing.RenderSelect
-                            className="ui-element ui-size-fluid field"
-                            label = "Année"
-                            value = "all"
-                            sx={{height: 40}}
-                            list = {{
-                                all: "Tout"
-                            }}
+                            list = {this.state.categories}
                         />
                     </div>
                 </div>

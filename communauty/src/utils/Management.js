@@ -88,4 +88,14 @@ export default class Management{
             })
         });
     }
+
+    static setCategoriesStorage(){
+        if(!('categories' in Management.data)){
+            Management.data.categories = {
+                writing: [],
+                punchlines: []
+            }
+        }
+        return Management;
+    }
 }

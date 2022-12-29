@@ -8,6 +8,7 @@ import Communauty from "../pages/view/Communauty";
 import Messages from "../pages/view/Messages";
 import Redactor from "../pages/view/Redactor";
 import Category from "../pages/view/Category";
+import Main from "../pages/Main";
 
 export default class Management{
     static storage = null;
@@ -97,5 +98,13 @@ export default class Management{
             }
         }
         return Management;
+    }
+
+    static defaultQuery(){
+        return {
+            cmid: Management.data.id,
+            bhid: Main.branch,
+            cmtk: Management.data.token
+        }
     }
 }

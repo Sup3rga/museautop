@@ -54,9 +54,7 @@ export default class Redactor extends AlertableComponent{
         Main.socket.emit("submit-article", {
             title: this.state.title,
             content: this.state.content,
-            cmid: Management.data.id,
-            bhid: Main.branch,
-            cmtk: Management.data.token
+            ...Management.defaultQuery()
         }).on('article-set', (data)=>{
 
         });

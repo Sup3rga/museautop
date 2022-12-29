@@ -29,7 +29,7 @@ export default class Writing extends Component{
                 }
             }
             Main.socket
-            .emit("/writing", {branch: Main.branch})
+            .emit("/writing", Management.defaultQuery())
             .on("/writing/data", (e)=>{
                 Management.setCategoriesStorage()
                           .data.categories.writing = e.categories;
@@ -57,7 +57,8 @@ export default class Writing extends Component{
 
     componentWillUnmount() {
         Main.socket
-        .off("get-categories");
+        .off("/writing")
+        .off("/writing/data");
     }
 
     static RenderSelect(props){

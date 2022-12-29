@@ -9,6 +9,7 @@ import Messages from "../pages/view/Messages";
 import Redactor from "../pages/view/Redactor";
 import Category from "../pages/view/Category";
 import Main from "../pages/Main";
+import ResponseCode from "../utils/ResponseCode";
 
 export default class Management{
     static storage = null;
@@ -105,6 +106,29 @@ export default class Management{
             cmid: Management.data.id,
             bhid: Main.branch,
             cmtk: Management.data.token
+        }
+    }
+
+    static readCode(code){
+        switch (code){
+            case ResponseCode.SUCCESS:
+                return "La requête a été exécutée avec succès !";
+                break
+            case ResponseCode.INVALID:
+                return "Vous n'avez pas fourni assez de donnée pour cette opération. Veuillez vérifier vos données.";
+                break;
+            case ResponseCode.INTERNAL:
+                return "Une erreur interne s'est produite lors de l'opération. Veuillez contacter le service webmastering.";
+                break;
+            case ResponseCode.ERROR:
+                return "Un erreur non identifiée s'est produite !";
+                break;
+            case ResponseCode.LOGOUT:
+                return "Vous allez être déconnecté(e)";
+                break;
+            default:
+                return "Erreur inconnue !";
+                break;
         }
     }
 }

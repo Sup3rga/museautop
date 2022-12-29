@@ -118,11 +118,14 @@ export default class Category extends AlertableComponent{
         }
         console.log('[Sector]',this.sector,query);
         Main.socket
-            .emit('/'+this.sector+'/category/set', query)
-            .on('/'+this.sector+'/category/get', (e)=>{
-                console.log('[E]',e);
-                Management.data.categories[this.sector] = e;
+        .emit('/'+this.sector+'/category/set', query)
+        .once('/'+this.sector+'/category/get', (e)=>{
+            console.log('[E]',e);
+            this.toggleDialog({
+                content: e.error ? e.message : Management.readCode(e.code)
             })
+            Management.data.categories[this.sector] = e.data;
+        });
     }
 
     render() {

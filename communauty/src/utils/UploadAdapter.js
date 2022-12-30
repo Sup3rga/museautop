@@ -5,7 +5,7 @@ export default class UploadAdapter {
     constructor( loader, fileIndex = 'img') {
         // CKEditor 5's FileLoader instance.
         this.loader = loader;
-
+        this.__imgset = null;
         this.uploader = new ThunderSpeed();
         this.uploader.params({
             url: Ressources.apis+'/upl_img',
@@ -14,26 +14,31 @@ export default class UploadAdapter {
         });
     }
 
+    onImageSet(callback = null){
+        this.__imgset = callback;
+    }
+
     // Starts the upload process.
     upload() {
+        const $this = this;
         return new Promise( ( resolve, reject ) => {
             // this._initRequest();
             // this._initListeners( resolve, reject );
             // this._sendRequest();
-            this.loader.file.then((file)=>{
-                console.log('[File]',file);
-                this.uploader.setFile(file)
+            $this.loader.file.then((file)=>{
+                $this.uploader.setFile(file)
                 .on('progress', (e)=>{
-                    console.log('[E]',e);
-                    this.loader.uploadTotal = e.file.rawsize;
-                    this.loader.uploaded = e.file.rawsize * e.progression;
+                    $this.loader.uploadTotal = e.file.rawsize;
+                    $this.loader.uploaded = e.file.rawsize * e.progression;
                 })
                 .start()
                 .then(function(e){
+                    if($this.__imgset){
+                        $this.__imgset(e.filename);
+                    }
                     resolve({
                         default: e.filename
-                    })
-                    console.log('[UPLOAD ENDED]',e);
+                    });
                 });
             })
         } );

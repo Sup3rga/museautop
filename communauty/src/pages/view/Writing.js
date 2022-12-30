@@ -16,32 +16,17 @@ export default class Writing extends Component{
         super(props);
         this.state = {
             loading: true,
+            currentCategory: 0,
             categories: {},
             articles: []
         }
     }
 
-    fetchDatas(){
-        return new Promise((res)=>{
-            if('categories' in Management.data){
-                if('writing' in Management.data.categories){
-                    return res(Management.data.categories.writing);
-                }
-            }
-            Main.socket
-            .emit("/writing", Management.defaultQuery())
-            .on("/writing/data", (e)=>{
-                Management.setCategoriesStorage()
-                          .data.categories.writing = e.categories;
-                Management.data.articles = e.articles;
-                res(e);
-            });
-        })
-    }
-
     componentDidMount() {
-        this.fetchDatas().then(e => {
-            let r = {};
+        Management.getWritingDatas().then(e => {
+            let r = {
+                0: 'Toutes les catégories'
+            };
             for(let i in e.categories){
                 r[e.categories[i].id] = e.categories[i].name;
             }
@@ -90,9 +75,12 @@ export default class Writing extends Component{
                         <Writing.RenderSelect
                             className="ui-element ui-size-fluid field"
                             label = "Catégorie"
-                            value = "all"
+                            value = {this.state.currentCategory}
                             sx={{height: 40}}
                             list = {this.state.categories}
+                            onChange={(e)=>{
+                                this.setState(state=>{ return {...state, currentCategory: e.target.value} });
+                            }}
                         />
                     </div>
                 </div>

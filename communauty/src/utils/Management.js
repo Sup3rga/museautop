@@ -126,9 +126,54 @@ export default class Management{
             case ResponseCode.LOGOUT:
                 return "Vous allez être déconnecté(e)";
                 break;
+            case ResponseCode.BRANCH_ERROR:
+                return "Un problème de filiale se pose lors de l'opération";
             default:
                 return "Erreur inconnue !";
                 break;
         }
+    }
+
+    static async getWritingDatas(){
+        return new Promise((res)=>{
+            if('categories' in Management.data){
+                if('writing' in Management.data.categories){
+                    return res(Management.data.categories.writing);
+                }
+            }
+            Main.socket
+                .emit("/writing", Management.defaultQuery())
+                .on("/writing/data", (e)=>{
+                    const data = e.data;
+                    Management.setCategoriesStorage()
+                        .data.categories.writing = data.categories;
+                    Management.data.articles = data.articles;
+                    res(data);
+                });
+        });
+    }
+
+    static async getCategory(sector){
+        return new Promise((res,rej)=>{
+            Main.socket
+            .emit("/"+sector+"/category/fetch", {
+                ...Management.defaultQuery(),
+                sector: sector == 'writing' ? 'A' : 'P'
+            })
+            .once("/"+sector+"/category/get", (data)=>{
+                if(data.error){
+                   return rej(Management.readCode(data.code));
+                }
+                res(data.data);
+            });
+        })
+    }
+
+    static async getArticlesCategory(){
+        return await Management.getCategory('writing');
+    }
+
+    static async getPunchlinesCategory(){
+        return await Management.getCategory('punchline');
     }
 }

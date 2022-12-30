@@ -1,6 +1,6 @@
 import React from 'react';
 import Main from "../Main";
-import {Button} from "@mui/material";
+import {Button, CircularProgress, Grid, Snackbar, Typography} from "@mui/material";
 
 export default class AlertableComponent extends React.Component{
     constructor(props) {
@@ -15,6 +15,10 @@ export default class AlertableComponent extends React.Component{
                 content: '',
                 open: false,
                 manual: true
+            },
+            snack:{
+                open: false,
+                content: ''
             }
         }
     }
@@ -31,20 +35,68 @@ export default class AlertableComponent extends React.Component{
         })
     }
 
+    toggleSnack(data){
+        let {open = true, content = ''} = data;
+        this.setState(state => {
+            return {
+                ...state,
+                snack: {
+                    open, content
+                }
+            }
+        });
+    }
+
+    showLoading(text = "Requête en cours..."){
+        this.toggleDialog({
+            manual: false,
+            content: [
+                <Grid container alignItems="center">
+                    <CircularProgress/>
+                    <Typography sx={{
+                        padding: '.8em .4em'
+                    }}>
+                        {text}
+                    </Typography>
+                </Grid>
+            ]
+        });
+    }
+
     renderDialog(){
         return (
-            <Main.DialogBox
-                open={this.state.dialog.open}
-                title= {this.state.dialog.title}
-                content = {this.state.dialog.content}
-                buttons = {!this.state.dialog.manual ? null : [
-                    <Button variant="text" onClick={()=>{
-                        this.toggleDialog({
+            <>
+                <Main.DialogBox
+                    open={this.state.dialog.open}
+                    title= {this.state.dialog.title}
+                    content = {this.state.dialog.content}
+                    buttons = {!this.state.dialog.manual ? null : [
+                        <Button variant="text" onClick={()=>{
+                            this.toggleDialog({
+                                open: false
+                            })
+                        }}>Ok</Button>
+                    ]}
+                />
+                <Snackbar
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left'
+                    }}
+                    open={this.state.snack.open}
+                    message={this.state.snack.content}
+                    onClose={()=>{
+                        this.toggleSnack({
                             open: false
                         })
-                    }}>Ok</Button>
-                ]}
-            />
+                    }}
+                    action={[
+                        <Button variant="text" onClick={()=>this.toggleSnack({open: false})}>
+                            Ok
+                        </Button>
+                    ]}
+                />
+            </>
         );
     }
 }

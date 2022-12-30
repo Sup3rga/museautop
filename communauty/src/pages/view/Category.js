@@ -1,10 +1,11 @@
 import React from 'react';
-import {Button, Chip, Grid, IconButton, Stack, TextField, Typography} from "@mui/material";
+import {Button, Chip, CircularProgress, Grid, IconButton, Stack, TextField, Typography} from "@mui/material";
 import {Icon} from "../../components/Header";
 import Main from "../Main";
 import AlertableComponent from "./AlertableComponent";
 import Management from "../../utils/Management";
 import Url from "../../utils/Url";
+import Events from "../../utils/Events";
 
 
 export default class Category extends AlertableComponent{
@@ -22,10 +23,31 @@ export default class Category extends AlertableComponent{
         this.state = {
             ...super.getState(),
             name: '',
+            editMode: false,
             deletableCount: 0,
             modified: false,
             list: []
         }
+    }
+
+    componentDidMount() {
+        Management.getArticlesCategory().then((data)=>{
+            this.setState(state => {
+                return {
+                    ...state,
+                    list: data
+                }
+            })
+        }).catch(message => {
+            this.toggleSnack({
+                content: message
+            })
+        })
+        setTimeout(()=>Events.emit("set-prev",true), 100);
+    }
+
+    componentWillUnmount() {
+        setTimeout(()=>Events.emit("set-prev",false), 100);
     }
 
     exists(name){
@@ -51,6 +73,7 @@ export default class Category extends AlertableComponent{
 
     deleteByName(list, name){
         let result = [];
+        name = name.toLowerCase();
         for(let i in list){
             if(list[i].name.toLowerCase() !== name){
                 result.push(list[i]);
@@ -84,6 +107,7 @@ export default class Category extends AlertableComponent{
             if('id' in data) {
                 this.submitable.delete.push(data);
             }
+            console.log('[List]',list,data);
         }
         else{
             this.submitable.delete = this.deleteByName(this.submitable.delete, data.name);
@@ -106,25 +130,45 @@ export default class Category extends AlertableComponent{
             del: [],
             ...Management.defaultQuery()
         }, item;
-        for(let i in this.submitable.save){
-            item = {name: this.submitable.save[i].name};
-            if('id' in this.submitable.save[i]){
-                item.id = this.submitable.save[i].id;
+        if(this.state.editMode){
+            query.save.push({
+                ...this.state.editMode,
+                name: this.state.name
+            });
+        }
+        else {
+            for (let i in this.submitable.save) {
+                item = {name: this.submitable.save[i].name};
+                if ('id' in this.submitable.save[i]) {
+                    item.id = this.submitable.save[i].id;
+                }
+                query.save.push(item);
             }
-            query.save.push(item);
+            for (let i in this.submitable.delete) {
+                query.del.push(this.submitable.delete[i].id);
+            }
         }
-        for(let i in this.submitable.delete){
-            query.del.push(this.submitable.delete[i].id);
-        }
-        console.log('[Sector]',this.sector,query);
+        // console.log('[Sector]',this.sector,query);
+        this.showLoading();
         Main.socket
         .emit('/'+this.sector+'/category/set', query)
         .once('/'+this.sector+'/category/get', (e)=>{
             console.log('[E]',e);
             this.toggleDialog({
-                content: e.error ? e.message : Management.readCode(e.code)
+                content: e.error ? e.message : Management.readCode(e.code),
+                manual: true
             })
             Management.data.categories[this.sector] = e.data;
+            this.submitable.save = [];
+            this.submitable.delete = [];
+            this.setState(state => {
+                return {
+                    ...state,
+                    editMode: false,
+                    name: '',
+                    list: e.data
+                }
+            })
         });
     }
 
@@ -146,24 +190,44 @@ export default class Category extends AlertableComponent{
                             />
                         </Grid>
                         <Grid item>
-                            <Button
-                                endIcon={<Icon icon="plus"/>}
-                                variant="contained"
-                                onClick={()=>{
-                                    this.addCategory(this.state.name);
-                                    this.setState(state => {
-                                        return {...state, name: ''}
-                                    })
-                                }}
-                            >
-                                Ajouter
-                            </Button>
+                            {
+                                this.state.editMode ?
+                                    <Button
+                                        endIcon={<Icon icon="times"/>}
+                                        variant="outlined"
+                                        color="error"
+                                        onClick={()=>{
+                                            this.setState(state => {
+                                                return {
+                                                    ...state,
+                                                    editMode: false,
+                                                    name: ''
+                                                }
+                                            })
+                                        }}
+                                    >
+                                        Annuler
+                                    </Button>
+                                    :
+                                    <Button
+                                        endIcon={<Icon icon="plus"/>}
+                                        variant="contained"
+                                        onClick={()=>{
+                                            this.addCategory(this.state.name);
+                                            this.setState(state => {
+                                                return {...state, name: ''}
+                                            })
+                                        }}
+                                    >
+                                        Ajouter
+                                    </Button>
+                            }
                         </Grid>
                         <Grid item>
                             <Button
                                 endIcon={<Icon icon="save"/>}
                                 variant="contained"
-                                disabled={this.submitable.save.length || this.state.deletableCount ? false : true}
+                                disabled={this.submitable.save.length || this.state.deletableCount || this.state.editMode ? false : true}
                                 onClick={()=>this.submit()}
                             >
                                 Enregistrer les changements
@@ -187,9 +251,6 @@ export default class Category extends AlertableComponent{
                                                         key={index}
                                                         label={data.name}
                                                         onDelete={()=>this.removeCategory(data, true)}
-                                                        onClick={()=>{
-                                                            console.log('[Edit]',data);
-                                                        }}
                                                     />
                                                 </Grid>
                                             )
@@ -209,11 +270,18 @@ export default class Category extends AlertableComponent{
                                     <Grid item>
                                         <Chip
                                             variant={'id' in data ? 'filled' : 'outlined'}
+                                            color={'id' in data ? 'default' : 'success'}
                                             key={index}
                                             label={data.name}
                                             onDelete={()=>this.removeCategory(data)}
                                             onClick={()=>{
-                                                console.log('[Edit]',data);
+                                                this.setState(state => {
+                                                    return {
+                                                        ...state,
+                                                        name: data.name,
+                                                        editMode: data
+                                                    }
+                                                })
                                             }}
                                         />
                                     </Grid>

@@ -16,15 +16,30 @@ export default class Redactor extends AlertableComponent{
     constructor(props) {
         super(props);
         this.state = {
-            ...super.state,
+            ...super.getState(),
             title: '',
-            content: ''
+            content: '',
+            categories: {},
+            category: '',
+            img: []
         }
     }
 
     componentDidMount() {
         Events.emit("set-prev", true);
         setTimeout(()=>Events.emit("set-prev", true), 300);
+        Management.getArticlesCategory().then(data => {
+            const r = {};
+            for(let i in data){
+                r[data[i].id] = data[i].name;
+            }
+            this.setState(state => {
+                return {
+                    ...state,
+                    categories: r
+                }
+            });
+        })
     }
 
     componentWillUnmount() {
@@ -32,31 +47,44 @@ export default class Redactor extends AlertableComponent{
     }
 
     submit(){
-        console.log('[Submit]',this.state,Management.data);
-        if(!this.state.title.length || !this.state.content.length){
+        if(!this.state.title.length || !this.state.content.length || !this.state.category.length){
             this.toggleDialog({
                 open: true,
-                content: "Vous devez soumettre un article avec au moins un titre et un contenu"
+                content: "Vous devez soumettre un article avec au moins un titre, un contenu dans une catégorie spécifique"
             });
             return;
         }
-        this.toggleDialog({
-            content: (
-                <Box>
-                    <CircularProgress/>
-                    <Typography>
-                        Requête en cours...
-                    </Typography>
-                </Box>
-            ),
-            manual: false
-        });
-        Main.socket.emit("submit-article", {
+        this.state.caption = null;
+        this.state.img = [];
+        // this.showLoading();
+        const extract = this.state.content.match(/<img src="(.+?)">/g);
+        if(extract) {
+            let image;
+            for (let i = 0; i < extract.length; i++) {
+                image = extract[i].replace(/^<img src="(.+?)">/, '$1');
+                if (i == 0) {
+                    this.state.caption = image;
+                }
+                this.state.img.push(image);
+            }
+        }
+        Main.socket.emit("/writing/write", {
             title: this.state.title,
             content: this.state.content,
+            caption: this.state.caption,
+            category: this.state.category,
+            img: this.state.img,
             ...Management.defaultQuery()
-        }).on('article-set', (data)=>{
-
+        }).on('/writing/write/response', (data)=>{
+            if(data.error){
+                this.toggleDialog({
+                    content: Management.readCode(data.code),
+                    manual: true
+                });
+                return;
+            }
+            this.toggleDialog({open: false});
+            console.log('[Data]',data);
         });
     }
 
@@ -84,8 +112,15 @@ export default class Redactor extends AlertableComponent{
                     <div className="ui-container ui-size-3">
                         <Writing.RenderSelect
                             label="Catégorie"
-                            list={{
-                                empty: ''
+                            list={this.state.categories}
+                            value={this.state.category}
+                            onChange={(e)=>{
+                                this.setState(state => {
+                                    return {
+                                        ...state,
+                                        category: e.target.value
+                                    }
+                                })
                             }}
                         />
                     </div>

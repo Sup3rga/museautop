@@ -9,6 +9,7 @@ import {Button, CircularProgress, TextField, Typography, Box} from "@mui/materia
 import Management from "../../utils/Management";
 import Writing from "./Writing";
 import AlertableComponent from "./AlertableComponent";
+import Route from "../../utils/Route";
 
 
 export default class Redactor extends AlertableComponent{
@@ -56,7 +57,7 @@ export default class Redactor extends AlertableComponent{
         }
         this.state.caption = null;
         this.state.img = [];
-        // this.showLoading();
+        this.showLoading();
         const extract = this.state.content.match(/<img src="(.+?)">/g);
         if(extract) {
             let image;
@@ -75,7 +76,7 @@ export default class Redactor extends AlertableComponent{
             category: this.state.category,
             img: this.state.img,
             ...Management.defaultQuery()
-        }).on('/writing/write/response', (data)=>{
+        }).once('/writing/write/response', (data)=>{
             if(data.error){
                 this.toggleDialog({
                     content: Management.readCode(data.code),
@@ -84,7 +85,10 @@ export default class Redactor extends AlertableComponent{
                 return;
             }
             this.toggleDialog({open: false});
-            console.log('[Data]',data);
+            this.toggleSnack({
+                content: Management.readCode(data.code)
+            });
+            Route.back();
         });
     }
 

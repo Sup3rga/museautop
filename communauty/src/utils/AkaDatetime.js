@@ -389,6 +389,10 @@ var AkaDatetime = function(dateString){
         return date.add(date1).sub(date2);
     }
 
+    AkaDatetime.now = function(){
+        return new AkaDatetime(new Date()).getDateTime();
+    }
+
     extract(this.stringify(dateString));
 }
 

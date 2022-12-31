@@ -40,12 +40,6 @@ export default class Writing extends Component{
         })
     }
 
-    componentWillUnmount() {
-        Main.socket
-        .off("/writing")
-        .off("/writing/data");
-    }
-
     static RenderSelect(props){
         let {list} = props;
         return (

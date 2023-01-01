@@ -152,13 +152,14 @@ export default class Category extends AlertableComponent{
         this.showLoading();
         Main.socket
         .emit('/'+this.sector+'/category/set', query)
-        .once('/'+this.sector+'/category/get', (e)=>{
+        .once('/'+this.sector+'/category/get', async (e)=>{
             console.log('[E]',e);
             this.toggleDialog({
                 content: e.error ? e.message : Management.readCode(e.code),
                 manual: true
             })
             Management.data.categories[this.sector] = e.data;
+            await Management.commit();
             this.submitable.save = [];
             this.submitable.delete = [];
             this.setState(state => {

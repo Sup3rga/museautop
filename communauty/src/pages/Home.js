@@ -13,22 +13,15 @@ export default class Home extends React.Component{
         this.mounted = false;
     }
 
-    setView(){
-        Management.storage.getItem("agent").then(r => {
-            console.log('[R]',r);
-            Management.data = r;
-            this.setState(state => !r ? <Login/> : <Main/>)
-        }).catch(()=>{
-            this.setState(<div>Error 404</div>)
-        })
+    async setView(){
+        const r = await Management.retrieve();
+        this.setState(state => !r ?  <Login/> : <Main/>);
     }
 
     componentDidMount() {
         this.mounted = true;
         this.setView();
-        console.log('[Mounted]');
         Events.on('reset-view', ()=>{
-            console.log('[Reset]');
             this.setView();
         },this)
     }

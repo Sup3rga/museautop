@@ -5,11 +5,12 @@ import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import Events from "../../utils/Events";
 import UploadAdapter from "../../utils/UploadAdapter";
 import Main from "../Main";
-import {Button, CircularProgress, TextField, Typography, Box} from "@mui/material";
+import {Button, CircularProgress, TextField, Typography, Box, IconButton, Grid, Switch} from "@mui/material";
 import Management from "../../utils/Management";
 import Writing from "./Writing";
 import AlertableComponent from "./AlertableComponent";
 import Route from "../../utils/Route";
+import {Icon} from "../../components/Header";
 
 
 export default class Redactor extends AlertableComponent{
@@ -20,9 +21,13 @@ export default class Redactor extends AlertableComponent{
             ...super.getState(),
             title: '',
             content: '',
+            date: '',
+            time: '',
+            publishauto: false,
             categories: {},
             category: '',
-            img: []
+            img: [],
+            openConfig: false
         }
     }
 
@@ -47,17 +52,8 @@ export default class Redactor extends AlertableComponent{
         Events.emit("set-prev",false);
     }
 
-    submit(){
-        if(!this.state.title.length || !this.state.content.length || !this.state.category.length){
-            this.toggleDialog({
-                open: true,
-                content: "Vous devez soumettre un article avec au moins un titre, un contenu dans une catégorie spécifique"
-            });
-            return;
-        }
-        this.state.caption = null;
+    extractImg(){
         this.state.img = [];
-        this.showLoading();
         const extract = this.state.content.match(/<img src="(.+?)">/g);
         if(extract) {
             let image;
@@ -69,11 +65,26 @@ export default class Redactor extends AlertableComponent{
                 this.state.img.push(image);
             }
         }
+    }
+
+    submit(){
+        if(!this.state.title.length || !this.state.content.length || !this.state.category.length){
+            this.toggleDialog({
+                open: true,
+                content: "Vous devez soumettre un article avec au moins un titre, un contenu dans une catégorie spécifique"
+            });
+            return;
+        }
+        this.state.caption = null;
+        this.extractImg();
+        this.showLoading();
+        const schedule = this.state.publishauto || !this.state.date.length || !this.state.time.length ? null : this.state.date+' '+this.state.time;
         Main.socket.emit("/writing/write", {
             title: this.state.title,
             content: this.state.content,
             caption: this.state.caption,
             category: this.state.category,
+            schdate: schedule,
             img: this.state.img,
             ...Management.defaultQuery()
         }).once('/writing/write/response', (data)=>{
@@ -88,53 +99,81 @@ export default class Redactor extends AlertableComponent{
             this.toggleSnack({
                 content: Management.readCode(data.code)
             });
-            Route.back();
+            setTimeout(()=>{
+                Route.back();
+            }, 300);
+        });
+    }
+
+    async save(){
+        if(!this.state.title.length || !this.state.content.length){
+            this.toggleDialog({
+                open: true,
+                content: "Veuillez renseigner au moins le titre et le contenu de l'article pour l'enregistrer pour plus tard"
+            });
+            return;
+        }
+        this.extractImg();
+        if(this.state.img.length) {
+            this.toggleDialog({
+                open: true,
+                content: "Les images uploadés de votre article sont disponibles seulement pour 5 jours !"
+            });
+        }
+       await Management.addDraft({
+            title: this.state.title,
+            content: this.state.content,
+            category: this.state.category,
+            date: this.state.date,
+            time: this.state.time,
+            draft: true
+        });
+    }
+
+    toggleConfigurationBox(open = true){
+        this.setState(state => {return {...state, openConfig: open}});
+    }
+
+    updateData(index, value){
+        this.setState(state => {
+            return {
+                ...state,
+                [index] : value
+            }
         });
     }
 
     render() {
         return (
             <div className="ui-container editor ui-size-fluid ui-fluid-height">
-                <div className="ui-container ui-size-fluid head">
-                    <div className="ui-container ui-size-6">
-                        <TextField
-                           className="ui-element ui-size-fluid"
-                           label="Le titre de l'article"
-                           variant="outlined"
-                           value={this.state.title}
-                           onChange={(e)=>{
-                               this.setState(state => {
-                                   return {
-                                       ...state,
-                                       title: e.target.value
-                                   }
-                               });
-                           }}
-                        />
-                        {/*<Field placeholder="Le titre de l'article" className="field ui-element ui-size-fluid"/>*/}
+                <div className="ui-container ui-size-fluid head ui-vertical-center">
+                    <div className={"ui-container ui-size-7 title " + (this.state.title.length ? '' : 'empty')}
+                        onClick={()=>this.toggleConfigurationBox()}
+                    >
+                        {this.state.title.length ? this.state.title : "Le titre de l'article"}
                     </div>
-                    <div className="ui-container ui-size-3">
-                        <Writing.RenderSelect
-                            label="Catégorie"
-                            list={this.state.categories}
-                            value={this.state.category}
-                            onChange={(e)=>{
-                                this.setState(state => {
-                                    return {
-                                        ...state,
-                                        category: e.target.value
-                                    }
-                                })
+                    <div className="ui-container ui-size-5 ui-horizontal-right actions">
+                        <IconButton
+                            sx={{
+                                color: 'black'
                             }}
-                        />
-                    </div>
-                    <div className="ui-container ui-size-3 actions">
-                        <Button className="ui-element ui-size-fluid"
-                                variant="outlined"
-                                onClick={()=> this.submit() }
+                            onClick={()=>this.toggleConfigurationBox()}
                         >
-                            Publier
-                        </Button>
+                            <Icon icon="cog"/>
+                        </IconButton>
+                        <IconButton
+                            sx={{
+                                color: '#348'
+                            }}
+                            onClick={()=>this.submit()}
+                        >
+                            <Icon icon="save"/>
+                        </IconButton>
+                        <IconButton sx={{
+                            color: 'black'
+                        }}>
+                            <Icon icon="business-time"/>
+                        </IconButton>
                     </div>
                 </div>
                 <div className="ui-container ui-size-fluid ui-fluid-height ui-scroll-y">
@@ -160,6 +199,69 @@ export default class Redactor extends AlertableComponent{
                         } }
                     />
                 </div>
+                <Main.DialogBox
+                    title="Informations de l'article"
+                    open={this.state.openConfig}
+                    content = {
+                        <Box className="ui-container ui-vwidth-10 ui-md-vwidth-6">
+                            <TextField
+                                className="ui-element ui-size-fluid"
+                                label="Le titre de l'article"
+                                variant="outlined"
+                                value={this.state.title}
+                                onChange={(e)=>{
+                                    this.updateData('title', e.target.value);
+                                }}
+                            />
+                            <Box sx={{padding: '1em 0', width: '100%'}}>
+                                <Writing.RenderSelect
+                                    label="Catégorie"
+                                    list={this.state.categories}
+                                    value={this.state.category}
+                                    onChange={(e)=>{
+                                        this.updateData('category', e.target.value);
+                                    }}
+                                />
+                            </Box>
+                            <div className="ui-container ui-size-fluid ui-vertical-center">
+                                <Switch checked={this.state.publishauto}
+                                    onChange={(e)=>{
+                                        this.updateData('publishauto', e.target.checked);
+                                    }}
+                                />
+                                <label>Publier automatiquement</label>
+                            </div>
+                            {
+                                this.state.publishauto ? null :
+                                <Grid container alignItems="center" sx={{padding: '.5em 0', width: '100%'}}>
+                                    <Grid item sx={{padding: '0', width: '50%'}}>
+                                        <TextField
+                                            className="ui-container ui-size-fluid"
+                                            type="date"
+                                            value={this.state.date}
+                                            onChange={(e)=>{
+                                                this.updateData('date', e.target.value);
+                                            }}
+                                        />
+                                    </Grid>
+                                    <Grid item sx={{padding: '0', width: '50%'}}>
+                                        <TextField
+                                            className="ui-container ui-size-fluid"
+                                            type="time"
+                                            value={this.state.time}
+                                            onChange={(e)=>{
+                                                this.updateData('time', e.target.value);
+                                            }}
+                                        />
+                                    </Grid>
+                                </Grid>
+                            }
+                        </Box>
+                    }
+                    buttons={
+                        <Button onClick={()=>this.toggleConfigurationBox(false)}>Ok</Button>
+                    }
+                />
                 {super.renderDialog()}
             </div>
         )

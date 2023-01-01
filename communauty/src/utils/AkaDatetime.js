@@ -232,6 +232,44 @@ var AkaDatetime = function(dateString){
     this.isWeekEnd = function(){
         return weekDay > 5 || weekDay < 1;
     }
+    //@new
+    function refresh(){
+        var date_array = AkaDatetime.toDate(stamp);
+        date = date_array.slice(0,3);
+        time = date_array.slice(3,3);
+        setWeekDay();
+    }
+
+    //@new
+    /**
+     * @param AkaDateTime $min
+     * @param AkaDateTime $max
+     * @return bool
+     */
+    this.isBetween = function(min, max, strict){
+        var strict = strict == undefined ? false : strict;
+        if(strict){
+            return stamp > min.getStamp() && stamp < max.getStamp();
+        }
+        return stamp >= min.getStamp() && stamp <= max.getStamp();
+    }
+
+    //@new
+    this.add = function(date){
+        stamp += date.getStamp();
+        refresh();
+        return this;
+    }
+
+    //@new
+    this.sub = function(date){
+        stamp -= date.getStamp();
+        if(stamp < 0){
+            stamp = 0;
+        }
+        refresh();
+        return this;
+    }
 
     /**
      * @param int $sum
@@ -339,45 +377,6 @@ var AkaDatetime = function(dateString){
     }
 
     //@new
-    function refresh(){
-        var date_array = AkaDatetime.toDate(stamp);
-        date = date_array.slice(0,3);
-        time = date_array.slice(3,3);
-        setWeekDay();
-    }
-
-    //@new
-    /**
-     * @param AkaDateTime $min
-     * @param AkaDateTime $max
-     * @return bool
-     */
-    this.isBetween = function(min, max, strict){
-        var strict = strict == undefined ? false : strict;
-        if(strict){
-            return stamp > min.getStamp() && stamp < max.getStamp();
-        }
-        return stamp >= min.getStamp() && stamp <= max.getStamp();
-    }
-
-    //@new
-    this.add = function(date){
-        stamp += date.getStamp();
-        refresh();
-        return this;
-    }
-
-    //@new
-    this.sub = function(date){
-        stamp -= date.getStamp();
-        if(stamp < 0){
-            stamp = 0;
-        }
-        refresh();
-        return this;
-    }
-
-    //@new
     AkaDatetime.sum = function(date1, date2){
         var date = new AkaDatetime('00:00:00');
         return date.add(date1).add(date2);
@@ -394,6 +393,129 @@ var AkaDatetime = function(dateString){
     }
 
     extract(this.stringify(dateString));
+}
+
+
+
+/**
+ * @param int $sum
+ * @return int[]
+ */
+AkaDatetime.toDate = function(sum){
+    var seconds = sum % 60,
+        minutes = Math.floor(sum / 60),
+        hours = Math.floor(minutes / 60);
+    minutes %= 60;
+    var days = Math.floor(hours / 24);
+    hours %= 24;
+    var year = 0,
+        ttl = 0;
+
+    while(true){
+        ttl += AkaDatetime.getYearDayQty(year);
+        year++;
+        if(days - ttl <= 365){
+            if(days -  ttl < 0){
+                ttl -= AkaDatetime.getYearDayQty(year - 1);
+                year--;
+            }
+            break;
+        }
+    }
+    days -= ttl;
+    ttl = 0;
+    for(var month = 1; month <= 12; month++){
+        ttl += AkaDatetime.getMonthDayQty(month, year);
+        if(days - ttl <= 0){
+            ttl -= AkaDatetime.getMonthDayQty(month, year);
+            break;
+        }
+    }
+    days -= ttl;
+    return [year, month, days, hours, minutes, seconds];
+}
+
+/**
+ * @param int $year
+ * @return int
+ */
+AkaDatetime.isBissextileYear = function(year){
+    return year % 4 == 0;
+}
+
+/**
+ * @param int $year
+ * @return int
+ */
+AkaDatetime.getYearDayQty = function(year){
+    return AkaDatetime.isBissextileYear(year) ? 366 : 365;
+}
+
+/**
+ * @param int $month
+ * @param int $year
+ * @return int
+ */
+AkaDatetime.getMonthDayQty = function(month, year){
+    year = typeof year == "undefined" ? 1 : year;
+    if(month < 1){
+        return 0;
+    }
+    else if(month < 8){
+        if(month % 2){
+            return 31;
+        }
+        else if(month == 2){
+            return AkaDatetime.isBissextileYear(year) ? 29 : 28;
+        }
+        return 30;
+    }
+    else{
+        if(month % 2){
+            return 30;
+        }
+        return 31;
+    }
+}
+
+/**
+ * @param string $date
+ * @return false|int
+ */
+AkaDatetime.isDate = function(date){
+    return /^[0-9]{4}(-[0-9]{2}){2}$/.test(date);
+}
+
+/**
+ * @param string $datetime
+ * @return false|int
+ */
+AkaDatetime.isDateTime = function(datetime){
+    return /^[0-9]{4}(-[0-9]{2}){2} [0-9]{2}(:[0-9]{2}){1,2}$/.test(datetime);
+}
+
+/**
+ * @param string $time
+ * @return false|int
+ */
+AkaDatetime.isTime = function(time){
+    return /^[0-9]{2}(:[0-9]{2}){1,2}$/.test(time);
+}
+
+//@new
+AkaDatetime.sum = function(date1, date2){
+    var date = new AkaDatetime('00:00:00');
+    return date.add(date1).add(date2);
+}
+
+//@new
+AkaDatetime.diff = function(date1, date2){
+    var date = new AkaDatetime('00:00:00');
+    return date.add(date1).sub(date2);
+}
+
+AkaDatetime.now = function(){
+    return new AkaDatetime(new Date()).getDateTime();
 }
 
 if(module !== undefined && module.exports !== undefined){

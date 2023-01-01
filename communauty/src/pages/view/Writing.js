@@ -4,7 +4,16 @@ import Field from "../../components/Field";
 // import SpeedDial from "../../components/SpeedDial";
 import Link from "../../components/Link";
 import {Icon} from "../../components/Header";
-import {FormControl, InputLabel, MenuItem, Select, SpeedDial, SpeedDialAction, SpeedDialIcon} from "@mui/material";
+import {
+    Button,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+    SpeedDial,
+    SpeedDialAction,
+    SpeedDialIcon
+} from "@mui/material";
 import Route from "../../utils/Route";
 import BlankLoader from "./BlankLoader";
 import Main from "../Main";
@@ -18,7 +27,8 @@ export default class Writing extends Component{
             loading: true,
             currentCategory: 0,
             categories: {},
-            articles: []
+            articles: [],
+            draft: 0
         }
     }
 
@@ -27,6 +37,7 @@ export default class Writing extends Component{
             let r = {
                 0: 'Toutes les catégories'
             };
+            console.log('[Write]',e);
             for(let i in e.categories){
                 r[e.categories[i].id] = e.categories[i].name;
             }
@@ -37,7 +48,8 @@ export default class Writing extends Component{
                     categories: r
                 }
             })
-        })
+        });
+        this.setState(state => {return {...state, draft: Management.getDraft().length }});
     }
 
     static RenderSelect(props){
@@ -77,6 +89,12 @@ export default class Writing extends Component{
                             }}
                         />
                     </div>
+                    {
+                        !this.state.draft ? null:
+                        <Button color="warning">
+                            Brouillons ({this.state.draft})
+                        </Button>
+                    }
                 </div>
                 <div className="ui-container ui-size-fluid ui-height-10 grid">
 

@@ -13,7 +13,7 @@ import ResponseCode from "../utils/ResponseCode";
 
 export default class Management{
     static storage = null;
-    static data = null;
+    static data = {}    ;
 
     static getRoutes(){
         return {
@@ -134,22 +134,43 @@ export default class Management{
         }
     }
 
+    static async commit(){
+        try {
+            await Management.storage.setItem('agent', JSON.stringify(Management.data));
+        }catch (e) {
+            console.error('[Error]',e, Management.storage);
+        }
+    }
+
+    static async retrieve(){
+        try{
+            let data = await Management.storage.getItem('agent');
+            data = JSON.parse(data);
+            Management.data = data;
+            return data;
+        }catch(e){
+            console.error('[Error]',e);
+        }
+        return {};
+    }
+
     static async getWritingDatas(){
         return new Promise((res)=>{
             if('categories' in Management.data){
-                if('writing' in Management.data.categories){
+                if('writing' in Management.data.categories && Management.data.categories.length){
                     return res(Management.data.categories.writing);
                 }
             }
             Main.socket
-                .emit("/writing", Management.defaultQuery())
-                .on("/writing/data", (e)=>{
-                    const data = e.data;
-                    Management.setCategoriesStorage()
-                        .data.categories.writing = data.categories;
-                    Management.data.articles = data.articles;
-                    res(data);
-                });
+            .emit("/writing", Management.defaultQuery())
+            .on("/writing/data", async(e)=>{
+                const data = e.data;
+                Management.setCategoriesStorage()
+                    .data.categories.writing = data.categories;
+                Management.data.articles = data.articles;
+                await Management.commit();
+                res(data);
+            });
         });
     }
 
@@ -160,10 +181,11 @@ export default class Management{
                 ...Management.defaultQuery(),
                 sector: sector == 'writing' ? 'A' : 'P'
             })
-            .once("/"+sector+"/category/get", (data)=>{
+            .once("/"+sector+"/category/get", async(data)=>{
                 if(data.error){
                    return rej(Management.readCode(data.code));
                 }
+                await Management.commit();
                 res(data.data);
             });
         })
@@ -175,5 +197,31 @@ export default class Management{
 
     static async getPunchlinesCategory(){
         return await Management.getCategory('punchline');
+    }
+
+    static async addDraft(data){
+        if(!('draft' in Management.data)){
+            Management.data.draft = [];
+        }
+        if('index' in data){
+            Management.data.draft[data.index] = data;
+        }
+        else {
+            data.index = Management.data.draft.length;
+            Management.data.draft.push(data);
+        }
+        await Management.commit();
+    }
+
+    static getDraft(index = null){
+        if(!('draft' in Management.data)){
+            Management.data.draft = [];
+        }
+        if(index === null){
+            return Management.data.draft;
+        }
+        else{
+            return index in Management.data.draft ? Management.data.draft[index] : null;
+        }
     }
 }

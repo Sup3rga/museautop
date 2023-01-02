@@ -1,8 +1,4 @@
 import React,{Component} from "react";
-import Ckeditor from '@ckeditor/ckeditor5-react';
-import Field from "../../components/Field";
-// import SpeedDial from "../../components/SpeedDial";
-import Link from "../../components/Link";
 import {Icon} from "../../components/Header";
 import {
     Button,
@@ -18,6 +14,8 @@ import Route from "../../utils/Route";
 import BlankLoader from "./BlankLoader";
 import Main from "../Main";
 import Management from "../../utils/Management";
+import {ArticlePreview} from "../../components/ArticleThumbnail";
+import Filter from "../../utils/Filter";
 
 export default class Writing extends Component{
 
@@ -33,19 +31,20 @@ export default class Writing extends Component{
     }
 
     componentDidMount() {
-        Management.getWritingDatas().then(e => {
+        Management.getWritingDatas().then(data => {
             let r = {
                 0: 'Toutes les catégories'
             };
-            console.log('[Write]',e);
-            for(let i in e.categories){
-                r[e.categories[i].id] = e.categories[i].name;
+            let {categories = {}, articles = []} = data;
+            for(let i in categories){
+                r[categories[i].id] = categories[i].name;
             }
             this.setState(state => {
                 return  {
                     ...state,
                     loading: false,
-                    categories: r
+                    categories: r,
+                    articles: articles
                 }
             })
         });
@@ -96,8 +95,25 @@ export default class Writing extends Component{
                         </Button>
                     }
                 </div>
-                <div className="ui-container ui-size-fluid ui-height-10 grid">
-
+                <div className="ui-element ui-size-fluid ui-height-10 article-list">
+                    {
+                        this.state.articles.map((data, index)=>{
+                            console.log('[Data]',data);
+                            let props = Filter.object(data, [
+                                'title','caption','reading','category',
+                                'likes','dislikes','createdBy', 'modifiedBy', 'id'
+                            ]);
+                            if(props.modifiedBy.id  === props.createdBy.id){
+                                props.modifiedBy = null;
+                            }
+                            return <ArticlePreview
+                                key={index}
+                                adminMod={true}
+                                skeleton={!('id' in data)}
+                                {...props}
+                            />
+                        })
+                    }
                 </div>
                 <SpeedDial sx={{ position: 'absolute', bottom: 70, right: 16 }}
                     icon={<SpeedDialIcon/>}

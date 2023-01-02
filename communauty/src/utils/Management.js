@@ -224,4 +224,34 @@ export default class Management{
             return index in Management.data.draft ? Management.data.draft[index] : null;
         }
     }
+
+    static async getArticle(id){
+        return new Promise(async (res,rej)=>{
+            let article = null;
+
+            if(!('articles' in  Management.data)){
+                Management.data.articles = [];
+                await Management.commit();
+            }
+            for(let i in Management.data.articles){
+                if(Management.data.articles[i].id === id){
+                    article = Management.data.articles[i];
+                    break;
+                }
+            }
+            if(article){
+                return res(article);
+            }
+            Main.socket.emit('/articles', {
+                ...Management.defaultQuery(),
+                artid: id
+            }).once('/articles/get', async(data)=>{
+                if(data.error){
+                    return res(article);
+                }
+                Management.data.articles.push(data.data);
+                res(data.data);
+            });
+        })
+    }
 }

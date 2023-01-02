@@ -11,6 +11,8 @@ import Writing from "./Writing";
 import AlertableComponent from "./AlertableComponent";
 import Route from "../../utils/Route";
 import {Icon} from "../../components/Header";
+import BlankLoader from "./BlankLoader";
+import Url from "../../utils/Url";
 
 
 export default class Redactor extends AlertableComponent{
@@ -26,8 +28,10 @@ export default class Redactor extends AlertableComponent{
             publishauto: false,
             categories: {},
             category: '',
+            loading: true,
             img: [],
-            openConfig: false
+            openConfig: false,
+            edit: null
         }
     }
 
@@ -45,7 +49,27 @@ export default class Redactor extends AlertableComponent{
                     categories: r
                 }
             });
-        })
+        });
+        let edition = /^\/writing\/new\/([0-9]+)/.test(Url.get());
+        if(!edition){
+            return this.updateData('loading', false);
+        }
+        const id = RegExp.$1;
+        Management.getArticle(id).then((data)=>{
+            if(!data){
+                return Route.back();
+            }
+            this.setState(state => {
+                return {
+                    ...state,
+                    title: data.title,
+                    content: data.content,
+                    category: data.category.id,
+                    loading: false,
+                    edit: data
+                }
+            });
+        });
     }
 
     componentWillUnmount() {
@@ -144,6 +168,10 @@ export default class Redactor extends AlertableComponent{
     }
 
     render() {
+        if(this.state.loading){
+            return <BlankLoader/>
+        }
+        console.log('[State]',this.state);
         return (
             <div className="ui-container editor ui-size-fluid ui-fluid-height">
                 <div className="ui-container ui-size-fluid head ui-vertical-center">

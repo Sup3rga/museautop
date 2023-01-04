@@ -10,6 +10,7 @@ import Redactor from "../pages/view/Redactor";
 import Category from "../pages/view/Category";
 import Main from "../pages/Main";
 import ResponseCode from "../utils/ResponseCode";
+import ArticlesDraft from "../pages/view/ArticlesDraft";
 
 export default class Management{
     static storage = null;
@@ -53,6 +54,9 @@ export default class Management{
             },
             "/writing/category":{
                 view: <Category/>
+            },
+            "/writing/draft":{
+                view: <ArticlesDraft/>
             }
         };
     }
@@ -191,6 +195,20 @@ export default class Management{
         })
     }
 
+    static getCategoryName(sector,id){
+        let name = null;
+        if(['writing','punchlines'].indexOf(sector) < 0) return name;
+        //we defined category storage if not exists;
+        Management.setCategoriesStorage();
+        let list = Management.data.categories[sector];
+        for(let i in list){
+            if(list[i].id == id){
+                name = list[i].name;
+            }
+        }
+        return name;
+    }
+
     static async getArticlesCategory(){
         return await Management.getCategory('writing');
     }
@@ -211,6 +229,22 @@ export default class Management{
             Management.data.draft.push(data);
         }
         await Management.commit();
+    }
+
+    static removeDraft(index){
+        if(!('draft' in Management.data)){
+            Management.data.draft = [];
+        }
+        const r = [];
+        let item;
+        for(let i in Management.data.draft){
+            if(i != index){
+                item = Management.data.draft[i];
+                item.index = i;
+                r.push(item);
+            }
+        }
+        Management.data.draft = r;
     }
 
     static getDraft(index = null){
@@ -252,6 +286,19 @@ export default class Management{
                 Management.data.articles.push(data.data);
                 res(data.data);
             });
+        })
+    }
+
+    static async commitRedaction(data){
+        return new Promise((res,rej)=>{
+            Main.socket
+            .emit("/writing/write", data)
+            .once('/writing/write/response', (data)=>{
+                if(data.error){
+                    return rej(Management.readCode(data.code));
+                }
+                res(data);
+            })
         })
     }
 }

@@ -1,11 +1,10 @@
 import React from 'react';
 import {CKEditor} from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
-// import DefaultEditor from "./DefaultEditor";
 import Events from "../../utils/Events";
 import UploadAdapter from "../../utils/UploadAdapter";
 import Main from "../Main";
-import {Button, CircularProgress, TextField, Typography, Box, IconButton, Grid, Switch} from "@mui/material";
+import {Button, TextField, Box, IconButton, Grid, Switch} from "@mui/material";
 import Management from "../../utils/Management";
 import Writing from "./Writing";
 import AlertableComponent from "./AlertableComponent";
@@ -13,6 +12,7 @@ import Route from "../../utils/Route";
 import {Icon} from "../../components/Header";
 import BlankLoader from "./BlankLoader";
 import Url from "../../utils/Url";
+import AkaDatetime from '../../utils/AkaDatetime';
 
 
 export default class Redactor extends AlertableComponent{
@@ -50,15 +50,37 @@ export default class Redactor extends AlertableComponent{
                 }
             });
         });
-        let edition = /^\/writing\/new\/([0-9]+)/.test(Url.get());
+        let edition = /^\/writing\/new\/((?:dft-)?[0-9]+)/.test(Url.get());
         if(!edition){
             return this.updateData('loading', false);
         }
         const id = RegExp.$1;
+        if(!/^[0-9]/.test(id)){
+            const data = Management.getDraft(id.replace(/dft-/, ''));
+            if(!data){
+                return Route.back();
+            }
+            this.setState(state => {
+               return {
+                   ...state,
+                   loading: false,
+                   title: data.title,
+                   content: data.content,
+                   category: data.category,
+                   publishauto: data.publishauto,
+                   date: data.date,
+                   time: data.time,
+                   draft: true,
+                   edit: data
+               }
+            });
+            return;
+        }
         Management.getArticle(id).then((data)=>{
             if(!data){
                 return Route.back();
             }
+            const schedule = new AkaDatetime(data.postOn);
             this.setState(state => {
                 return {
                     ...state,
@@ -66,6 +88,8 @@ export default class Redactor extends AlertableComponent{
                     content: data.content,
                     category: data.category.id,
                     loading: false,
+                    date: schedule.getDate(),
+                    time: schedule.getTime(),
                     edit: data
                 }
             });
@@ -83,7 +107,7 @@ export default class Redactor extends AlertableComponent{
             let image;
             for (let i = 0; i < extract.length; i++) {
                 image = extract[i].replace(/^<img src="(.+?)">/, '$1');
-                if (i == 0) {
+                if (i === 0) {
                     this.state.caption = image;
                 }
                 this.state.img.push(image);
@@ -92,7 +116,7 @@ export default class Redactor extends AlertableComponent{
     }
 
     submit(){
-        if(!this.state.title.length || !this.state.content.length || !this.state.category.length){
+        if(!this.state.title.length || !this.state.content.length || !this.state.category.toString().length){
             this.toggleDialog({
                 open: true,
                 content: "Vous devez soumettre un article avec au moins un titre, un contenu dans une catégorie spécifique"
@@ -103,7 +127,7 @@ export default class Redactor extends AlertableComponent{
         this.extractImg();
         this.showLoading();
         const schedule = this.state.publishauto || !this.state.date.length || !this.state.time.length ? null : this.state.date+' '+this.state.time;
-        Main.socket.emit("/writing/write", {
+        const data = {
             title: this.state.title,
             content: this.state.content,
             caption: this.state.caption,
@@ -111,22 +135,32 @@ export default class Redactor extends AlertableComponent{
             schdate: schedule,
             img: this.state.img,
             ...Management.defaultQuery()
-        }).once('/writing/write/response', (data)=>{
-            if(data.error){
-                this.toggleDialog({
-                    content: Management.readCode(data.code),
-                    manual: true
-                });
-                return;
+        };
+        if(this.state.edit && 'id' in this.state.edit){
+            data.id = this.state.edit.id;
+        }
+        Management
+        .commitRedaction(data)
+        .then((data)=>{
+            if(this.state.edit && this.state.edit.draft){
+                Management.removeDraft(this.state.edit.index);
             }
             this.toggleDialog({open: false});
             this.toggleSnack({
                 content: Management.readCode(data.code)
             });
-            setTimeout(()=>{
-                Route.back();
-            }, 300);
-        });
+            if(!this.state.edit || !('id' in this.state.edit)) {
+                setTimeout(() => {
+                    Route.back();
+                }, 300);
+            }
+        })
+        .catch((message)=>{
+            this.toggleDialog({
+                content: Management.readCode(data.code),
+                manual: true
+            });
+        })
     }
 
     async save(){
@@ -144,14 +178,23 @@ export default class Redactor extends AlertableComponent{
                 content: "Les images uploadés de votre article sont disponibles seulement pour 5 jours !"
             });
         }
-       await Management.addDraft({
+        let draft = this.state.edit ? this.state.edit : {};
+        draft = {
+            ...draft,
             title: this.state.title,
             content: this.state.content,
             category: this.state.category,
+            lastModified: AkaDatetime.now(),
+            publishauto: this.state.publishauto,
             date: this.state.date,
             time: this.state.time,
             draft: true
-        });
+        };
+        if(this.state.edit && this.state.edit.draft){
+            draft.index = this.state.edit.index;
+        }
+       await Management.addDraft(draft);
+        Route.back();
     }
 
     toggleConfigurationBox(open = true){
@@ -171,7 +214,6 @@ export default class Redactor extends AlertableComponent{
         if(this.state.loading){
             return <BlankLoader/>
         }
-        console.log('[State]',this.state);
         return (
             <div className="ui-container editor ui-size-fluid ui-fluid-height">
                 <div className="ui-container ui-size-fluid head ui-vertical-center">
@@ -197,9 +239,12 @@ export default class Redactor extends AlertableComponent{
                         >
                             <Icon icon="save"/>
                         </IconButton>
-                        <IconButton sx={{
-                            color: 'black'
-                        }}>
+                        <IconButton
+                            sx={{
+                                color: 'black'
+                            }}
+                            onClick={()=>this.save()}
+                        >
                             <Icon icon="business-time"/>
                         </IconButton>
                     </div>
@@ -251,38 +296,44 @@ export default class Redactor extends AlertableComponent{
                                     }}
                                 />
                             </Box>
-                            <div className="ui-container ui-size-fluid ui-vertical-center">
-                                <Switch checked={this.state.publishauto}
-                                    onChange={(e)=>{
-                                        this.updateData('publishauto', e.target.checked);
-                                    }}
-                                />
-                                <label>Publier automatiquement</label>
-                            </div>
                             {
-                                this.state.publishauto ? null :
-                                <Grid container alignItems="center" sx={{padding: '.5em 0', width: '100%'}}>
-                                    <Grid item sx={{padding: '0', width: '50%'}}>
-                                        <TextField
-                                            className="ui-container ui-size-fluid"
-                                            type="date"
-                                            value={this.state.date}
-                                            onChange={(e)=>{
-                                                this.updateData('date', e.target.value);
-                                            }}
+                                //We cant schedule published articles !!!
+                                this.state.edit && this.state.edit.published ? null:
+                                <>
+                                    <div className="ui-container ui-size-fluid ui-vertical-center">
+                                        <Switch checked={this.state.publishauto}
+                                                onChange={(e)=>{
+                                                    this.updateData('publishauto', e.target.checked);
+                                                }}
                                         />
-                                    </Grid>
-                                    <Grid item sx={{padding: '0', width: '50%'}}>
-                                        <TextField
-                                            className="ui-container ui-size-fluid"
-                                            type="time"
-                                            value={this.state.time}
-                                            onChange={(e)=>{
-                                                this.updateData('time', e.target.value);
-                                            }}
-                                        />
-                                    </Grid>
-                                </Grid>
+                                        <label>Publier automatiquement</label>
+                                    </div>
+                                    {
+                                        this.state.publishauto ? null :
+                                        <Grid container alignItems="center" sx={{padding: '.5em 0', width: '100%'}}>
+                                            <Grid item sx={{padding: '0', width: '50%'}}>
+                                                <TextField
+                                                    className="ui-container ui-size-fluid"
+                                                    type="date"
+                                                    value={this.state.date}
+                                                    onChange={(e)=>{
+                                                        this.updateData('date', e.target.value);
+                                                    }}
+                                                />
+                                            </Grid>
+                                            <Grid item sx={{padding: '0', width: '50%'}}>
+                                                <TextField
+                                                    className="ui-container ui-size-fluid"
+                                                    type="time"
+                                                    value={this.state.time}
+                                                    onChange={(e)=>{
+                                                        this.updateData('time', e.target.value);
+                                                    }}
+                                                />
+                                            </Grid>
+                                        </Grid>
+                                    }
+                                </>
                             }
                         </Box>
                     }

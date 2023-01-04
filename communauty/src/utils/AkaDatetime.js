@@ -8,17 +8,6 @@ var AkaDatetime = function(dateString){
     AkaDatetime.LESS_THAN = 0;
     AkaDatetime.MORE_THAN = 2;
 
-    function setWeekDay(){
-        var weekSum = 7 * 24 * 60 * 60,
-            sum = stamp;
-        while(sum - weekSum > 0){
-            sum -= weekSum;
-        }
-        var date_array = AkaDatetime.toDate(sum);
-        var _weekDay = date_array[2] - AkaDatetime.VERY_FIRST_DAY_DISTANCE;
-        weekDay =  _weekDay < 0 ? 7 + _weekDay : _weekDay;
-    }
-
     this.getWeekDay = function(){
         return weekDay;
     }
@@ -28,6 +17,9 @@ var AkaDatetime = function(dateString){
     }
 
     this.stringify = function(date){
+        if(date == undefined){
+            date = new Date();
+        }
         if(date instanceof Date){
             return padding(date.getFullYear(),4)+"-"+padding(date.getMonth()+1,2)+"-"+padding(date.getDate(),2)+
                    " "+padding(date.getHours(),2)+":"+padding(date.getMinutes(),2)+":"+padding(date.getSeconds(),2);
@@ -67,15 +59,6 @@ var AkaDatetime = function(dateString){
 
     this.getDateTime = function(){
         return this.getDate() + " " + this.getTime();
-    }
-
-    function padding(val, _padding, _default){
-        _padding = typeof _padding == "undefined" ? 0 : _padding;
-        _default = typeof _default == "undefined" ? "0" : _default;
-        for(var i = 0, j = _padding - (val+"").length; i < j; i++){
-            val = _default + val;
-        }
-        return val;
     }
 
     /**
@@ -122,10 +105,33 @@ var AkaDatetime = function(dateString){
         return time[2];
     }
 
+    function setWeekDay(){
+        var weekSum = 7 * 24 * 60 * 60,
+            sum = stamp;
+        while(sum - weekSum > 0){
+            sum -= weekSum;
+        }
+        var date_array = AkaDatetime.toDate(sum);
+        var _weekDay = date_array[2] - AkaDatetime.VERY_FIRST_DAY_DISTANCE;
+        weekDay =  _weekDay < 0 ? 7 + _weekDay : _weekDay;
+    }
+
+    function padding(val, _padding, _default){
+        _padding = typeof _padding == "undefined" ? 0 : _padding;
+        _default = typeof _default == "undefined" ? "0" : _default;
+        for(var i = 0, j = _padding - (val+"").length; i < j; i++){
+            val = _default + val;
+        }
+        return val;
+    }
+
     /**
      * @param string $date
      */
     function extract(_date){
+        if(_date == undefined){
+            _date = AkaDatetime.now();
+        }
         if(AkaDatetime.isDate(_date)){
             var list = _date.replace(/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/, "$1 $2 $3").split(" ");
             for(var i in list){
@@ -174,6 +180,14 @@ var AkaDatetime = function(dateString){
         var date_array = AkaDatetime.toDate(stamp);
         date = date_array.slice(0,3);
         time = date_array.slice(3,6);
+        setWeekDay();
+    }
+
+    //@new
+    function refresh(){
+        var date_array = AkaDatetime.toDate(stamp);
+        date = date_array.slice(0,3);
+        time = date_array.slice(3,3);
         setWeekDay();
     }
 
@@ -231,13 +245,6 @@ var AkaDatetime = function(dateString){
 
     this.isWeekEnd = function(){
         return weekDay > 5 || weekDay < 1;
-    }
-    //@new
-    function refresh(){
-        var date_array = AkaDatetime.toDate(stamp);
-        date = date_array.slice(0,3);
-        time = date_array.slice(3,3);
-        setWeekDay();
     }
 
     //@new

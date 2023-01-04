@@ -14,7 +14,14 @@ export default class AlertableComponent extends React.Component{
                 title: '',
                 content: '',
                 open: false,
-                manual: true
+                manual: true,
+                actions: [
+                    <Button variant="text" onClick={()=>{
+                        this.toggleDialog({
+                            open: false
+                        })
+                    }}>Ok</Button>
+                ]
             },
             snack:{
                 open: false,
@@ -24,12 +31,12 @@ export default class AlertableComponent extends React.Component{
     }
 
     toggleDialog(data){
-        let {title=null, content = '', open = true, manual = true} = data;
+        let {title=null, content = '', open = true, manual = true, actions = this.state.dialog.actions} = data;
         this.setState(state => {
             return {
                 ...state,
                 dialog: {
-                    title, content, open, manual
+                    title, content, open, manual, actions
                 }
             }
         })
@@ -70,13 +77,7 @@ export default class AlertableComponent extends React.Component{
                     open={this.state.dialog.open}
                     title= {this.state.dialog.title}
                     content = {this.state.dialog.content}
-                    buttons = {!this.state.dialog.manual ? null : [
-                        <Button variant="text" onClick={()=>{
-                            this.toggleDialog({
-                                open: false
-                            })
-                        }}>Ok</Button>
-                    ]}
+                    buttons = {!this.state.dialog.manual ? null : this.state.dialog.actions}
                 />
                 <Snackbar
                     anchorOrigin={{

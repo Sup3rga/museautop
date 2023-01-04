@@ -11,6 +11,7 @@ import Category from "../pages/view/Category";
 import Main from "../pages/Main";
 import ResponseCode from "../utils/ResponseCode";
 import ArticlesDraft from "../pages/view/ArticlesDraft";
+import Events from "./Events";
 
 export default class Management{
     static storage = null;
@@ -62,7 +63,7 @@ export default class Management{
     }
 
     static getProjectName(){
-        return "Muse au top"
+        return "Mus au top"
     }
 
     static async connect(username, password){
@@ -92,6 +93,25 @@ export default class Management{
                 // console.log('[Error]',err);
                 rej("Une erreur est survénue lors de l'opération !");
             })
+        });
+    }
+
+    static async afterReady(){
+        return new Promise((res)=>{
+           if(Main.socket.connected){
+               return res();
+           }
+           const timer = setInterval(()=>{
+               if(Main.socket.connected){
+                   return clearInterval(timer);
+               }
+               console.log('[Retry] ... 5 seconds');
+               Main.retyConnection();
+           },5000);
+           Events.on('connected', ()=>{
+               clearInterval(timer);
+               res();
+           });
         });
     }
 
@@ -149,7 +169,9 @@ export default class Management{
     static async retrieve(){
         try{
             let data = await Management.storage.getItem('agent');
-            data = JSON.parse(data);
+            if(typeof data === 'string') {
+                data = JSON.parse(data);
+            }
             Management.data = data;
             return data;
         }catch(e){
@@ -159,18 +181,19 @@ export default class Management{
     }
 
     static async getWritingDatas(){
-        return new Promise((res)=>{
+        return new Promise(async (res)=>{
             if('categories' in Management.data){
                 if('writing' in Management.data.categories && Management.data.categories.length){
                     return res(Management.data.categories.writing);
                 }
             }
+            await Management.afterReady();
             Main.socket
             .emit("/writing", Management.defaultQuery())
             .on("/writing/data", async(e)=>{
                 const data = e.data;
                 Management.setCategoriesStorage()
-                    .data.categories.writing = data.categories;
+                .data.categories.writing = data.categories;
                 Management.data.articles = data.articles;
                 await Management.commit();
                 res(data);
@@ -179,7 +202,8 @@ export default class Management{
     }
 
     static async getCategory(sector){
-        return new Promise((res,rej)=>{
+        return new Promise(async (res,rej)=>{
+            await Management.afterReady();
             Main.socket
             .emit("/"+sector+"/category/fetch", {
                 ...Management.defaultQuery(),
@@ -214,7 +238,7 @@ export default class Management{
     }
 
     static async getPunchlinesCategory(){
-        return await Management.getCategory('punchline');
+        return await Management.getCategory('punchlines');
     }
 
     static async addDraft(data){
@@ -276,6 +300,7 @@ export default class Management{
             if(article){
                 return res(article);
             }
+            await Management.afterReady();
             Main.socket.emit('/articles', {
                 ...Management.defaultQuery(),
                 artid: id
@@ -300,5 +325,23 @@ export default class Management{
                 res(data);
             })
         })
+    }
+
+    static async commitCategory(data,sector){
+        return new Promise((res,rej)=>{
+            if(['punchlines', 'writing'].indexOf(sector) < 0){
+                return rej("unrecognized sector given !");
+            }
+            Main.socket
+            .emit('/'+sector+'/category/set', data)
+            .once('/'+sector+'/category/get', async (data)=>{
+                if(data.error){
+                    return rej(Management.readCode(data.code));
+                }
+                Management.data.categories[sector] = data.data;
+                await Management.commit();
+                res(data);
+            })
+        });
     }
 }

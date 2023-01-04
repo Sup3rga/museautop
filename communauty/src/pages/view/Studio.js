@@ -55,6 +55,12 @@ export default class Studio extends React.Component{
                         title={"bien"}
                         onClick={()=>Route.pushState('./studio/new')}
                     />
+                    <SpeedDialAction
+                        title="Catégorie"
+                        name="category"
+                        icon={<Icon icon="layer-group"/>}
+                        onClick={()=>Route.pushState('./studio/category')}
+                    />
                 </SpeedDial>
             </div>
         )

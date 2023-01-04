@@ -31,7 +31,9 @@ export default class Writing extends Component{
     }
 
     componentDidMount() {
+        console.log('[Mount]...')
         Management.getWritingDatas().then(data => {
+            console.log('[Data Writing]',data);
             let r = {
                 0: 'Toutes les catégories'
             };

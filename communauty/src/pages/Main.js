@@ -45,9 +45,10 @@ export default class Main extends React.Component{
             }
             this.branches[Management.data.branches[i].id] = Management.data.branches[i].domain;
         }
-        console.log('[Man]',this.branches);
+        // console.log('[Man]',this.branches);
         Main.socket.on("connected", ()=>{
             console.log('[Connected]');
+            Events.emit('connected');
         })
         this.state = {
             route: Url.get(),
@@ -62,6 +63,10 @@ export default class Main extends React.Component{
                 content: ''
             }
         }
+    }
+
+    static retyConnection(){
+        Main.socket = io.connect(Ressources.apis);
     }
 
     componentDidMount() {

@@ -6,6 +6,7 @@ import AlertableComponent from "./AlertableComponent";
 import Management from "../../utils/Management";
 import Url from "../../utils/Url";
 import Events from "../../utils/Events";
+import {EmptyView} from "./BlankLoader";
 
 
 export default class Category extends AlertableComponent{
@@ -31,7 +32,8 @@ export default class Category extends AlertableComponent{
     }
 
     componentDidMount() {
-        Management.getArticlesCategory().then((data)=>{
+        Management[this.sector == 'writing' ? 'getArticlesCategory' : 'getPunchlinesCategory']().then((data)=>{
+            console.log('[Data...',data);
             this.setState(state => {
                 return {
                     ...state,
@@ -124,7 +126,7 @@ export default class Category extends AlertableComponent{
         });
     }
 
-    submit(){
+    async submit(){
         let query = {
             save: [],
             del: [],
@@ -150,16 +152,12 @@ export default class Category extends AlertableComponent{
         }
         // console.log('[Sector]',this.sector,query);
         this.showLoading();
-        Main.socket
-        .emit('/'+this.sector+'/category/set', query)
-        .once('/'+this.sector+'/category/get', async (e)=>{
-            console.log('[E]',e);
+        try {
+            const data = await Management.commitCategory(query, this.sector);
             this.toggleDialog({
-                content: e.error ? e.message : Management.readCode(e.code),
+                content: data.message.length ? data.message : Management.readCode(data.code),
                 manual: true
-            })
-            Management.data.categories[this.sector] = e.data;
-            await Management.commit();
+            });
             this.submitable.save = [];
             this.submitable.delete = [];
             this.setState(state => {
@@ -167,10 +165,15 @@ export default class Category extends AlertableComponent{
                     ...state,
                     editMode: false,
                     name: '',
-                    list: e.data
+                    list: data.data
                 }
             })
-        });
+        }catch(message){
+            this.toggleDialog({
+                content: message,
+                manual: true
+            });
+        }
     }
 
     render() {
@@ -266,6 +269,12 @@ export default class Category extends AlertableComponent{
                 <div className="ui-container ui-size-fluid ui-scroll-y category-list">
                     <Grid container spacing={2}  sx={{width: '100%'}} >
                         {
+                            !this.state.list.length ?
+                                <EmptyView
+                                    text="Aucune catégorie n'a été définie"
+                                    icon={<Icon icon="filter"/>}
+                                />
+                            :
                             this.state.list.map((data,index)=>{
                                 return(
                                     <Grid item>

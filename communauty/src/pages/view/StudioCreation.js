@@ -4,9 +4,13 @@ import {Autocomplete, Button, InputAdornment, TextField} from "@mui/material";
 import {Icon} from "../../components/Header";
 import Writing from "./Writing";
 import AkaDatetime from "../../utils/AkaDatetime";
+import BlankLoader from "./BlankLoader";
+import Management from "../../utils/Management";
+import AlertableComponent from "./AlertableComponent";
+import Main from "../Main";
 
-export default class StudioCreation extends React.Component{
-
+export default class StudioCreation extends AlertableComponent{
+    static logo = {};
     constructor(props) {
         super(props);
         this.canvas = {
@@ -15,6 +19,7 @@ export default class StudioCreation extends React.Component{
         }
         this.inputFile = React.createRef();
         this.state = {
+            ...super.getState(),
             title: '',
             year: 0,
             artist: '',
@@ -36,6 +41,12 @@ export default class StudioCreation extends React.Component{
 
     draw(){
 
+    }
+
+    async getImage(file){
+        if(file instanceof Blob){
+            // let new Fi
+        }
     }
 
     loadImage(){
@@ -66,7 +77,23 @@ export default class StudioCreation extends React.Component{
     componentDidMount() {
         Events.emit("set-prev",true);
         setTimeout(()=>{Events.emit("set-prev",true);},300);
-
+        if(StudioCreation.logo[Main.branch]){
+            return this.changeState({
+                logo: StudioCreation.logo[Main.branch],
+                ready: true
+            })
+        }
+        Management.getLogo().then((data)=>{
+            StudioCreation.logo[Main.branch] = data.data;
+            this.changeState({
+                logo: StudioCreation.logo[Main.branch],
+                ready: true
+            })
+        }).catch((message)=>{
+            this.toggleDialog({
+                content: message
+            });
+        });
     }
 
 
@@ -100,15 +127,21 @@ export default class StudioCreation extends React.Component{
                     </div>
                 </div>
                 <div className="ui-container ui-fluid ui-column ui-row-reverse ui-scroll-y">
-                    <div className="ui-container ui-size-fluid ui-md-size-6 render ui-all-center">
+                    <div className="ui-container ui-relative ui-size-fluid ui-md-size-6 render ui-all-center">
                         <canvas
                             className="ui-container"
                             ref={this.canvas.element}
                             width={this.state.width}
                             height={this.state.height}
                         />
+                        {
+                            !this.state.ready ? null:
+                            <div className="ui-container ui-fluid ui-absolute mask">
+                                <BlankLoader/>
+                            </div>
+                        }
                         <input className="ui-element ui-hide" type="file" ref={this.inputFile}/>
-                        <div className="ui-container ui-size-fluid ui-unwrap">
+                        <div className="ui-container ui-size-fluid ui-unwrap actions">
                             <Button
                                 className="ui-size-4"
                                 variant="contained"

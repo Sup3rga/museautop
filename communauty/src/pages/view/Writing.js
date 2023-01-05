@@ -71,7 +71,6 @@ export default class Writing extends Component{
     }
 
     static AutoCompletion(props){
-        console.log('[val]',props.value);
         return (
             <Autocomplete
                 freeSolo

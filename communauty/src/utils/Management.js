@@ -329,8 +329,14 @@ export default class Management{
     }
 
     static async getLogo(){
-        const data = await Management.request('/logo/fetch',Management.defaultQuery(), '/logo/get');
-        console.log('[Data]',data);
+        try {
+            const data = await Management.request('/logo/fetch', Management.defaultQuery(), '/logo/get');
+            if (!data.error) {
+                data.data = new Blob([data.data]);
+            }
+        }catch(err){
+            throw err;
+        }
         return data;
     }
 

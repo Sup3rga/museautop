@@ -17,6 +17,7 @@ export default class Studio extends React.Component{
                             className="ui-element ui-size-fluid field"
                             label = "Catégorie"
                             value = "all"
+                            size="small"
                             list = {{
                                 all: "Tout"
                             }}
@@ -25,7 +26,8 @@ export default class Studio extends React.Component{
                     <div className="ui-element field-group ui-size-3">
                         <Writing.RenderSelect
                             className="ui-element ui-size-fluid field"
-                            label = "Année"
+                            label = "Artiste"
+                            size="small"
                             value = "all"
                             list = {{
                                 all: "Tout"
@@ -35,7 +37,8 @@ export default class Studio extends React.Component{
                     <div className="ui-element field-group ui-size-3">
                         <Writing.RenderSelect
                             className="ui-element ui-size-fluid field"
-                            label = "Filiale"
+                            label = "Année"
+                            size="small"
                             value = "all"
                             list = {{
                                 all: "Tout"

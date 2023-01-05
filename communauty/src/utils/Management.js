@@ -115,6 +115,20 @@ export default class Management{
         });
     }
 
+    static async request(emitSrc, data = null, listenSrc){
+        return new Promise(async (res,rej)=>{
+           await Management.afterReady();
+           Main.socket
+           .emit(emitSrc, data)
+           .on(listenSrc, (data)=>{
+               if(data.error){
+                   return rej(Management.readCode(data.code));
+               }
+               res(data);
+           })
+        });
+    }
+
     static setCategoriesStorage(){
         if(!('categories' in Management.data)){
             Management.data.categories = {
@@ -312,6 +326,12 @@ export default class Management{
                 res(data.data);
             });
         })
+    }
+
+    static async getLogo(){
+        const data = await Management.request('/logo/fetch',Management.defaultQuery(), '/logo/get');
+        console.log('[Data]',data);
+        return data;
     }
 
     static async commitRedaction(data){

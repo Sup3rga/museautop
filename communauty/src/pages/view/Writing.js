@@ -1,14 +1,15 @@
 import React,{Component} from "react";
 import {Icon} from "../../components/Header";
 import {
+    Autocomplete,
     Button,
-    FormControl,
+    FormControl, InputAdornment,
     InputLabel,
     MenuItem,
     Select,
     SpeedDial,
     SpeedDialAction,
-    SpeedDialIcon
+    SpeedDialIcon, TextField
 } from "@mui/material";
 import Route from "../../utils/Route";
 import BlankLoader, {EmptyView} from "./BlankLoader";
@@ -66,6 +67,46 @@ export default class Writing extends Component{
                     }
                 </Select>
             </FormControl>
+        )
+    }
+
+    static AutoCompletion(props){
+        console.log('[val]',props.value);
+        return (
+            <Autocomplete
+                freeSolo
+                id="free-solo-2-demo"
+                disableClearable
+                value={props.value ? props.value : null}
+                className={props.className}
+                options={props.options}
+                renderInput={(params) => {
+                    const startIcon = !props.startIcon ? null :  (
+                            <InputAdornment>
+                                {props.startIcon}
+                            </InputAdornment>
+                        ),
+                        endIcon = !props.endIcon ? null :  (
+                            <InputAdornment>
+                                {props.endIcon}
+                            </InputAdornment>
+                        );
+                    return (
+                            <TextField
+                                {...params}
+                                label={props.label}
+                                placeholder={props.placeholder ? props.placeholder.toString() : null}
+                                onChange={props.onChange ? props.onChange : null}
+                                InputProps={{
+                                    ...params.InputProps,
+                                    type: props.type ? props.type : 'text',
+                                    startAdornment: startIcon,
+                                    endAdornment: endIcon
+                                }}
+                            />
+                        )
+                }}
+            />
         )
     }
 

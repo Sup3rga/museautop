@@ -334,10 +334,10 @@ export default class Management{
             if (!data.error) {
                 data.data = new Blob([data.data]);
             }
+            return data;
         }catch(err){
             throw err;
         }
-        return data;
     }
 
     static async commitRedaction(data){

@@ -17,7 +17,15 @@ export default class StudioCreation extends AlertableComponent{
             element: React.createRef(),
             context: null
         }
+        this.cardConfig = {
+            retroBackground: 'rgb(50,70,100)',
+            textColor: 'rgb(255,255,255)',
+            rectBackground: 'rgb(255,255,255)',
+            rectColor: 'rgb(0,0,0)',
+            mask: 'rgba(0,0,0,0.6)'
+        };
         this.inputFile = React.createRef();
+        this.timer = null;
         this.state = {
             ...super.getState(),
             title: '',
@@ -39,14 +47,138 @@ export default class StudioCreation extends AlertableComponent{
         };
     }
 
-    draw(){
+    setPunchlineText(context,mod = 20){
+        let text = this.state.punchline,
+            result = '';
+        console.log('[Text]',text.length);
+        for(let i in text){
+            result += text[i]+(i % mod && i > 0 && i < text.length - 1 ? '' : '\n')
+        }
+        return result;
+    }
 
+    async draw(){
+        if(!StudioCreation.logo[Main.branch]){
+            return;
+        }
+        this.canvas.context = this.canvas.element.current.getContext('2d')
+        const canvas = this.canvas.element.current,
+              ctx = this.canvas.context,
+              legendRatio = 0.23,
+              legendPadding = 10,
+              legendHeight = canvas.height * legendRatio,
+              legendPosY = canvas.height * (1 - legendRatio),
+              logoSquare = legendHeight - legendPadding * 2,
+              logoPos = {
+                  x : canvas.width - legendPadding - logoSquare,
+                  y : legendPosY + legendPadding
+              };
+        console.log('[Draw]',this.canvas, this.state.image);
+        //Draw rectangle
+        ctx.fillStyle = this.cardConfig.retroBackground;
+        ctx.fillRect(0,0,canvas.width, canvas.height);
+        //Draw Image
+        if(this.state.image) {
+            const image = await this.getImage(this.state.image),
+                  cadran = {
+                      width: canvas.width,
+                      height: legendPosY,
+                      box: canvas.width * 0.8
+                  },
+                  img = {
+                    width: image.width,
+                    height: image.height,
+                    ratio: image.width / image.height
+                  },
+                  size = {
+                    width: img.width > cadran.box ? cadran.box : img.width,
+                    y: 0, x: 0
+                  };
+            size.height = size.width * img.ratio
+            size.y = cadran.height - size.height;
+            size.x = (cadran.width - size.width) / 2;
+            cadran.ratio = cadran.width / cadran.height;
+            ctx.drawImage(image, size.x, size.y, size.width, size.height);
+        }
+        //Draw mask
+        ctx.fillStyle = this.cardConfig.mask;
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        //Draw Punchline
+        const breakLength = 20;
+        let text = this.state.punchline;
+        text = !text.length ? '' : '« '+text+' »';
+        ctx.font = '14pt Merriweather-Bold';
+        let lineHeight = 0, lineSpacing = 8,
+            line = '',
+            k = 0,
+            breakit = false,
+            lines = [],
+            geo,dim;
+        ctx.fillStyle = this.cardConfig.textColor;
+        for(let i = 0; i < text.length; i++){
+            /*
+                If the number of characters is up to the breakLength, we will
+                watch to break after a word
+            * */
+            if(k >= breakLength){
+                breakit = true;
+            }
+            //Only after a white charactere
+            if( (/[\s]/.test(text[i]) && breakit) || (i == text.length - 1 && line.length)){
+                if(i == text.length - 1){
+                    line += text[i];
+                }
+                lines.push(line);
+                // console.log('[Line]',line);
+                line = '';
+                k = 0;
+                breakit = false;
+            }
+            line += text[i];
+            k++;
+        }
+        //we draw each line
+        for(let i in lines){
+            dim = ctx.measureText(lines[i]);
+            lineHeight += i == 0 ? 0 : dim.fontBoundingBoxAscent + lineSpacing;
+            geo = {
+                x: (canvas.width - dim.width + dim.actualBoundingBoxLeft + dim.actualBoundingBoxRight) / 2,
+                y: (canvas.height - legendHeight + dim.fontBoundingBoxAscent) / 2 + lineHeight
+            }
+            ctx.fillText(lines[i], geo.x, geo.y);
+        }
+        //Draw legend rect
+        ctx.fillStyle = this.cardConfig.rectBackground;
+        ctx.fillRect(0, canvas.height * (1 - legendRatio), canvas.width, legendHeight);
+        //Draw legend upline
+        ctx.fillStyle = this.cardConfig.retroBackground;
+        ctx.fillRect(0, legendPosY + legendPadding / 2, canvas.width, legendPadding / 4);
+        const logo = await this.getImage(StudioCreation.logo[Main.branch]);
+        ctx.drawImage(logo, logoPos.x, logoPos.y, logoSquare, logoSquare);
+        //Artiste Name
+        ctx.font = '22pt Rubik-Bold';
+        ctx.textAlign = 'center';
+        dim = ctx.measureText(this.state.artist.toUpperCase());
+        const artist = {
+            x: (canvas.width - dim.width + dim.actualBoundingBoxLeft + dim.actualBoundingBoxRight) / 2,
+            y: legendPosY + (legendHeight + dim.fontBoundingBoxAscent) / 2
+        };
+        ctx.fillStyle = this.cardConfig.rectColor;
+        ctx.fillText(this.state.artist.toUpperCase(), artist.x, artist.y);
     }
 
     async getImage(file){
-        if(file instanceof Blob){
-            // let new Fi
-        }
+        const image = new Image();
+        return new Promise((res)=>{
+            if(file instanceof Blob){
+                let read = new FileReader();
+                read.onload = ()=>{
+                    image.src = read.result;
+                    res(image);
+                }
+                read.readAsDataURL(file);
+            }
+        })
     }
 
     loadImage(){
@@ -72,6 +204,12 @@ export default class StudioCreation extends AlertableComponent{
                [index] : value
             }
         });
+        if(['artist','punchline','image'].indexOf(index) >= 0){
+            this.timer = setTimeout(()=>{
+                clearTimeout(this.timer);
+                this.draw();
+            },200);
+        }
     }
 
     componentDidMount() {
@@ -85,10 +223,11 @@ export default class StudioCreation extends AlertableComponent{
         }
         Management.getLogo().then((data)=>{
             StudioCreation.logo[Main.branch] = data.data;
+            this.draw();
             this.changeState({
                 logo: StudioCreation.logo[Main.branch],
                 ready: true
-            })
+            });
         }).catch((message)=>{
             this.toggleDialog({
                 content: message
@@ -116,6 +255,7 @@ export default class StudioCreation extends AlertableComponent{
                         Punchline Studio
                     </label>
                     <div className="actions ui-element ui-size-6 ui-horizontal-right">
+
                         <Button
                             variant="contained"
                             startIcon={<Icon icon="save"/>}
@@ -135,7 +275,7 @@ export default class StudioCreation extends AlertableComponent{
                             height={this.state.height}
                         />
                         {
-                            !this.state.ready ? null:
+                            this.state.ready ? null:
                             <div className="ui-container ui-fluid ui-absolute mask">
                                 <BlankLoader/>
                             </div>

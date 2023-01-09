@@ -21,6 +21,14 @@ class Filter{
         });
         return checked;
     }
+
+    static flush(object, indexes = []){
+        for(let i in indexes){
+            if(object[indexes[i]]){
+                delete object[indexes[i]];
+            }
+        }
+    }
 }
 
 module.exports = Filter;

@@ -12,6 +12,8 @@ import Main from "../pages/Main";
 import ResponseCode from "../utils/ResponseCode";
 import ArticlesDraft from "../pages/view/ArticlesDraft";
 import Events from "./Events";
+import Filter from "../utils/Filter";
+import ThunderSpeed from "../utils/thunderspeed";
 
 export default class Management{
     static storage = null;
@@ -369,5 +371,57 @@ export default class Management{
                 res(data);
             })
         });
+    }
+
+    static async commitPunchline(data,feeback = null){
+        console.log('[commit]');
+        return new Promise((res,rej)=>{
+            const ths = new ThunderSpeed();
+            const query = {
+                ...Management.defaultQuery(),
+                ...Filter.object(data,[
+                    'title','year','artist','category','punchline',
+                    'lyrics','comment'
+                ])
+            }
+            data.card.name = 'punchline.png';
+            ths.setFile(data.card);
+            if(data.image){
+                ths.setFile(data.image)
+            }
+            ths.on('progress', (progress)=>{
+                if(feeback){
+                    const currentProcess = (progress.file.name === data.card.name ?
+                        'Téléversement du punchline card' :
+                            data.image ?
+                                "Téléversement de l'image de fond" : "Sauvegarde des informations"
+                    );
+                    feeback({
+                        currentProcess,
+                        progress: progress.percent
+                    });
+                }
+            });
+            ths.params({
+                url: Ressources.apis+'/upl_img',
+                fileIndexName: 'upl_pch',
+                uploadedFileIndexName: 'pch_img'
+            })
+            .start().then(async (data)=>{
+                console.log('[End]',data, query);
+                try{
+                    const data = Management.request('/punchlines/create', {
+                        ...query,
+                        res: data.filename
+                    }, '/punchlines/get');
+                    res(data);
+                }catch (message){
+                    rej(message);
+                }
+            }).catch((message)=>{
+                rej(message);
+            });
+            console.log('[Ths]',ths, ths.files());
+        })
     }
 }

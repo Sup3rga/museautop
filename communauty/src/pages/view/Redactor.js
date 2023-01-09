@@ -10,9 +10,10 @@ import Writing from "./Writing";
 import AlertableComponent from "./AlertableComponent";
 import Route from "../../utils/Route";
 import {Icon} from "../../components/Header";
-import BlankLoader from "./BlankLoader";
+import BlankLoader from "../widget/BlankLoader";
 import Url from "../../utils/Url";
 import AkaDatetime from '../../utils/AkaDatetime';
+import Scheduler from "../widget/Scheduler";
 
 
 export default class Redactor extends AlertableComponent{
@@ -299,41 +300,21 @@ export default class Redactor extends AlertableComponent{
                             {
                                 //We cant schedule published articles !!!
                                 this.state.edit && this.state.edit.published ? null:
-                                <>
-                                    <div className="ui-container ui-size-fluid ui-vertical-center">
-                                        <Switch checked={this.state.publishauto}
-                                                onChange={(e)=>{
-                                                    this.updateData('publishauto', e.target.checked);
-                                                }}
-                                        />
-                                        <label>Publier automatiquement</label>
-                                    </div>
-                                    {
-                                        this.state.publishauto ? null :
-                                        <Grid container alignItems="center" sx={{padding: '.5em 0', width: '100%'}}>
-                                            <Grid item sx={{padding: '0', width: '50%'}}>
-                                                <TextField
-                                                    className="ui-container ui-size-fluid"
-                                                    type="date"
-                                                    value={this.state.date}
-                                                    onChange={(e)=>{
-                                                        this.updateData('date', e.target.value);
-                                                    }}
-                                                />
-                                            </Grid>
-                                            <Grid item sx={{padding: '0', width: '50%'}}>
-                                                <TextField
-                                                    className="ui-container ui-size-fluid"
-                                                    type="time"
-                                                    value={this.state.time}
-                                                    onChange={(e)=>{
-                                                        this.updateData('time', e.target.value);
-                                                    }}
-                                                />
-                                            </Grid>
-                                        </Grid>
-                                    }
-                                </>
+                                <Scheduler
+                                    auto={this.state.publishauto}
+                                    date={this.state.date}
+                                    time={this.state.time}
+                                    onChange={(data)=>{
+                                        this.setState(state=>{
+                                            return {
+                                                ...state,
+                                                publishauto: data.auto,
+                                                date: data.date,
+                                                time: data.time
+                                            }
+                                        });
+                                    }}
+                                />
                             }
                         </Box>
                     }

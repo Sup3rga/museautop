@@ -6,7 +6,7 @@ import AlertableComponent from "./AlertableComponent";
 import Management from "../../utils/Management";
 import Url from "../../utils/Url";
 import Events from "../../utils/Events";
-import {EmptyView} from "./BlankLoader";
+import {EmptyView} from "../widget/BlankLoader";
 
 
 export default class Category extends AlertableComponent{

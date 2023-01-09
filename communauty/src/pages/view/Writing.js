@@ -12,7 +12,7 @@ import {
     SpeedDialIcon, TextField
 } from "@mui/material";
 import Route from "../../utils/Route";
-import BlankLoader, {EmptyView} from "./BlankLoader";
+import BlankLoader, {EmptyView} from "../widget/BlankLoader";
 import Main from "../Main";
 import Management from "../../utils/Management";
 import {ArticlePreview} from "../../components/ArticleThumbnail";

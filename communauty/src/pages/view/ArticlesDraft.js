@@ -1,5 +1,5 @@
 import React from 'react';
-import BlankLoader, {EmptyView} from "./BlankLoader";
+import BlankLoader, {EmptyView} from "../widget/BlankLoader";
 import {Icon} from "../../components/Header";
 import Management from "../../utils/Management";
 import {Button} from "@mui/material";

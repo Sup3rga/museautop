@@ -202,7 +202,7 @@ var ThunderSpeed = function()   {
                                         if(response.error || !response.uploaded){
                                             j(response.message);
                                         }else{
-                                            if(response.filename != null) {
+                                            if(response.filename != null && uploadedFile.indexOf(response.filename) < 0) {
                                                 uploadedFile.push(response.filename);
                                             }
                                             if(ext.ths_fileuploaddone){
@@ -445,6 +445,7 @@ var ThunderSpeed = function()   {
                         uploading = false;
                         var response = xhr.responseText;
                         utils.dispatchEvent('terminate', $this);
+                        uploadedFile = [];
                         if(utils.isjson(response,true)){
                             response = JSON.parse(response);
                             if(response.error){

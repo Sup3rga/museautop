@@ -1,13 +1,16 @@
 import React from 'react';
 import Events from "../../utils/Events";
-import {Autocomplete, Button, InputAdornment, TextField} from "@mui/material";
+import {Autocomplete, Box, Button, InputAdornment, TextField} from "@mui/material";
 import {Icon} from "../../components/Header";
 import Writing from "./Writing";
 import AkaDatetime from "../../utils/AkaDatetime";
-import BlankLoader from "./BlankLoader";
+import BlankLoader from "../widget/BlankLoader";
 import Management from "../../utils/Management";
 import AlertableComponent from "./AlertableComponent";
 import Main from "../Main";
+import Scheduler from "../widget/Scheduler";
+import Filter from "../../utils/Filter";
+import UploaderInfo from "../widget/UploaderInfo";
 
 export default class StudioCreation extends AlertableComponent{
     static logo = {};
@@ -33,28 +36,34 @@ export default class StudioCreation extends AlertableComponent{
             artist: '',
             lyrics: '',
             punchline: '',
-            category: null,
+            category: '',
             comment: '',
             image: null,
             logo: null,
-            width: 400,
-            height: 400,
             years: [],
             artists: [],
             categories: [],
             submit: false,
-            ready: false
+            ready: false,
+            preview: '',
+            showConfig: false,
+            date: '',
+            auto: true,
+            time: '',
+            edit: null,
+            card: {
+                width: 400,
+                height: 400,
+                artistSize: 22,
+                textSize: 14
+            },
+            upload:{
+                open: false,
+                text: '',
+                process: '',
+                progress: 0
+            }
         };
-    }
-
-    setPunchlineText(context,mod = 20){
-        let text = this.state.punchline,
-            result = '';
-        console.log('[Text]',text.length);
-        for(let i in text){
-            result += text[i]+(i % mod && i > 0 && i < text.length - 1 ? '' : '\n')
-        }
-        return result;
     }
 
     async draw(){
@@ -73,7 +82,8 @@ export default class StudioCreation extends AlertableComponent{
                   x : canvas.width - legendPadding - logoSquare,
                   y : legendPosY + legendPadding
               };
-        console.log('[Draw]',this.canvas, this.state.image);
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        // console.log('[Draw]',this.canvas, this.state.image);
         //Draw rectangle
         ctx.fillStyle = this.cardConfig.retroBackground;
         ctx.fillRect(0,0,canvas.width, canvas.height);
@@ -107,12 +117,13 @@ export default class StudioCreation extends AlertableComponent{
         const breakLength = 20;
         let text = this.state.punchline;
         text = !text.length ? '' : '« '+text+' »';
-        ctx.font = '14pt Merriweather-Bold';
+        ctx.font = this.state.card.textSize+'pt Merriweather-Bold';
         let lineHeight = 0, lineSpacing = 8,
             line = '',
             k = 0,
             breakit = false,
             lines = [],
+            reduceHeight = 0,
             geo,dim;
         ctx.fillStyle = this.cardConfig.textColor;
         for(let i = 0; i < text.length; i++){
@@ -128,8 +139,9 @@ export default class StudioCreation extends AlertableComponent{
                 if(i == text.length - 1){
                     line += text[i];
                 }
+                dim = ctx.measureText(lines[i]);
+                reduceHeight = i == 0 ? 0 : dim.fontBoundingBoxAscent + lineSpacing + dim.fontBoundingBoxDescent;
                 lines.push(line);
-                // console.log('[Line]',line);
                 line = '';
                 k = 0;
                 breakit = false;
@@ -143,7 +155,7 @@ export default class StudioCreation extends AlertableComponent{
             lineHeight += i == 0 ? 0 : dim.fontBoundingBoxAscent + lineSpacing;
             geo = {
                 x: (canvas.width - dim.width + dim.actualBoundingBoxLeft + dim.actualBoundingBoxRight) / 2,
-                y: (canvas.height - legendHeight + dim.fontBoundingBoxAscent) / 2 + lineHeight
+                y: (canvas.height - legendHeight + dim.fontBoundingBoxAscent) / 2 + lineHeight - reduceHeight
             }
             ctx.fillText(lines[i], geo.x, geo.y);
         }
@@ -156,7 +168,7 @@ export default class StudioCreation extends AlertableComponent{
         const logo = await this.getImage(StudioCreation.logo[Main.branch]);
         ctx.drawImage(logo, logoPos.x, logoPos.y, logoSquare, logoSquare);
         //Artiste Name
-        ctx.font = '22pt Rubik-Bold';
+        ctx.font = this.state.card.artistSize+'pt Rubik-Bold';
         ctx.textAlign = 'center';
         dim = ctx.measureText(this.state.artist.toUpperCase());
         const artist = {
@@ -212,27 +224,64 @@ export default class StudioCreation extends AlertableComponent{
         }
     }
 
+    setCardConfig(index, value){
+        this.setState(state=>{
+            return {
+                ...state,
+                card: {
+                    ...state.card,
+                    [index]: value
+                }
+            }
+        });
+        this.timer = setTimeout(()=>{
+            clearTimeout(this.timer);
+            this.draw();
+        },200);
+    }
+
+    async setReady(){
+        try {
+            if(StudioCreation.logo[Main.branch]){
+                this.changeState({
+                    logo: StudioCreation.logo[Main.branch]
+                })
+            }
+            else {
+                //set Logo
+                const data = await Management.getLogo()
+                StudioCreation.logo[Main.branch] = data.data;
+                this.draw();
+                this.changeState({
+                    logo: StudioCreation.logo[Main.branch]
+                });
+            }
+        }catch(message){
+            return this.toggleDialog({
+                content: message
+            });
+        }
+        try{
+            const data = await Management.getPunchlinesCategory(),
+                  categories = {};
+            for(let i in data){
+                categories[data[i].id] = data[i].name;
+            }
+            this.changeValue('categories', categories);
+        }catch (message){
+            return this.toggleDialog({
+                content: message
+            });
+        }
+        if(!this.state.edit){
+            return this.changeValue('ready',true);
+        }
+    }
+
     componentDidMount() {
         Events.emit("set-prev",true);
         setTimeout(()=>{Events.emit("set-prev",true);},300);
-        if(StudioCreation.logo[Main.branch]){
-            return this.changeState({
-                logo: StudioCreation.logo[Main.branch],
-                ready: true
-            })
-        }
-        Management.getLogo().then((data)=>{
-            StudioCreation.logo[Main.branch] = data.data;
-            this.draw();
-            this.changeState({
-                logo: StudioCreation.logo[Main.branch],
-                ready: true
-            });
-        }).catch((message)=>{
-            this.toggleDialog({
-                content: message
-            });
-        });
+        this.setReady();
     }
 
 
@@ -240,14 +289,77 @@ export default class StudioCreation extends AlertableComponent{
         Events.emit("set-prev",false);
     }
 
-    submit(){
-        console.log('[submit]');
+    async submit(){
+        // console.log('[submit]',this.state);
+        try{
+            let query = Filter.object(this.state, [
+                'title','year','artist','category','punchline',
+                'lyrics','comment'
+            ]);
+            query.schdate = this.state.auto || !this.state.date.length || !this.state.time.length ? null : this.state.date+' '+this.state.time;
+            if(this.state.edit){
+                query.id = this.state.edit.id;
+            }
+            query.image = null;
+            if(this.state.image){
+                query.image = this.state.image;
+            }
+            query.card = await (()=>{
+                return new Promise((res)=>{
+                    try {
+                        this.canvas.element.current.toBlob((blob) => {
+                            res(blob);
+                        });
+                    }
+                    catch(e){
+                        res(null);
+                    }
+                })
+            })();
+            console.log('[Query]',query);
+            // this.changeValue('upload',{
+            //     ...this.state.upload,
+            //     open: true,
+            //     title: 'Requête en cours'
+            // });
+            const data = await Management.commitPunchline(query, (progress)=>{
+                // this.changeValue('upload',{
+                //     ...this.state.upload,
+                //     process: progress.currentProcess,
+                //     progress: progress.loaded
+                // });
+            })
+            this.changeValue('upload',{
+                ...this.state.upload,
+                open: false
+            });
+            this.toggleDialog({
+                content: Management.readCode(data.code)
+            });
+        }catch (message){
+            this.changeValue('upload',{
+                ...this.state.upload,
+                open: false
+            });
+            this.toggleDialog({
+                content: message
+            });
+        }
     }
 
     render() {
-        const adornment = {
-            endAdornment: <InputAdornment position="start">pixels</InputAdornment>,
+        const adornment = (text = 'pixels')=>{
+            return {
+                endAdornment: <InputAdornment position="start">text</InputAdornment>,
+            }
         };
+        this.state.submit = Filter.contains(this.state, [
+            'title','year','artist','punchline','image'
+        ], [null,0,'']);
+        const fontSizes = {};
+        for(let i = 22; i >= 7; i--){
+            fontSizes[i] = i;
+        }
         return (
             <div className="ui-container ui-fluid studio ui-column ui-unwrap">
                 <div className="ui-container ui-size-fluid ui-vertical-center header">
@@ -255,7 +367,6 @@ export default class StudioCreation extends AlertableComponent{
                         Punchline Studio
                     </label>
                     <div className="actions ui-element ui-size-6 ui-horizontal-right">
-
                         <Button
                             variant="contained"
                             startIcon={<Icon icon="save"/>}
@@ -271,8 +382,8 @@ export default class StudioCreation extends AlertableComponent{
                         <canvas
                             className="ui-container"
                             ref={this.canvas.element}
-                            width={this.state.width}
-                            height={this.state.height}
+                            width={this.state.card.width}
+                            height={this.state.card.height}
                         />
                         {
                             this.state.ready ? null:
@@ -281,45 +392,27 @@ export default class StudioCreation extends AlertableComponent{
                             </div>
                         }
                         <input className="ui-element ui-hide" type="file" ref={this.inputFile}/>
-                        <div className="ui-container ui-size-fluid ui-unwrap actions">
+                        <div className="ui-container ui-size-fluid ui-unwrap actions ui-all-center">
                             <Button
-                                className="ui-size-4"
                                 variant="contained"
                                 startIcon={<Icon icon="image"/>}
                                 onClick={()=>{this.loadImage()}}
                             >
                                 L'image de fond
                             </Button>
-                            <div className="ui-container wrapper ui-size-4">
-                                <TextField
-                                    className="ui-size-fluid"
-                                    size="small"
-                                    label="Largeur"
-                                    type="number"
-                                    InputProps={adornment}
-                                    value={this.state.width}
-                                    onChange={(e)=>{this.changeValue('width', e.target.value)}}
-                                />
-                            </div>
-                            <div className="ui-container wrapper ui-size-4">
-                                <TextField
-                                    className="ui-size-fluid"
-                                    size="small"
-                                    label="Hauteur"
-                                    type="number"
-                                    InputProps={adornment}
-                                    value={this.state.height}
-                                    onChange={(e)=>{this.changeValue('height', e.target.value)}}
-                                />
-                            </div>
+                            <Button
+                                startIcon={<Icon mode="ion" icon="ios-settings-strong"/>}
+                                onClick={()=>this.changeValue('showConfig', true)}
+                            >
+                                Configuration
+                            </Button>
                         </div>
                     </div>
                     <div className="ui-container ui-size-fluid ui-md-size-6 data">
                         <div className="ui-element ui-size-6 wrapper">
                             <TextField
                                 className="ui-size-fluid"
-                                label="Titre"
-                                helperText="Le titre de la musique"
+                                label="Titre du morceau"
                                 value={this.state.title}
                                 onChange={(e)=>this.changeValue('title', e.target.value)}
                             />
@@ -370,7 +463,7 @@ export default class StudioCreation extends AlertableComponent{
                                 multiline={true}
                                 className="ui-size-fluid"
                                 label="Paroles du morceau (facultatif)"
-                                rows={5}
+                                rows={3}
                                 value={this.state.lyrics}
                                 onChange={(e)=>this.changeValue('lyrics', e.target.value)}
                             />
@@ -380,13 +473,86 @@ export default class StudioCreation extends AlertableComponent{
                                 multiline={true}
                                 className="ui-size-fluid"
                                 label="Commentaire (facultatif)"
-                                rows={4}
+                                rows={2}
                                 value={this.state.comment}
                                 onChange={(e)=>this.changeValue('comment', e.target.value)}
                             />
                         </div>
+                        <Scheduler
+                            auto={this.state.auto}
+                            date={this.state.date}
+                            time={this.state.time}
+                            onChange={(data)=>{
+                                this.setState(state=>{
+                                    return {
+                                        ...state,
+                                        ...data
+                                    }
+                                });
+                            }}
+                        />
                     </div>
                 </div>
+                <Main.DialogBox
+                    title="Configuration du rendu"
+                    open={this.state.showConfig}
+                    content={(
+                        <div className="ui-element ui-size-12 studio-config">
+                            <div className="ui-container ui-size-6 wrapper">
+                                <TextField
+                                    label="Largeur"
+                                    className="ui-size-fluid"
+                                    size="small"
+                                    value={this.state.card.width}
+                                    onChange={(e)=>this.setCardConfig('width', e.target.value)}
+                                    InputProps={adornment()}
+                                />
+                            </div>
+                            <div className="ui-container ui-size-6 wrapper">
+                                <TextField
+                                    label="Hauteur"
+                                    className="ui-size-fluid"
+                                    size="small"
+                                    value={this.state.card.height}
+                                    onChange={(e)=>this.setCardConfig('height', e.target.value)}
+                                    InputProps={adornment()}
+                                />
+                            </div>
+                            <div className="ui-container ui-size-6 wrapper">
+                                <Writing.RenderSelect
+                                    label="Taille du nom de l'artiste"
+                                    list={fontSizes}
+                                    value={this.state.card.artistSize}
+                                    className="ui-size-fluid"
+                                    size="small"
+                                    InputProps={adornment('pt')}
+                                    onChange={(e)=>this.setCardConfig('artistSize', e.target.value)}
+                                />
+                            </div>
+                            <div className="ui-container ui-size-6 wrapper">
+                                <Writing.RenderSelect
+                                    label="Taille du text punchline"
+                                    list={fontSizes}
+                                    className="ui-size-fluid"
+                                    size="small"
+                                    InputProps={adornment('pt')}
+                                    value={this.state.card.textSize}
+                                    onChange={(e)=>this.setCardConfig('textSize', e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    )}
+                    buttons={(
+                        <Button onClick={()=>this.changeValue('showConfig', false)}>Ok</Button>
+                    )}
+                />
+                <UploaderInfo
+                    open={this.state.upload.open}
+                    text={this.state.upload.text}
+                    processText={this.state.upload.process}
+                    progression={this.state.upload.progress}
+                />
+                {this.renderDialog()}
             </div>
         );
     }

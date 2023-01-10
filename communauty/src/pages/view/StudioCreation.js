@@ -104,7 +104,11 @@ export default class StudioCreation extends AlertableComponent{
                     width: img.width > cadran.box ? cadran.box : img.width,
                     y: 0, x: 0
                   };
-            size.height = size.width * img.ratio
+            size.height = size.width / img.ratio;
+            if(size.height > cadran.height){
+                size.height = cadran.height;
+                size.width = cadran.height * img.ratio;
+            }
             size.y = cadran.height - size.height;
             size.x = (cadran.width - size.width) / 2;
             cadran.ratio = cadran.width / cadran.height;
@@ -316,35 +320,31 @@ export default class StudioCreation extends AlertableComponent{
                     }
                 })
             })();
-            console.log('[Query]',query);
-            // this.changeValue('upload',{
-            //     ...this.state.upload,
-            //     open: true,
-            //     title: 'Requête en cours'
-            // });
-            const data = await Management.commitPunchline(query, (progress)=>{
-                // this.changeValue('upload',{
-                //     ...this.state.upload,
-                //     process: progress.currentProcess,
-                //     progress: progress.loaded
-                // });
-            })
             this.changeValue('upload',{
                 ...this.state.upload,
-                open: false
+                open: true,
+                text: 'Requête en cours'
             });
+            const data = await Management.commitPunchline(query, (progress) => {
+                this.changeValue('upload',{
+                    ...this.state.upload,
+                    process: progress.currentProcess,
+                    progress: progress.progress
+                });
+            });
+            console.log('[Data]',data);
             this.toggleDialog({
                 content: Management.readCode(data.code)
             });
         }catch (message){
-            this.changeValue('upload',{
-                ...this.state.upload,
-                open: false
-            });
             this.toggleDialog({
                 content: message
             });
         }
+        this.changeValue('upload',{
+            ...this.state.upload,
+            open: false
+        });
     }
 
     render() {
@@ -549,6 +549,7 @@ export default class StudioCreation extends AlertableComponent{
                 <UploaderInfo
                     open={this.state.upload.open}
                     text={this.state.upload.text}
+                    nullDisplay={false}
                     processText={this.state.upload.process}
                     progression={this.state.upload.progress}
                 />

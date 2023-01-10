@@ -1,44 +1,44 @@
 import React from 'react';
 import Main from "../Main";
-import {CircularProgress, LinearProgress} from "@mui/material";
+import {Box, CircularProgress, LinearProgress} from "@mui/material";
 
 export default class UploaderInfo extends React.Component{
     constructor(props) {
         super(props);
-        const {
-            open = false, title=null, progression=0,
-            withLoader = true, text = null, processText = null
-        } = props;
-        this.open = open;
-        this.title = title;
-        this.progress = progression;
-        this.withLoader = withLoader;
-        this.text = text;
-        this.processText = processText;
     }
     render(){
+        const {
+            open = false, title=null, progression=0,
+            withLoader = true, text = null, processText = null,
+            nullDisplay=true
+        } = this.props;
         return (
             <Main.DialogBox
-                open={this.open}
-                title= {this.title}
+                open={open}
+                title= {title}
                 content = {(
                     <div className="ui-container upload-info ui-size-fluid ui-horizontal-center">
-                        <div className="ui-container ui-size-fluid ui-vertical-center">
-                            {this.withLoader ? <CircularProgress/> : null}
-                            <div className="ui-container text">
-                                {this.text}
+                        <div className="ui-container ui-size-fluid wrapping ui-vertical-center">
+                            {withLoader ? <CircularProgress size={25}/> : null}
+                            <div className="ui-container wrapping text">
+                                {text}
                             </div>
                         </div>
                         {
-                            !this.processText || this.processText == '' ? null:
-                            <div className="ui-container ui-size-fluid process-text">
-                                {this.processText}
+                            !processText || processText == '' ? null:
+                            <div className="ui-container ui-size-fluid wrapping process-text">
+                                {processText}
                             </div>
                         }
-                        <LinearProgress
-                            variant={this.progress ? 'determinate' : 'indeterminate'}
-                            value={this.progress}
-                        />
+                        {
+                            !nullDisplay && progression <= 0 ? null:
+                            <Box width={{width: '100%', padding: '.5em 0'}}>
+                                <LinearProgress
+                                    variant={progression ? 'determinate' : 'indeterminate'}
+                                    value={progression}
+                                />
+                            </Box>
+                        }
                     </div>
                 )}
                 buttons = {null}

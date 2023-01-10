@@ -131,13 +131,28 @@ export default class Management{
         });
     }
 
-    static setCategoriesStorage(){
-        if(!('categories' in Management.data)){
-            Management.data.categories = {
-                writing: [],
-                punchlines: []
-            }
+    static setStorage(index, defaultValue){
+        if(!(index in  Management.data)){
+            Management.data[index] = defaultValue;
         }
+        return Management;
+    }
+
+    static setCategoriesStorage(){
+        Management.setStorage('categories', {
+            writing: [],
+            punchlines: []
+        });
+        return Management;
+    }
+
+    static setPunchlinesStorage(){
+        Management.setStorage('punchlines', []);
+        return Management;
+    }
+
+    static setArticlesStorage(){
+        Management.setStorage('articles', []);
         return Management;
     }
 
@@ -346,10 +361,13 @@ export default class Management{
         return new Promise((res,rej)=>{
             Main.socket
             .emit("/writing/write", data)
-            .once('/writing/write/response', (data)=>{
+            .once('/writing/write/response', async (data)=>{
                 if(data.error){
                     return rej(Management.readCode(data.code));
                 }
+                Management.setArticlesStorage()
+                .data.articles = data.data;
+                await Management.commit();
                 res(data);
             })
         })
@@ -393,7 +411,7 @@ export default class Management{
                 if(feeback){
                     const currentProcess = (progress.file.name === data.card.name ?
                         'Téléversement du punchline card' :
-                            data.image ?
+                            data.image && progress.percent < 100 ?
                                 "Téléversement de l'image de fond" : "Sauvegarde des informations"
                     );
                     feeback({
@@ -410,11 +428,14 @@ export default class Management{
             .start().then(async (data)=>{
                 console.log('[End]',data, query);
                 try{
-                    const data = Management.request('/punchlines/create', {
+                    const result = await Management.request('/punchlines/create', {
                         ...query,
                         res: data.filename
                     }, '/punchlines/get');
-                    res(data);
+                    Management.setPunchlinesStorage()
+                    .data.punchlines = result.data;
+                    await Management.commit();
+                    res(result);
                 }catch (message){
                     rej(message);
                 }

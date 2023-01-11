@@ -18,6 +18,7 @@ localforage.ready();
 
 Management.storage = localforage;
 
+
 Route
 .set('.*', <Home/>)
 

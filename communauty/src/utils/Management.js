@@ -104,6 +104,7 @@ export default class Management{
                return res();
            }
            const timer = setInterval(()=>{
+               console.log('[connected][test]',Main.socket.connected);
                if(Main.socket.connected){
                    return clearInterval(timer);
                }
@@ -147,7 +148,11 @@ export default class Management{
     }
 
     static setPunchlinesStorage(){
-        Management.setStorage('punchlines', []);
+        Management.setStorage('punchlines', {
+            data: [],
+            artists: [],
+            years: []
+        });
         return Management;
     }
 
@@ -357,6 +362,36 @@ export default class Management{
         }
     }
 
+    static async getPunchlinesData(id = null){
+        let  source = Management.setPunchlinesStorage().data.punchlines;
+        if(id){
+            for(let i in source.data){
+                if(source.data[i].id == id){
+                    return source.data[i];
+                }
+            }
+        }
+        else if(source.data.length){
+            return source;
+        }
+        const data = await Management.request('/punchlines/fetch', Management.defaultQuery(), '/punchlines/get');
+        source = data.data;
+        Management.setPunchlinesStorage()
+            .data.punchlines.data = data.data.punchlines;
+        Management.data.punchlines.years = data.data.years;
+        Management.data.punchlines.artists = data.data.artists;
+        await Management.commit();
+        if(id){
+            source = Management.data.punchlines;
+            for(let i in source.data){
+                if(source.data[i].id == id){
+                    return source.data[i];
+                }
+            }
+        }
+        return Management.data.punchlines;
+    }
+
     static async commitRedaction(data){
         return new Promise((res,rej)=>{
             Main.socket
@@ -433,7 +468,9 @@ export default class Management{
                         res: data.filename
                     }, '/punchlines/get');
                     Management.setPunchlinesStorage()
-                    .data.punchlines = result.data;
+                    .data.punchlines.data = result.data.punchlines;
+                    Management.data.punchlines.years = result.data.years;
+                    Management.data.punchlines.artists = result.data.artists;
                     await Management.commit();
                     res(result);
                 }catch (message){

@@ -11,6 +11,7 @@ import Main from "../Main";
 import Scheduler from "../widget/Scheduler";
 import Filter from "../../utils/Filter";
 import UploaderInfo from "../widget/UploaderInfo";
+import Url from "../../utils/Url";
 
 export default class StudioCreation extends AlertableComponent{
     static logo = {};
@@ -89,7 +90,7 @@ export default class StudioCreation extends AlertableComponent{
         ctx.fillRect(0,0,canvas.width, canvas.height);
         //Draw Image
         if(this.state.image) {
-            const image = await this.getImage(this.state.image),
+            const image = this.state.image instanceof Image ? this.state.image : await this.getImage(this.state.image),
                   cadran = {
                       width: canvas.width,
                       height: legendPosY,
@@ -194,6 +195,12 @@ export default class StudioCreation extends AlertableComponent{
                 }
                 read.readAsDataURL(file);
             }
+            else if(typeof file == 'string'){
+                image.src = file;
+                image.onload = ()=>{
+                    res(image);
+                }
+            }
         })
     }
 
@@ -201,7 +208,7 @@ export default class StudioCreation extends AlertableComponent{
         this.inputFile.current.click();
         this.inputFile.current.addEventListener('change',(e)=>{
             this.changeValue('image', this.inputFile.current.files[0]);
-        })
+        });
     }
 
     changeState(value){
@@ -245,6 +252,34 @@ export default class StudioCreation extends AlertableComponent{
     }
 
     async setReady(){
+        try{
+            const data = await Management.getPunchlinesCategory();
+            this.changeValue('categories', Filter.toOptions(data,'id','name'));
+        }catch (message){
+            return this.toggleDialog({
+                content: message
+            });
+        }
+        if(/^\/studio\/new\/([0-9]+)$/.test(Url.get())){
+            const id = RegExp.$1;
+            this.changeValue('edit', await Management.getPunchlinesData(id));
+            if(this.state.edit) {
+                const image = await this.getImage(this.state.edit.picture.path);
+                this.setState(state => {
+                    return {
+                        ...state,
+                        title: this.state.edit.title,
+                        year: this.state.edit.year.toString(),
+                        artist: this.state.edit.artist,
+                        lyrics: this.state.edit.lyrics,
+                        punchline: this.state.edit.punchline,
+                        category: this.state.edit.category.id,
+                        comment: this.state.edit.comment,
+                        image
+                    }
+                });
+            }
+        }
         try {
             if(StudioCreation.logo[Main.branch]){
                 this.changeState({
@@ -265,21 +300,7 @@ export default class StudioCreation extends AlertableComponent{
                 content: message
             });
         }
-        try{
-            const data = await Management.getPunchlinesCategory(),
-                  categories = {};
-            for(let i in data){
-                categories[data[i].id] = data[i].name;
-            }
-            this.changeValue('categories', categories);
-        }catch (message){
-            return this.toggleDialog({
-                content: message
-            });
-        }
-        if(!this.state.edit){
-            return this.changeValue('ready',true);
-        }
+        this.changeValue('ready',true);
     }
 
     componentDidMount() {

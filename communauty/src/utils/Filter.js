@@ -29,6 +29,19 @@ class Filter{
             }
         }
     }
+
+    static toOptions(object, index, value){
+        const options = {};
+        for(let i in object){
+            if(typeof object[i] !== 'object'){
+                options[object[i]] = object[i].toString();
+            }
+            else {
+                options[object[i][index]] = object[i][value];
+            }
+        }
+        return options;
+    }
 }
 
 module.exports = Filter;

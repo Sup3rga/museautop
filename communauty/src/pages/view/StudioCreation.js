@@ -15,6 +15,7 @@ import Url from "../../utils/Url";
 
 export default class StudioCreation extends AlertableComponent{
     static logo = {};
+    static count = 0;
     constructor(props) {
         super(props);
         this.canvas = {
@@ -40,6 +41,7 @@ export default class StudioCreation extends AlertableComponent{
             category: '',
             comment: '',
             image: null,
+            imageFile: null,
             logo: null,
             years: [],
             artists: [],
@@ -67,11 +69,11 @@ export default class StudioCreation extends AlertableComponent{
         };
     }
 
-    async draw(){
-        if(!StudioCreation.logo[Main.branch]){
+    async draw(frame = null){
+        if(!StudioCreation.logo[Main.branch] || !this.canvas.element.current){
             return;
         }
-        this.canvas.context = this.canvas.element.current.getContext('2d')
+        this.canvas.context = this.canvas.element.current.getContext('2d');
         const canvas = this.canvas.element.current,
               ctx = this.canvas.context,
               legendRatio = 0.23,
@@ -90,7 +92,7 @@ export default class StudioCreation extends AlertableComponent{
         ctx.fillRect(0,0,canvas.width, canvas.height);
         //Draw Image
         if(this.state.image) {
-            const image = this.state.image instanceof Image ? this.state.image : await this.getImage(this.state.image),
+            const image = this.state.image,
                   cadran = {
                       width: canvas.width,
                       height: legendPosY,
@@ -170,8 +172,6 @@ export default class StudioCreation extends AlertableComponent{
         //Draw legend upline
         ctx.fillStyle = this.cardConfig.retroBackground;
         ctx.fillRect(0, legendPosY + legendPadding / 2, canvas.width, legendPadding / 4);
-        const logo = await this.getImage(StudioCreation.logo[Main.branch]);
-        ctx.drawImage(logo, logoPos.x, logoPos.y, logoSquare, logoSquare);
         //Artiste Name
         ctx.font = this.state.card.artistSize+'pt Rubik-Bold';
         ctx.textAlign = 'center';
@@ -182,6 +182,12 @@ export default class StudioCreation extends AlertableComponent{
         };
         ctx.fillStyle = this.cardConfig.rectColor;
         ctx.fillText(this.state.artist.toUpperCase(), artist.x, artist.y);
+        //Branch logo
+        const logo = StudioCreation.logo[Main.branch];
+        ctx.drawImage(logo, logoPos.x, logoPos.y, logoSquare, logoSquare);
+        if(frame){
+            frame(this.draw.bind(this));
+        }
     }
 
     async getImage(file){
@@ -206,8 +212,10 @@ export default class StudioCreation extends AlertableComponent{
 
     loadImage(){
         this.inputFile.current.click();
-        this.inputFile.current.addEventListener('change',(e)=>{
-            this.changeValue('image', this.inputFile.current.files[0]);
+        this.inputFile.current.addEventListener('change',async(e)=>{
+            this.state.imageFile = this.inputFile.current.files[0];
+            const image = await this.getImage(this.state.imageFile);
+            this.changeValue('image', image);
         });
     }
 
@@ -227,12 +235,6 @@ export default class StudioCreation extends AlertableComponent{
                [index] : value
             }
         });
-        if(['artist','punchline','image'].indexOf(index) >= 0){
-            this.timer = setTimeout(()=>{
-                clearTimeout(this.timer);
-                this.draw();
-            },200);
-        }
     }
 
     setCardConfig(index, value){
@@ -245,10 +247,17 @@ export default class StudioCreation extends AlertableComponent{
                 }
             }
         });
-        this.timer = setTimeout(()=>{
-            clearTimeout(this.timer);
-            this.draw();
-        },200);
+    }
+
+    static frame(executor){
+        const animate = window.requestAnimationFrame ||
+                        window.webkitRequestAnimationFrame ||
+                        window.mozRequestAnimationFrame ||
+                        window.oRequestAnimationFrame ||
+                        window.msRequestAnimationFrame;
+        animate(()=>{
+            executor(StudioCreation.frame);
+        });
     }
 
     async setReady(){
@@ -288,12 +297,10 @@ export default class StudioCreation extends AlertableComponent{
             }
             else {
                 //set Logo
-                const data = await Management.getLogo()
-                StudioCreation.logo[Main.branch] = data.data;
-                this.draw();
-                this.changeState({
-                    logo: StudioCreation.logo[Main.branch]
-                });
+                const data = await Management.getLogo(),
+                      logo = await this.getImage(data.data);
+                StudioCreation.logo[Main.branch] = logo;
+                this.changeState({logo});
             }
         }catch(message){
             return this.toggleDialog({
@@ -301,6 +308,7 @@ export default class StudioCreation extends AlertableComponent{
             });
         }
         this.changeValue('ready',true);
+        StudioCreation.frame(this.draw.bind(this));
     }
 
     componentDidMount() {
@@ -326,8 +334,8 @@ export default class StudioCreation extends AlertableComponent{
                 query.id = this.state.edit.id;
             }
             query.image = null;
-            if(this.state.image){
-                query.image = this.state.image;
+            if(this.state.imageFile){
+                query.image = this.state.imageFile;
             }
             query.card = await (()=>{
                 return new Promise((res)=>{
@@ -353,7 +361,6 @@ export default class StudioCreation extends AlertableComponent{
                     progress: progress.progress
                 });
             });
-            console.log('[Data]',data);
             this.toggleDialog({
                 content: Management.readCode(data.code)
             });

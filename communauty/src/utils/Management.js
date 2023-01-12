@@ -14,6 +14,7 @@ import ArticlesDraft from "../pages/view/ArticlesDraft";
 import Events from "./Events";
 import Filter from "../utils/Filter";
 import ThunderSpeed from "../utils/thunderspeed";
+import Home from "../pages/Home";
 
 export default class Management{
     static storage = null;
@@ -81,12 +82,13 @@ export default class Management{
                 })
             })
             .then((response)=> response.json())
-            .then((result)=>{
+            .then(async (result)=>{
                 // console.log('[Result]', result);
                 if(result.error){
                     rej(result.message);
                     return;
                 }
+                await Home.openStorage();
                 Management.storage.setItem("agent", result.data)
                 .then(()=>{
                     res(result);
@@ -104,12 +106,12 @@ export default class Management{
                return res();
            }
            const timer = setInterval(()=>{
-               console.log('[connected][test]',Main.socket.connected);
+               // console.log('[connected][test]',Main.socket.connected);
                if(Main.socket.connected){
                    return clearInterval(timer);
                }
                console.log('[Retry] ... 5 seconds');
-               Main.retyConnection();
+               Main.retryConnection();
            },5000);
            Events.on('connected', ()=>{
                clearInterval(timer);
@@ -196,6 +198,7 @@ export default class Management{
 
     static async commit(){
         try {
+            await Home.openStorage();
             await Management.storage.setItem('agent', JSON.stringify(Management.data));
         }catch (e) {
             console.error('[Error]',e, Management.storage);
@@ -204,6 +207,7 @@ export default class Management{
 
     static async retrieve(){
         try{
+            await Home.openStorage();
             let data = await Management.storage.getItem('agent');
             if(typeof data === 'string') {
                 data = JSON.parse(data);
@@ -437,6 +441,9 @@ export default class Management{
                     'lyrics','comment'
                 ])
             }
+            if(data.id){
+                query.id = data.id;
+            }
             data.card.name = 'punchline.png';
             ths.setFile(data.card);
             if(data.image){
@@ -455,6 +462,7 @@ export default class Management{
                     });
                 }
             });
+            console.log('[Ths]',ths, ths.files());
             ths.params({
                 url: Ressources.apis+'/upl_img',
                 fileIndexName: 'upl_pch',
@@ -479,7 +487,6 @@ export default class Management{
             }).catch((message)=>{
                 rej(message);
             });
-            console.log('[Ths]',ths, ths.files());
         })
     }
 }

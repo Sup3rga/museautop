@@ -6,13 +6,8 @@ import Management from "../utils/Management";
 import Url from "../utils/Url";
 import Events from "../utils/Events";
 import Writing from "./view/Writing";
-import Studio from "./view/Studio";
-import Dashboard from "./view/Dashboard";
-import Communauty from "./view/Communauty";
-import Messages from "./view/Messages";
 import Ressources from "../utils/Ressources";
 import {io} from 'socket.io-client'
-import StudioCreation from "./view/StudioCreation";
 import Route from "../utils/Route";
 import {
     BottomNavigation,
@@ -27,7 +22,7 @@ import {
 
 export default class Main extends React.Component{
 
-    static socket = io.connect(Ressources.apis);
+    static socket = null;
     static branch = null;
 
     constructor(props) {
@@ -36,6 +31,7 @@ export default class Main extends React.Component{
             ["/","/writing","/studio","/communauty","/messenging"],
             ["/writing","/studio","/","/communauty","/messenging"]
         ];
+        Main.retryConnection();
         this.routes = Management.getRoutes();
         this.mounted = false;
         this.branches = {};
@@ -46,10 +42,6 @@ export default class Main extends React.Component{
             this.branches[Management.data.branches[i].id] = Management.data.branches[i].domain;
         }
         // console.log('[Man]',this.branches);
-        Main.socket.on("connected", ()=>{
-            console.log('[Connected]');
-            Events.emit('connected');
-        })
         this.state = {
             route: Url.get(),
             expanded: false,
@@ -65,8 +57,16 @@ export default class Main extends React.Component{
         }
     }
 
-    static retyConnection(){
+    static retryConnection(){
         Main.socket = io.connect(Ressources.apis);
+        Main.socket.on("connected", ()=>{
+            console.log('[Connected]');
+            Events.emit('connected');
+        })
+    }
+
+    static retryStorage(){
+
     }
 
     componentDidMount() {

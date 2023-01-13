@@ -366,6 +366,12 @@ export default class Management{
         }
     }
 
+    static async getMessages(){
+        const data = await Management.request('/messages/fetch', Management.defaultQuery(), '/messages/get');
+        console.log('[Data]',data);
+        return data;
+    }
+
     static async getPunchlinesData(id = null){
         let  source = Management.setPunchlinesStorage().data.punchlines;
         if(id){

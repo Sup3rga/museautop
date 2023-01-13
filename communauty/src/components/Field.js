@@ -11,7 +11,9 @@ export default class Field extends React.Component{
     }
 
     render() {
-        let {placeholder,type,options,children, onChange, value, toggled} = this.props;
+        let {placeholder,type,options,children,
+            onChange=null, onFocus=null, onBlur=null,
+            value, toggled} = this.props;
         type = type || 'text';
         options = options || {}
         let field = null;
@@ -22,6 +24,8 @@ export default class Field extends React.Component{
                         className="ui-element ui-size-fluid"
                         placeholder={placeholder}
                         onChange={onChange}
+                        onBlur={onBlur}
+                        onFocus={onFocus}
                     >
                         {children ? children :
                             Object.keys(options).map((val,index)=>{
@@ -40,6 +44,9 @@ export default class Field extends React.Component{
                         className="ui-element ui-size-fluid"
                         placeholder={placeholder}
                         onChange={onChange}
+                        onBlur={onBlur}
+                        onFocus={onFocus}
+                        value={value}
                     >
                         {children}
                     </textarea>
@@ -52,6 +59,9 @@ export default class Field extends React.Component{
                                placeholder={placeholder || ''}
                                type={toggled && this.state.passwordVisible ? 'text' : type || 'text'}
                                onChange={onChange}
+                               onBlur={onBlur}
+                               onFocus={onFocus}
+                               value={value}
                         />
                         {
                             type.toLowerCase() == 'password' && toggled ?

@@ -22,6 +22,17 @@ export default class Ressources{
         return calendar.days[date.getWeekDay()]+' '+date.getDay()+' '+calendar.months[date.getMonth() * 1 - 1]+' '+date.getFullYear();
     }
 
+    static async fetch(route, data){
+        const response = await fetch(Ressources.apis+route,{
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        return response.json();
+    }
+
     static getUrl(){
         return window.location.pathname;
     }
@@ -302,5 +313,9 @@ export default class Ressources{
             stats: [],
             author: null
         };
+    }
+
+    static async sendMessage(data){
+        return await Ressources.fetch('/submit', data);
     }
 }

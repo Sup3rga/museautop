@@ -23,7 +23,7 @@ export default class Page extends React.Component{
     }
 
     render(){
-        console.log('[Menu]',this.props.menu);
+        // console.log('[Menu]',this.props.menu);
         return (
             <>
                 {this.props.menu}

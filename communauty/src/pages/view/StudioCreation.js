@@ -1,6 +1,6 @@
 import React from 'react';
 import Events from "../../utils/Events";
-import {Autocomplete, Box, Button, InputAdornment, TextField} from "@mui/material";
+import {Button, InputAdornment, TextField} from "@mui/material";
 import {Icon} from "../../components/Header";
 import Writing from "./Writing";
 import AkaDatetime from "../../utils/AkaDatetime";
@@ -10,7 +10,6 @@ import AlertableComponent from "./AlertableComponent";
 import Main from "../Main";
 import Scheduler from "../widget/Scheduler";
 import Filter from "../../utils/Filter";
-import UploaderInfo from "../widget/UploaderInfo";
 import Url from "../../utils/Url";
 
 export default class StudioCreation extends AlertableComponent{
@@ -59,12 +58,6 @@ export default class StudioCreation extends AlertableComponent{
                 height: 400,
                 artistSize: 22,
                 textSize: 14
-            },
-            upload:{
-                open: false,
-                text: '',
-                process: '',
-                progress: 0
             }
         };
     }
@@ -219,24 +212,6 @@ export default class StudioCreation extends AlertableComponent{
         });
     }
 
-    changeState(value){
-        this.setState(state=>{
-            return {
-                ...state,
-                ...value
-            }
-        });
-    }
-
-    changeValue(index,value){
-        this.setState(state=>{
-            return {
-                ...state,
-               [index] : value
-            }
-        });
-    }
-
     setCardConfig(index, value){
         this.setState(state=>{
             return {
@@ -317,7 +292,6 @@ export default class StudioCreation extends AlertableComponent{
         this.setReady();
     }
 
-
     componentWillUnmount() {
         Events.emit("set-prev",false);
     }
@@ -349,14 +323,12 @@ export default class StudioCreation extends AlertableComponent{
                     }
                 })
             })();
-            this.changeValue('upload',{
-                ...this.state.upload,
-                open: true,
+            this.toggleUploadInfo({
                 text: 'Requête en cours'
-            });
+            })
             const data = await Management.commitPunchline(query, (progress) => {
-                this.changeValue('upload',{
-                    ...this.state.upload,
+                this.toggleUploadInfo({
+                    text: 'Requête en cours',
                     process: progress.currentProcess,
                     progress: progress.progress
                 });
@@ -369,10 +341,7 @@ export default class StudioCreation extends AlertableComponent{
                 content: message
             });
         }
-        this.changeValue('upload',{
-            ...this.state.upload,
-            open: false
-        });
+        this.toggleUploadInfo({open: false});
     }
 
     render() {
@@ -573,13 +542,6 @@ export default class StudioCreation extends AlertableComponent{
                     buttons={(
                         <Button onClick={()=>this.changeValue('showConfig', false)}>Ok</Button>
                     )}
-                />
-                <UploaderInfo
-                    open={this.state.upload.open}
-                    text={this.state.upload.text}
-                    nullDisplay={false}
-                    processText={this.state.upload.process}
-                    progression={this.state.upload.progress}
                 />
                 {this.renderDialog()}
             </div>

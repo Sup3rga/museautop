@@ -1,5 +1,4 @@
 import AkaDatetime from './AkaDatetime';
-import test from '../article';
 
 export default class Ressources{
     static links = {
@@ -306,7 +305,7 @@ export default class Ressources{
     static async getArticleData(){
         return {
             title: "La sortie d'une nouvelle single de Hip-Hop prochainement dans les bac",
-            text: test,
+            text: "Cool",
             caption: '/assets/captions/rapcap008.jpg',
             publishDate: '11-08-2022',
             time: '13:00',

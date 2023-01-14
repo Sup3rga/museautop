@@ -187,7 +187,7 @@ var AkaDatetime = function(dateString){
     function refresh(){
         var date_array = AkaDatetime.toDate(stamp);
         date = date_array.slice(0,3);
-        time = date_array.slice(3,3);
+        time = date_array.slice(3,6);
         setWeekDay();
     }
 

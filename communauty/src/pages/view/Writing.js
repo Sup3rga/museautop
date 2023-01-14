@@ -70,7 +70,8 @@ export default class Writing extends Component{
         )
     }
 
-    static AutoCompletion(props){
+    static  AutoCompletion(props){
+        const {options = []} = props;
         return (
             <Autocomplete
                 freeSolo
@@ -78,7 +79,7 @@ export default class Writing extends Component{
                 disableClearable
                 value={props.value ? props.value : null}
                 className={props.className}
-                options={props.options}
+                options={options}
                 renderInput={(params) => {
                     const startIcon = !props.startIcon ? null :  (
                             <InputAdornment>

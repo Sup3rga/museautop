@@ -1,4 +1,3 @@
-import Ressources from "./Ressources";
 import AkaDatetime from "../utils/AkaDatetime";
 import Writing from "../pages/view/Writing";
 import Studio from "../pages/view/Studio";
@@ -15,10 +14,18 @@ import Events from "./Events";
 import Filter from "../utils/Filter";
 import ThunderSpeed from "../utils/thunderspeed";
 import Home from "../pages/Home";
+import Inbox from "../pages/view/Inbox";
+import Integration from "../pages/view/Integration";
 
 export default class Management{
+    static apis = "http://localhost:7070";
+    static server = "http://localhost:3000";
     static storage = null;
-    static data = {}    ;
+    static data = {};
+    static calendar = {
+        months: ['Jan','Fev','Mars','Avr', 'Mai','Juin', 'Juil','Août', 'Sept', 'Oct','Nov','Déc'],
+        days: ['Dimanche','Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
+    };
 
     static getRoutes(){
         return {
@@ -53,6 +60,9 @@ export default class Management{
                 text: "Messagerie",
                 view: <Messages/>
             },
+            "/messenging/read":{
+                view: <Inbox/>
+            },
             "/studio/category":{
                 view: <Category/>
             },
@@ -61,6 +71,9 @@ export default class Management{
             },
             "/writing/draft":{
                 view: <ArticlesDraft/>
+            },
+            "/communauty/integration": {
+                view: <Integration/>
             }
         };
     }
@@ -69,9 +82,65 @@ export default class Management{
         return "Mus au top"
     }
 
+    static getDateString(val){
+        var date = new AkaDatetime(val),
+            calendar = Management.calendar;
+        var diff = AkaDatetime.diff(new AkaDatetime(), date);
+        if(diff.getDay() == 0 && diff.getMonth() == 1 && diff.getYear() == 0){
+            if(diff.getHour() == 0){
+                if(diff.getMinute() <= 1){
+                    return "À l'instant";
+                }
+                else{
+                    return "Il y a "+diff.getMinute()+' min.'
+                }
+            }
+            else{
+                return "Aujourd'hui à "+date.getTime();
+            }
+        }
+        return calendar.days[date.getWeekDay()]+' '+date.getDay()+' '+calendar.months[date.getMonth() * 1 - 1]+' '+date.getFullYear()+ ' à '+date.getTime();
+    }
+
+    static async replaceData(source, data, criteria){
+        let index = -1;
+        if(!Array.isArray(source)){
+            source[criteria] = data;
+            return source;
+        }
+        console.log('[replace]',data);
+        for(let i in source){
+            if(source[i][criteria] == data[criteria]){
+                index = i;
+                break;
+            }
+        }
+        if(index >= 0) {
+            source[index] = data;
+        }
+        else{
+            source = [data, ...source];
+        }
+        await Management.commit();
+    }
+
+    static removeData(source, value, criteria){
+        if(!Array.isArray(source)){
+            delete source[criteria];
+            return source;
+        }
+        source = source.filter(e=>{
+            if(e[criteria] != value){
+                return e[criteria];
+            }
+        });
+
+        return source;
+    }
+
     static async connect(username, password){
         return new Promise((res,rej)=>{
-            fetch(Ressources.apis+"/connect",{
+            fetch(Management.apis+"/connect",{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -126,6 +195,9 @@ export default class Management{
            Main.socket
            .emit(emitSrc, data)
            .on(listenSrc, (data)=>{
+               if(!data){
+                   return rej(Management.readCode(0));
+               }
                if(data.error){
                    return rej(Management.readCode(data.code));
                }
@@ -366,10 +438,43 @@ export default class Management{
         }
     }
 
-    static async getMessages(){
-        const data = await Management.request('/messages/fetch', Management.defaultQuery(), '/messages/get');
-        console.log('[Data]',data);
-        return data;
+    static async getMessages(id=null){
+        Management.setStorage('messages', []);
+        const read = async ()=>{
+            const args = Management.defaultQuery();
+            if(id){
+                args.msgid = id;
+            }
+            const data = await Management.request('/messages/fetch', args, '/messages/get');
+            if(id){
+                Management.replaceData(Management.data.messages, data.data, 'id');
+            }
+            else {
+                Management.data.messages = data.data;
+            }
+            await Management.commit();
+            return data;
+        }
+        if(Management.data.messages.length){
+            if(!id) return Management.data.messages;
+            for(let i in Management.data.messages){
+                if(Management.data.messages[i].id == id){
+                    if(!Management.data.messages[i].readBy){
+                        const data = await read();
+                        return data.data;
+                    }
+                    return Management.data.messages[i];
+                }
+            }
+        }
+        const data = await read();
+        if(!id) return data.data;
+        for(let i in Management.data.messages){
+            if(Management.data.messages[i].id == id){
+                return Management.data.messages[i];
+            }
+        }
+        return null;
     }
 
     static async getPunchlinesData(id = null){
@@ -470,7 +575,7 @@ export default class Management{
             });
             console.log('[Ths]',ths, ths.files());
             ths.params({
-                url: Ressources.apis+'/upl_img',
+                url: Management.apis+'/upl_img',
                 fileIndexName: 'upl_pch',
                 uploadedFileIndexName: 'pch_img'
             })
@@ -494,5 +599,29 @@ export default class Management{
                 rej(message);
             });
         })
+    }
+
+    static async sendMessageReply(data){
+        const response = await Management.request('/message/reply', {
+            ...Management.defaultQuery(),
+            ...data
+        }, '/message/get');
+        await Management.replaceData(Management.data.messages, response.data, 'id');
+        return response.data;
+    }
+
+    static async deleteMessage(data){
+        const response = await Management.request('/message/delete', {
+            ...Management.defaultQuery(),
+            ...data
+        }, '/message/remove');
+        Management.data.messages = Management.removeData(Management.data.messages, data.delid, 'id');
+        await Management.commit();
+        return response.data;
+    }
+
+    static async fetchPrivilegies(){
+        const data = await Management.request('/privilegies/fetch', Management.defaultQuery(),'/privilegies/get');
+        return data.data;
     }
 }

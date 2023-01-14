@@ -9,19 +9,19 @@ import Link from "../../components/Link";
 
 function MessageRow(props){
     return (
-        <Link href={'/messengin/read/'+props.id}
+        <Link href={'/messenging/read/'+props.id}
             className={"ui-container ui-size-fluid ui-vertical-center ui-unwrap message-row "+(props.readBy ? '': 'unread')}
         >
             <Avatar variant="rounded" className="avatar">
                 {props.firstname[0].toUpperCase()}
             </Avatar>
             <div className="ui-container data ui-size-fluid ui-md-size-8">
-                <div class="ui-container ui-size-fluid line ui-unwrap ui-vertical-center">
+                <div className="ui-container ui-size-fluid line ui-unwrap ui-vertical-center">
                     <div className="ui-container ui-size-8 name">
                         {props.firstname+', '+props.lastname}
                     </div>
                     <div className="ui-container date ui-size-4">
-                        {props.postOn}
+                        {Management.getDateString(props.postOn)}
                     </div>
                 </div>
                 <div className="ui-container ui-size-fluid message">
@@ -35,12 +35,14 @@ function MessageRow(props){
 export default class Messages extends AlertableComponent{
     constructor(props) {
         super(props);
+        this.timer = null;
         this.state = {
             ...super.getState(),
             perdate: false,
             pername: false,
             desc: true,
-            list: []
+            list: [],
+            time: null
         }
     }
 
@@ -48,13 +50,19 @@ export default class Messages extends AlertableComponent{
         Events.emit('set-prev',true);
         setTimeout(()=>Events.emit('set-prev',true), 200);
         Management.getMessages().then((data)=>{
-            this.changeValue('list', data.data);
+            this.changeValue('list', data);
+            this.refresh();
         }).catch((message)=>{
             this.toggleSnack({
                 content: message
             });
             console.log('[Message]',message);
         })
+    }
+
+    componentWillUnmount(){
+        Events.emit("set-prev",false);
+        this.refresh(false);
     }
 
     changeValue(index, value){
@@ -64,6 +72,17 @@ export default class Messages extends AlertableComponent{
                 [index] : value
             }
         })
+    }
+
+    refresh(open = true){
+        if(open){
+            this.timer = setInterval(()=>{
+                this.changeValue('time', new Date());
+            },1000);
+        }
+        else{
+            clearInterval(this.timer);
+        }
     }
 
     render() {
@@ -107,7 +126,6 @@ export default class Messages extends AlertableComponent{
                             text="Aucun message"
                          /> :
                          this.state.list.map((data, index)=>{
-                            console.log('[Data]',data);
                             return <MessageRow {...data} key={index}/>
                          })
                     }

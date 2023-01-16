@@ -36,9 +36,7 @@ export default class Redactor extends AlertableComponent{
         }
     }
 
-    componentDidMount() {
-        Events.emit("set-prev", true);
-        setTimeout(()=>Events.emit("set-prev", true), 300);
+    reload(){
         Management.getArticlesCategory().then(data => {
             const r = {};
             for(let i in data){
@@ -50,7 +48,7 @@ export default class Redactor extends AlertableComponent{
                     categories: r
                 }
             });
-        });
+        }).catch(this.setReloadable.bind(this));
         let edition = /^\/writing\/new\/((?:dft-)?[0-9]+)/.test(Url.get());
         if(!edition){
             return this.updateData('loading', false);
@@ -62,18 +60,18 @@ export default class Redactor extends AlertableComponent{
                 return Route.back();
             }
             this.setState(state => {
-               return {
-                   ...state,
-                   loading: false,
-                   title: data.title,
-                   content: data.content,
-                   category: data.category,
-                   publishauto: data.publishauto,
-                   date: data.date,
-                   time: data.time,
-                   draft: true,
-                   edit: data
-               }
+                return {
+                    ...state,
+                    loading: false,
+                    title: data.title,
+                    content: data.content,
+                    category: data.category,
+                    publishauto: data.publishauto,
+                    date: data.date,
+                    time: data.time,
+                    draft: true,
+                    edit: data
+                }
             });
             return;
         }
@@ -94,7 +92,12 @@ export default class Redactor extends AlertableComponent{
                     edit: data
                 }
             });
-        });
+        }).catch(this.setReloadable.bind(this));
+    }
+
+    componentDidMount() {
+        super.componentDidMount();
+        this.reload();
     }
 
     componentWillUnmount() {
@@ -212,6 +215,7 @@ export default class Redactor extends AlertableComponent{
     }
 
     render() {
+        if(this.state.reloadable) return this.state.reloadable;
         if(this.state.loading){
             return <BlankLoader/>
         }

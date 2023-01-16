@@ -16,6 +16,8 @@ import ThunderSpeed from "../utils/thunderspeed";
 import Home from "../pages/Home";
 import Inbox from "../pages/view/Inbox";
 import Integration from "../pages/view/Integration";
+import UserInfo from "../pages/view/UserInfo";
+import Settings from "../pages/view/Settings";
 
 export default class Management{
     static apis = "http://localhost:7070";
@@ -74,7 +76,12 @@ export default class Management{
             },
             "/communauty/integration": {
                 view: <Integration/>
-            }
+            },
+            "/communauty/usr": {
+                view: <UserInfo/>
+            },
+            "/usr": {view: <UserInfo/>},
+            "/settings": {view: <Settings/>}
         };
     }
 
@@ -82,24 +89,24 @@ export default class Management{
         return "Mus au top"
     }
 
-    static getDateString(val){
+    static getDateString(val, long = true){
         var date = new AkaDatetime(val),
             calendar = Management.calendar;
         var diff = AkaDatetime.diff(new AkaDatetime(), date);
         if(diff.getDay() == 0 && diff.getMonth() == 1 && diff.getYear() == 0){
             if(diff.getHour() == 0){
                 if(diff.getMinute() <= 1){
-                    return "À l'instant";
+                    return (long ? "À" : '')+"l'instant";
                 }
                 else{
-                    return "Il y a "+diff.getMinute()+' min.'
+                    return (long ? "Il y a " : '')+diff.getMinute()+' min.'
                 }
             }
             else{
                 return "Aujourd'hui à "+date.getTime();
             }
         }
-        return calendar.days[date.getWeekDay()]+' '+date.getDay()+' '+calendar.months[date.getMonth() * 1 - 1]+' '+date.getFullYear()+ ' à '+date.getTime();
+        return (long ? calendar.days[date.getWeekDay()] : '')+' '+date.getDay()+' '+calendar.months[date.getMonth() * 1 - 1]+' '+date.getFullYear()+(long ? ' à '+ date.getTime() : '');
     }
 
     static async replaceData(source, data, criteria){
@@ -108,7 +115,7 @@ export default class Management{
             source[criteria] = data;
             return source;
         }
-        console.log('[replace]',data);
+        // console.log('[replace]',data);
         for(let i in source){
             if(source[i][criteria] == data[criteria]){
                 index = i;
@@ -119,7 +126,16 @@ export default class Management{
             source[index] = data;
         }
         else{
-            source = [data, ...source];
+            let last = data;
+            if(source.length > 1){
+                let tmp;
+                for(let i = 1; i < source.length; i++){
+                    tmp = source[i];
+                    source[i] = last;
+                    last = tmp;
+                }
+            }
+            source.push(last);
         }
         await Management.commit();
     }
@@ -154,7 +170,7 @@ export default class Management{
             .then(async (result)=>{
                 // console.log('[Result]', result);
                 if(result.error){
-                    rej(result.message);
+                    rej(Management.readCode(result.code));
                     return;
                 }
                 await Home.openStorage();
@@ -164,7 +180,7 @@ export default class Management{
                 })
             }).catch((err)=>{
                 // console.log('[Error]',err);
-                rej("Une erreur est survénue lors de l'opération !");
+                rej(/^[0-9]+$/.test(err) ? Management.readCode(err) : "Une erreur est survénue lors de l'opération !");
             })
         });
     }
@@ -236,11 +252,13 @@ export default class Management{
     }
 
     static defaultQuery(){
-        return {
+        const options = {
             cmid: Management.data.id,
             bhid: Main.branch,
             cmtk: Management.data.token
         }
+        console.log('[def]',options, Management.data);
+        return options;
     }
 
     static readCode(code){
@@ -262,8 +280,14 @@ export default class Management{
                 break;
             case ResponseCode.BRANCH_ERROR:
                 return "Un problème de filiale se pose lors de l'opération";
+            case ResponseCode.AUTHENTICATION_ERROR:
+                return "Votre requête n'a pa pu être authentifiée";
+            case ResponseCode.PICTURE_UPDATE_ERROR:
+                return "Une erreur s'est produite lors du chargement d'image";
+            case ResponseCode.DENIED_ACCESS:
+                return "Ce compte n'a plus accès aux ressources de l'administration. Contactez l'administration pour demander de l'aide.";
             default:
-                return "Erreur inconnue !";
+                return "Erreur inconnue ! [code] 0x"+code;
                 break;
         }
     }
@@ -396,34 +420,34 @@ export default class Management{
     }
 
     static async getArticle(id){
-        return new Promise(async (res,rej)=>{
-            let article = null;
+        let article = null;
 
-            if(!('articles' in  Management.data)){
-                Management.data.articles = [];
-                await Management.commit();
+        if(!('articles' in  Management.data)){
+            Management.data.articles = [];
+            await Management.commit();
+        }
+        for(let i in Management.data.articles){
+            if(Management.data.articles[i].id === id){
+                article = Management.data.articles[i];
+                break;
             }
-            for(let i in Management.data.articles){
-                if(Management.data.articles[i].id === id){
-                    article = Management.data.articles[i];
-                    break;
-                }
-            }
-            if(article){
-                return res(article);
-            }
-            await Management.afterReady();
-            Main.socket.emit('/articles', {
+        }
+        if(article){
+            return article;
+        }
+        const data = await Management.request(
+            '/articles',{
                 ...Management.defaultQuery(),
                 artid: id
-            }).once('/articles/get', async(data)=>{
-                if(data.error){
-                    return res(article);
-                }
-                Management.data.articles.push(data.data);
-                res(data.data);
-            });
-        })
+            },
+            '/articles/get'
+        );
+        console.log('[Data]',data);
+        if(data.error){
+            return article;
+        }
+        Management.data.articles.push(data.data);
+        return data.data;
     }
 
     static async getLogo(){
@@ -542,7 +566,6 @@ export default class Management{
     }
 
     static async commitPunchline(data,feeback = null){
-        console.log('[commit]');
         return new Promise((res,rej)=>{
             const ths = new ThunderSpeed();
             const query = {
@@ -573,7 +596,6 @@ export default class Management{
                     });
                 }
             });
-            console.log('[Ths]',ths, ths.files());
             ths.params({
                 url: Management.apis+'/upl_img',
                 fileIndexName: 'upl_pch',
@@ -624,11 +646,14 @@ export default class Management{
         const data = await Management.request('/privilegies/fetch', Management.defaultQuery(),'/privilegies/get');
         return data.data;
     }
-    static async checkForAvailability(data, value){
+
+    static async checkForAvailability(data, value, uid = null){
+        uid = uid ? {manid: uid} : {};
         try{
             const result = await Management.request(`/manager/${data}/check`, {
                 value: value,
-                ...Management.defaultQuery()
+                ...Management.defaultQuery(),
+                ...uid
             }, `/manager/${data}/is`);
             return result.data;
         }catch (e) {
@@ -637,12 +662,19 @@ export default class Management{
         }
     }
 
-    static async checkForNickNameAvailability(nickname){
-        return await Management.checkForAvailability('nickname', nickname);
+    static async checkForNickNameAvailability(nickname, id = null){
+        return await Management.checkForAvailability('nickname', nickname, id);
     }
 
-    static async checkForEmailAvailability(email){
-        return await Management.checkForAvailability('email', email);
+    static async checkForEmailAvailability(email, id = null){
+        return await Management.checkForAvailability('email', email, id);
+    }
+
+    static async updateSelf(data){
+        for(let i in data){
+            Management.data[i] = data[i];
+        }
+        await Management.commit();
     }
 
     static async integrateNewManager(query){
@@ -651,19 +683,98 @@ export default class Management{
              {...Management.defaultQuery(), ...query},
              '/manager/approval'
          );
-         console.log('[Data]',data);
+         if(data.data.id == Management.data.id){
+             await Management.updateSelf(data.data);
+         }
+         else {
+             Management.setStorage('managers', []);
+             await Management.replaceData(Management.data.managers, data.data, 'id');
+         }
+         return data.data;
+    }
+
+    static async changePassword(query){
+        const data = await Management.request(
+            '/manager/reset',
+            {...query, ...Management.defaultQuery()},
+            '/manager/get'
+        );
+        Management.setStorage('managers', []);
+        await Management.replaceData(Management.data.managers, data.data, 'id');
+        return Management.data.managers;
+    }
+
+    static async blockManager(query){
+        const data = await Management.request(
+            '/manager/block',
+            {...query, ...Management.defaultQuery()},
+            '/manager/get'
+        );
+        Management.setStorage('managers', []);
+        await Management.replaceData(Management.data.managers, data.data, 'id');
+        console.log('[Change]',data,Management.data.managers);
+        return Management.data.managers;
     }
 
     static async getAllMembers(){
         const data = await Management.request(
-            '/manager/list',
+            '/management/list',
             Management.defaultQuery(),
-            '/manager/get'
+            '/management/get'
         );
         Management.setStorage('managers', []);
         for(let i in data.data){
             await Management.replaceData(Management.data.managers, data.data[i],'id');
         }
+        console.log('[All]',Management.data.managers);
         return data.data;
+    }
+
+    static async getMemberData(id){
+        const data = await Management.request(
+            '/management/member',{
+                ...Management.defaultQuery(),
+                manid: id
+            },
+            '/management/get'
+        );
+        Management.setStorage('managers', []);
+        await Management.replaceData(Management.data.managers, data.data, 'id');
+
+        return data.data;
+    }
+
+    static async setProfile(avatar, feeback = null){
+        return new Promise((res,rej)=>{
+            const ths = new ThunderSpeed();
+            ths.setFile(avatar);
+            ths.on('progress', (progress)=>{
+                if(feeback){
+                    feeback(progress.percent);
+                }
+            });
+            ths.params({
+                url: Management.apis+'/upl_img',
+                fileIndexName: 'upl_avt',
+                uploadedFileIndexName: 'avatar'
+            })
+            .start().then(async (data)=>{
+                if(feeback){
+                    feeback(0);
+                }
+                const result = await Management.request(
+                    '/manager/avatar/set',
+                    {
+                        ...Management.defaultQuery(),
+                        res: data.filename
+                     },
+                    '/manager/get'
+                );
+                await Management.updateSelf(data.data);
+                res(result.data);
+            }).catch((message)=>{
+                rej(message);
+            });
+        })
     }
 }

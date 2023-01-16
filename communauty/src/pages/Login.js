@@ -38,7 +38,6 @@ export default class Login extends React.Component{
                 textError:  this.text.errors[0],
                 message: true
             }})
-            // Events.emit("show-modal-box-alert");
             return;
         }
         this.setState(state => { return {
@@ -48,7 +47,6 @@ export default class Login extends React.Component{
             message: true,
             loading: true
         }})
-        // Events.emit("show-modal-box-loader");
         try {
             let result = await Management.connect(this.username, this.password)
             this.setState(state => { return {
@@ -70,9 +68,6 @@ export default class Login extends React.Component{
                 loading: false,
                 message: true
             }})
-            // Events
-            //     .emit("close-modal-box-loader")
-            //     .emit("show-modal-box-alert");
         }
     }
 

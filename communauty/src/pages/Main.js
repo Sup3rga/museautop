@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from "../components/Link";
 import {Icon} from "../components/Header";
-import Avatar from "../components/Avatar";
+// import Avatar from "../components/Avatar";
 import Management from "../utils/Management";
 import Url from "../utils/Url";
 import Events from "../utils/Events";
@@ -12,7 +12,7 @@ import Route from "../utils/Route";
 import {
     BottomNavigation,
     BottomNavigationAction,
-    Button,
+    Button, Avatar,
     Dialog, DialogActions, DialogContent, DialogContentText,
     DialogTitle,
     IconButton,
@@ -67,18 +67,13 @@ export default class Main extends React.Component{
     componentDidMount() {
         this.mounted = true;
         window.addEventListener("popstate", ()=>{
+            Events.emit("nav");
+        });
+        Events.on("nav", ()=>{
             this.setState(state=>{
                 return {
                     ...state,
                     route: Url.get()
-                }
-            })
-        });
-        Events.on("nav", (args)=>{
-            this.setState(state=>{
-                return {
-                    ...state,
-                    route: args.href
                 }
             })
         },this)
@@ -89,7 +84,12 @@ export default class Main extends React.Component{
                     back: value
                 }
             })
-        },this);
+        },this)
+        .on('personal-data-updated', ()=>{
+            this.setState(state=>{
+                return {...state}
+            })
+        })
     }
 
     componentWillUnmount() {
@@ -150,7 +150,7 @@ export default class Main extends React.Component{
                 vertical: 'top',
                 horizontal: 'right'
             }}
-            sx={{
+            sx={props.sx ? props.sx : {
                 mt: '45px'
             }}
             open={Boolean(props.el)}
@@ -158,7 +158,7 @@ export default class Main extends React.Component{
                 {
                     props.list.map((data,index)=>{
                         return (
-                            <MenuItem key={index} className={data.className} onClick={data.click ? data.click : props.onClick}>
+                            <MenuItem key={index} className={data.className} onClick={(e)=>data.click ? data.click(e, props.onClose) : props.onClick(e, props.onClose)}>
                                 {
                                     data.component ? data.component : [data.icon, data.label]
                                 }
@@ -220,11 +220,13 @@ export default class Main extends React.Component{
                         )
                     })
                 }
-                <div className="ui-container ui-size-fluid user-zone ui-horizontal-center ui-vertical-bottom">
+                <Link href="/usr" className="ui-container ui-size-fluid user-zone ui-horizontal-center ui-vertical-bottom">
                     <IconButton>
-                        <Avatar square={"30px"} text={Management.data.lastname[0].toUpperCase()}/>
+                        <Avatar className="avatar" src={Management.data.avatar} size={"30px"}>
+                            {Management.data.firstname[0].toUpperCase()}
+                        </Avatar>
                     </IconButton>
-                </div>
+                </Link>
             </div>
         );
     }
@@ -246,6 +248,9 @@ export default class Main extends React.Component{
                     {Management.getProjectName()}
                 </div>
                 <div className="ui-container ui-vertical-center ui-unwrap ui-size-5 ui-md-size-6 ui-horizontal-right appbar-icons">
+                    <IconButton>
+                        <Icon icon="bell"/>
+                    </IconButton>
                     <IconButton onClick={(e)=>{
                         this.setState(state=>{
                             return {
@@ -254,8 +259,14 @@ export default class Main extends React.Component{
                             }
                         })
                     }}>
-                        <Avatar square="34px" text={Management.data.lastname[0].toUpperCase()} />
+                        <Avatar className="avatar" src={Management.data.avatar} size={"34px"}>
+                            {Management.data.firstname[0].toUpperCase()}
+                        </Avatar>
                     </IconButton>
+                    <div className="ui-container ui-size-5 ui-md-size-4 user-info">
+                        <label className="ui-container ui-size-fluid name">{Management.data.firstname}</label>
+                        <label className="ui-container ui-size-fluid nick">{Management.data.nickname}</label>
+                    </div>
                     <Main.MenuList
                         el={this.state.userMenu}
                         onClose={()=>{
@@ -280,8 +291,31 @@ export default class Main extends React.Component{
                                 )
                             },
                             {
+                                icon: <Icon icon="user"/>,
+                                className: 'option-item',
+                                label: "Mon compte",
+                                click: ()=>{
+                                    this.setState(state=>{
+                                        return {...state, userMenu: null};
+                                    });
+                                    Route.pushState("/usr");
+                                }
+                            },
+                            {
+                                icon: <Icon icon="cog"/>,
+                                className: 'option-item',
+                                label: "Gestion du site",
+                                click: ()=>{
+                                    this.setState(state=>{
+                                        return {...state, userMenu: null};
+                                    });
+                                    Route.pushState("/settings");
+                                }
+                            },
+                            {
                                 icon: <Icon icon="sign-out-alt"/>,
                                 label: "Déconnexion",
+                                className: 'option-item',
                                 click: ()=>{
                                     this.setState(state=>{
                                         return {...state, userMenu: null};
@@ -291,12 +325,6 @@ export default class Main extends React.Component{
                             }
                         ]}
                     />
-                    <IconButton>
-                        <Icon icon="bell"/>
-                    </IconButton>
-                    <IconButton>
-                        <Icon icon="cog"/>
-                    </IconButton>
                 </div>
             </div>
         )

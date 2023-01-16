@@ -7,6 +7,9 @@ import BlankLoader from "../widget/BlankLoader";
 import Filter from "../../utils/Filter";
 import Constraint from "../../utils/Constraint";
 import Route from "../../utils/Route";
+import Url from "../../utils/Url";
+import AuthBox from "../widget/AuthBox";
+import Events from "../../utils/Events";
 
 export default class Integration extends AlertableComponent{
 
@@ -17,6 +20,7 @@ export default class Integration extends AlertableComponent{
         this.state = {
             ...super.getState(),
             firstname: '',
+            self: false,
             lastname: '',
             nickname: '',
             email: '',
@@ -35,7 +39,9 @@ export default class Integration extends AlertableComponent{
             checkingEmailStatus: false,
             nicknameStatus: 0,
             emailStatus: 0,
-            choice: {}
+            choice: {},
+            edit: null,
+            authenticate: false
         }
         this.required = ['firstname', 'lastname', 'nickname', 'email', 'phone', 'password'];
         this.nickNameReport = [
@@ -54,11 +60,8 @@ export default class Integration extends AlertableComponent{
         ];
     }
 
-
-    componentDidMount() {
-        super.componentDidMount();
-        Management.fetchPrivilegies().then((data)=>{
-            console.log('[Data]',data);
+    reload() {
+        Management.fetchPrivilegies().then(async(data)=>{
             const privileges = Object.keys(data.privileges);
             let bounds,items;
             for(let i in data.groups){
@@ -71,17 +74,43 @@ export default class Integration extends AlertableComponent{
                     }
                 }
             }
+            let state = {};
             console.log('[groups]',this.groups);
+            if(/^\/communauty\/integration\/([0-9]+)$/.test(Url.get())){
+                const id = RegExp.$1;
+                const edit = id == Management.data.id ? Management.data : await Management.getMemberData(id);
+                Object.keys(edit.branches).map(branch=>{
+                    edit.branches[branch] = edit.branches[branch].map(e => e * 1);
+                });
+                state = {
+                    self: edit.id == Management.data.id,
+                    firstname: edit.firstname,
+                    lastname: edit.lastname,
+                    nickname: edit.nickname,
+                    email: edit.mail,
+                    phone: edit.phone,
+                    edit,
+                    nicknameStatus: 2,
+                    emailStatus: 2,
+                    choice: edit.branches,
+                    branches: Object.keys(edit.branchesData)
+                }
+                this.required.pop();
+            }
             this.changeState({
+                ...state,
                 groups: Object.keys(data.groups),
                 groupsDesc: data.groups,
                 privileges,
                 privilegesDesc: data.privileges,
                 loading: false
             });
-        }).catch((message)=>{
-            console.log('[Error]',message);
-        })
+        }).catch(this.setReloadable.bind(this))
+    }
+
+    componentDidMount() {
+        super.componentDidMount();
+        this.reload();
     }
 
     setChoice(privilege, add = true, render = true){
@@ -133,22 +162,36 @@ export default class Integration extends AlertableComponent{
         });
     }
 
-    async submit(){
+    async submit(auth=null){
         if(!Filter.contains(this.state, this.required, [null,'']) || !Object.keys(this.state.choice).length){
             return;
         }
+        let required = [...this.required];
+        if(this.state.self && this.state.password.length){
+            required.push('password');
+        }
         const query = {
             privileges: this.state.choice,
-            ...Filter.object(this.state,this.required)
+            ...Filter.object(this.state,required)
         };
+        if(!auth){
+            return this.changeValue('authenticate', true);
+        }
+        query.auth = auth;
+        if(this.state.edit){
+            query.id = this.state.edit.id;
+        }
         this.toggleUploadInfo({
-            text: "Enregistrement des données en cours..."
+            text: (query.id ? "Mise à jour" : "Enregistrement")+" des données en cours..."
         });
         try{
             await Management.integrateNewManager(query);
             this.toggleDialog({
-                content: "Vous venez d'intégrer un nouveau membre !"
+                content: query.id ? "Informations modifiées !" : "Vous venez d'intégrer un nouveau membre !"
             });
+            if(this.state.self){
+                Events.emit("personal-data-updated");
+            }
             Route.back();
         }catch (content){
             this.toggleDialog({content})
@@ -190,14 +233,14 @@ export default class Integration extends AlertableComponent{
 
     async checkId(which,value){
         if(which === 'email'){
-            const response = await Management.checkForEmailAvailability(value);
+            const response = await Management.checkForEmailAvailability(value, this.state.edit ? this.state.edit.id : null);
             this.changeState({
                 checkingEmailStatus: false,
                 emailStatus: response ? 2 : 1
             });
         }
         else{
-            const response = await Management.checkForNickNameAvailability(value);
+            const response = await Management.checkForNickNameAvailability(value, this.state.edit ? this.state.edit.id : null);
             this.changeState({
                 checkingNicknameStatus: false,
                 nicknameStatus: response ? 2 : 1
@@ -205,7 +248,112 @@ export default class Integration extends AlertableComponent{
         }
     }
 
+    renderPrivileges(){
+        return (
+            <>
+                <h2 className="ui-element ui-horizontal-left ui-size-fluid">
+                    Assignation de filiale
+                </h2>
+                <br/><br/>
+                <div className="ui-container ui-size-fluid ui-unwrap ui-vertical-center branch">
+                    <Writing.RenderSelect
+                        label="Filiale"
+                        variant="outlined"
+                        className="ui-size-8"
+                        onChange={(e)=>this.changeValue('branchSelected',e.target.value)}
+                        size="small"
+                        value={this.state.branchSelected}
+                        list={this.branches}
+                    />
+                    <span className="ui-element ui-size-1"/>
+                    <Button
+                        sx={{
+                            backgroundColor: '#ccc',
+                            color: '0b1a2d',
+                            textTransform: 'capitalize'
+                        }}
+                        className="ui-size-10"
+                        disabled={!this.state.branchSelected}
+                        onClick={()=>this.addBranch()}
+                    >
+                        <Icon icon="plus"/> Assigner à cette filiale
+                    </Button>
+                </div>
+                <div className="ui-container ui-size-fluid branch">
+                    {
+                        this.state.branches.map((index)=>{
+                            return <Chip
+                                variant={this.state.currentBranch == index ? 'filled' : 'outlined'}
+                                label={this.branches[index]}
+                                onDelete={()=>this.removeBranch(index)}
+                                onClick={()=>this.changeValue('currentBranch', index)}
+                            />
+                        })
+                    }
+                </div>
+                {
+                    !this.state.currentBranch ? null :
+                        <>
+                            <br/><br/>
+                            <h2 className="ui-element ui-horizontal-left ui-size-fluid">
+                                Assignation de privilèges
+                            </h2>
+                            <div className="ui-container ui-size-fluid privilegies-list ui-horizontal-left">
+                                <FormControlLabel
+                                    disabled={true}
+                                    control={<Checkbox defaultChecked />}
+                                    label={this.state.privilegesDesc[0]}
+                                />
+                                {
+                                    this.state.groups.map((name, key)=>{
+                                        const intervals = this.state.groupsDesc[name];
+                                        const state = this.getGroupChoice(name);
+                                        return (
+                                            <>
+                                                <div className="ui-container ui-size-fluid privileges-group">
+                                                    <FormControlLabel
+                                                        key={name}
+                                                        control={<Checkbox
+                                                            checked={state == 2}
+                                                            indeterminate={state == 1}
+                                                            onChange={(e)=>this.checkAll(name, state)}
+                                                        />}
+                                                        label={name}
+                                                    />
+                                                </div>
+                                                <div className="ui-container ui-size-fluid privilegies-items">
+                                                    {
+                                                        this.groups[name].map((index)=>{
+                                                            return (
+                                                                <div className="ui-container ui-size-fluid privilege">
+                                                                    <FormControlLabel
+                                                                        disabled={index == intervals[0]}
+                                                                        key={index}
+                                                                        control={
+                                                                            <Checkbox
+                                                                                checked={(index == intervals[0] && state > 0) || (this.isChecked(index))}
+                                                                                onChange={(e)=>this.setChoice(index, e.target.checked)}
+                                                                            />}
+                                                                        label={this.state.privilegesDesc[index]}
+                                                                    />
+                                                                </div>
+                                                            )
+                                                        })
+                                                    }
+                                                </div>
+                                            </>
+                                        )
+                                    })
+                                }
+                            </div>
+                        </>
+                }
+            </>
+        )
+    }
+
     render(){
+        if(this.state.reloadable) return this.state.reloadable;
         if(this.state.loading) return <BlankLoader/>;
         const ready = Filter.contains(this.state, this.required, [null,'']) && Object.keys(this.state.choice).length;
         return (
@@ -285,21 +433,25 @@ export default class Integration extends AlertableComponent{
                                 }}
                             />
                         </div>
-                        <div className="ui-container ui-size-fluid wrapper">
-                            <Writing.TextField
-                                className="ui-size-fluid"
-                                label="Mot de passe"
-                                size="small"
-                                value={this.state.password}
-                                type={this.state.showPassword ? 'text' : 'password'}
-                                onChange={(e)=>this.changeValue('password', e.target.value)}
-                                endIcon={
-                                    <Icon
-                                        icon={this.state.showPassword ? "eye-slash" : "eye"}
-                                        onClick={()=>this.changeValue('showPassword', !this.state.showPassword)}/>
-                                }
-                            />
-                        </div>
+                        {
+                            this.state.edit && !this.state.self ? null :
+                            <div className="ui-container ui-size-fluid wrapper">
+                                <Writing.TextField
+                                    className="ui-size-fluid"
+                                    label={this.state.self ? "Nouveau mot de passe" : "Mot de passe"}
+                                    size="small"
+                                    value={this.state.password}
+                                    type={this.state.showPassword ? 'text' : 'password'}
+                                    helperText={!this.state.self ? null : "Vous pouvez modifier votre mot de passe si vous le voulez."}
+                                    onChange={(e)=>this.changeValue('password', e.target.value)}
+                                    endIcon={
+                                        <Icon
+                                            icon={this.state.showPassword ? "eye-slash" : "eye"}
+                                            onClick={()=>this.changeValue('showPassword', !this.state.showPassword)}/>
+                                    }
+                                />
+                            </div>
+                        }
                         <div className="ui-container ui-size-fluid wrapper">
                             <Writing.TextField
                                 className="ui-size-fluid"
@@ -348,105 +500,20 @@ export default class Integration extends AlertableComponent{
                             />
                         </div>
                         <br/><br/>
-                        <h2 className="ui-element ui-horizontal-left ui-size-fluid">
-                            Assignation de filiale
-                        </h2>
-                        <br/><br/>
-                        <div className="ui-container ui-size-fluid ui-unwrap ui-vertical-center branch">
-                            <Writing.RenderSelect
-                                label="Filiale"
-                                variant="outlined"
-                                className="ui-size-8"
-                                onChange={(e)=>this.changeValue('branchSelected',e.target.value)}
-                                size="small"
-                                value={this.state.branchSelected}
-                                list={this.branches}
-                            />
-                            <span className="ui-element ui-size-1"/>
-                            <Button
-                                sx={{
-                                    backgroundColor: '#ccc',
-                                    color: '0b1a2d',
-                                    textTransform: 'capitalize'
-                                }}
-                                className="ui-size-10"
-                                disabled={!this.state.branchSelected}
-                                onClick={()=>this.addBranch()}
-                            >
-                                <Icon icon="plus"/> Assigner à cette filiale
-                            </Button>
-                        </div>
-                        <div className="ui-container ui-size-fluid branch">
-                            {
-                                this.state.branches.map((index)=>{
-                                    return <Chip
-                                        variant={this.state.currentBranch == index ? 'filled' : 'outlined'}
-                                        label={this.branches[index]}
-                                        onDelete={()=>this.removeBranch(index)}
-                                        onClick={()=>this.changeValue('currentBranch', index)}
-                                    />
-                                })
-                            }
-                        </div>
                         {
-                            !this.state.currentBranch ? null :
-                            <>
-                                <br/><br/>
-                                <h2 className="ui-element ui-horizontal-left ui-size-fluid">
-                                    Assignation de privilèges
-                                </h2>
-                                <div className="ui-container ui-size-fluid privilegies-list ui-horizontal-left">
-                                    <FormControlLabel
-                                        disabled={true}
-                                        control={<Checkbox defaultChecked />}
-                                        label={this.state.privilegesDesc[0]}
-                                    />
-                                    {
-                                        this.state.groups.map((name, key)=>{
-                                            const intervals = this.state.groupsDesc[name];
-                                            const state = this.getGroupChoice(name);
-                                            return (
-                                                <>
-                                                    <div className="ui-container ui-size-fluid privileges-group">
-                                                        <FormControlLabel
-                                                            key={name}
-                                                            control={<Checkbox
-                                                                checked={state == 2}
-                                                                indeterminate={state == 1}
-                                                                onChange={(e)=>this.checkAll(name, state)}
-                                                            />}
-                                                            label={name}
-                                                        />
-                                                    </div>
-                                                    <div className="ui-container ui-size-fluid privilegies-items">
-                                                        {
-                                                            this.groups[name].map((index)=>{
-                                                                return (
-                                                                    <div className="ui-container ui-size-fluid privilege">
-                                                                        <FormControlLabel
-                                                                            disabled={index == intervals[0]}
-                                                                            key={index}
-                                                                            control={
-                                                                                <Checkbox
-                                                                                    checked={(index == intervals[0] && state > 0) || (this.isChecked(index))}
-                                                                                    onChange={(e)=>this.setChoice(index, e.target.checked)}
-                                                                                />}
-                                                                            label={this.state.privilegesDesc[index]}
-                                                                        />
-                                                                    </div>
-                                                                )
-                                                            })
-                                                        }
-                                                    </div>
-                                                </>
-                                            )
-                                        })
-                                    }
-                                </div>
-                            </>
+                            this.state.self ? null: this.renderPrivileges()
                         }
                     </div>
                 </div>
+                <AuthBox
+                   title={"Authentification"}
+                   open={this.state.authenticate}
+                   onSubmit={(auth)=>{
+                       this.changeValue('authenticate',false);
+                       this.submit(auth);
+                   }}
+                   onAbort={()=>this.changeValue('authenticate',false)}
+                />
                 {this.renderDialog()}
             </div>
         )

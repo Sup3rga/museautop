@@ -3,10 +3,12 @@ import Main from "../Main";
 import {Button, CircularProgress, Grid, Snackbar, Typography} from "@mui/material";
 import UploaderInfo from "../widget/UploaderInfo";
 import Events from "../../utils/Events";
+import {Icon} from "../../components/Header";
 
 export default class AlertableComponent extends React.Component{
     constructor(props) {
         super(props);
+        this.executor = null;
         this.state = this.getState();
         this.mounted = false;
     }
@@ -30,18 +32,22 @@ export default class AlertableComponent extends React.Component{
     }
 
     componentWillUnmount() {
+        this.mounted = true;
+        Events.emit("set-prev",false);
+    }
+
+    componentDidMount() {
         this.mounted = false;
         Events.emit("set-prev",true);
         setTimeout(()=>{Events.emit("set-prev",true);},300);
     }
 
-    componentDidMount() {
-        this.mounted = true;
-        Events.emit("set-prev",false);
-    }
+    reload(){}
 
     getState(){
         return {
+            reloadable: null,
+            loading: true,
             dialog: {
                 title: '',
                 content: '',
@@ -67,6 +73,30 @@ export default class AlertableComponent extends React.Component{
                 nullDisplay : false
             }
         }
+    }
+
+    getReloadableView(message = "Oupps !"){
+        return (
+            <div className="ui-container ui-fluid ui-all-center reload-view">
+                <div className="ui-container ui-size-fluid ui-sm-size-8 ui-md-size-6 ui-horizontal-center">
+                    <Icon icon="plug"/>
+                    <div className="ui-container ui-size-fluid ui-horizontal-justify message">
+                        {message}
+                    </div>
+                    <Button
+                        startIcon={<Icon icon="sync"/>}
+                        onClick={()=>{
+                            this.state.reloadable = null;
+                            this.reload();
+                        }}
+                    >Recharger</Button>
+                </div>
+            </div>
+        )
+    }
+
+    setReloadable(message){
+        this.changeValue('reloadable', this.getReloadableView(message))
     }
 
     toggleUploadInfo(data){

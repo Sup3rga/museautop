@@ -15,7 +15,11 @@ export default class Route extends React.Component{
     }
 
     static pushState(url){
+        if(Url.get() === url){
+            return;
+        }
         window.history.pushState(null,'', url);
+        // console.log('[url]',url);
         Events.emit('nav', {
             href: url
         });

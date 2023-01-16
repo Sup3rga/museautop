@@ -11,7 +11,9 @@ export default class Link extends React.Component{
     render(){
         return <a {...this.props} onClick={(e)=>{
             e.preventDefault();
-            Route.pushState(this.props.href);
+            if(this.props.href && /[\S\s]+/.test(this.props.href)) {
+                Route.pushState(this.props.href);
+            }
         }}>
             {this.props.children}
         </a>

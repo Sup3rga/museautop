@@ -6,7 +6,9 @@ let ResponseCode = {
     INVALID: 400,
     LOGOUT: 404,
     BRANCH_ERROR: 700,
-    PICTURE_UPDATE_ERROR: 300
+    PICTURE_UPDATE_ERROR: 300,
+    AUTHENTICATION_ERROR: 60,
+    DENIED_ACCESS: 30
 }
 
 module.exports = ResponseCode;

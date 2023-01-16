@@ -624,4 +624,46 @@ export default class Management{
         const data = await Management.request('/privilegies/fetch', Management.defaultQuery(),'/privilegies/get');
         return data.data;
     }
+    static async checkForAvailability(data, value){
+        try{
+            const result = await Management.request(`/manager/${data}/check`, {
+                value: value,
+                ...Management.defaultQuery()
+            }, `/manager/${data}/is`);
+            return result.data;
+        }catch (e) {
+            console.log('[Err]',e);
+            return false;
+        }
+    }
+
+    static async checkForNickNameAvailability(nickname){
+        return await Management.checkForAvailability('nickname', nickname);
+    }
+
+    static async checkForEmailAvailability(email){
+        return await Management.checkForAvailability('email', email);
+    }
+
+    static async integrateNewManager(query){
+         const data = await Management.request(
+             '/manager/integration',
+             {...Management.defaultQuery(), ...query},
+             '/manager/approval'
+         );
+         console.log('[Data]',data);
+    }
+
+    static async getAllMembers(){
+        const data = await Management.request(
+            '/manager/list',
+            Management.defaultQuery(),
+            '/manager/get'
+        );
+        Management.setStorage('managers', []);
+        for(let i in data.data){
+            await Management.replaceData(Management.data.managers, data.data[i],'id');
+        }
+        return data.data;
+    }
 }

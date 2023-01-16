@@ -70,7 +70,29 @@ export default class Writing extends Component{
         )
     }
 
-    static  AutoCompletion(props){
+    static TextField(props){
+        const startIcon = !props.startIcon ? null :  (
+                <InputAdornment>
+                    {props.startIcon}
+                </InputAdornment>
+            ),
+            endIcon = !props.endIcon ? null :  (
+                <InputAdornment>
+                    {props.endIcon}
+                </InputAdornment>
+            );
+        return (
+            <TextField
+                {...props}
+                InputProps={{
+                    startAdornment: startIcon,
+                    endAdornment: endIcon
+                }}
+            />
+        );
+    }
+
+    static AutoCompletion(props){
         const {options = []} = props;
         return (
             <Autocomplete
@@ -81,28 +103,16 @@ export default class Writing extends Component{
                 className={props.className}
                 options={options}
                 renderInput={(params) => {
-                    const startIcon = !props.startIcon ? null :  (
-                            <InputAdornment>
-                                {props.startIcon}
-                            </InputAdornment>
-                        ),
-                        endIcon = !props.endIcon ? null :  (
-                            <InputAdornment>
-                                {props.endIcon}
-                            </InputAdornment>
-                        );
                     return (
-                            <TextField
+                            <Writing.TextField
                                 {...params}
                                 label={props.label}
                                 placeholder={props.placeholder ? props.placeholder.toString() : null}
                                 onChange={props.onChange ? props.onChange : null}
-                                InputProps={{
-                                    ...params.InputProps,
-                                    type: props.type ? props.type : 'text',
-                                    startAdornment: startIcon,
-                                    endAdornment: endIcon
-                                }}
+                                onBlur={props.onBlur ? props.onBlur : null}
+                                type={props.type ? props.type : 'text'}
+                                startIcon={props.startIcon}
+                                endIcon={props.endIcon}
                             />
                         )
                 }}

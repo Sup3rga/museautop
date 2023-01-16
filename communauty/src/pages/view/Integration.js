@@ -1,28 +1,57 @@
 import AlertableComponent from "./AlertableComponent";
-import {Button, Checkbox, FormControlLabel, TextField} from "@mui/material";
+import {Button, Checkbox, Chip, CircularProgress, FormControlLabel, IconButton, TextField} from "@mui/material";
 import {Icon} from "../../components/Header";
 import Writing from "./Writing";
 import Management from "../../utils/Management";
 import BlankLoader from "../widget/BlankLoader";
+import Filter from "../../utils/Filter";
+import Constraint from "../../utils/Constraint";
+import Route from "../../utils/Route";
 
 export default class Integration extends AlertableComponent{
 
     constructor(props) {
         super(props);
         this.groups = {};
+        this.branches = Filter.toOptions(Management.data.branchesData, 'id', 'name');
         this.state = {
+            ...super.getState(),
             firstname: '',
             lastname: '',
             nickname: '',
             email: '',
             phone: '',
+            password: '',
+            showPassword: false,
             groupsDesc: {},
             groups: [],
             privileges: [],
             privilegesDesc: {},
+            branches: [],
+            currentBranch: 0,
+            branchSelected: null,
             loading: true,
-            choice: []
+            checkingNicknameStatus : false,
+            checkingEmailStatus: false,
+            nicknameStatus: 0,
+            emailStatus: 0,
+            choice: {}
         }
+        this.required = ['firstname', 'lastname', 'nickname', 'email', 'phone', 'password'];
+        this.nickNameReport = [
+            `Aucun espace ne sera autorisé, 
+                ni de caractères spéciaux, 
+                seuls les lettres comprises entre A à Z (en évitant les lettres accentuées),
+                le point (.) et les chiffes, sont admisibles
+            `,
+            `Ce nom d'utilisateur n'est pas disponible`,
+            `Nom d'utilisateur autorisé !`
+        ];
+        this.emailReport = [
+            '',
+            'Cette adresse e-mail est déjà utilisée !',
+            'Adresse e-mail autorisé !'
+        ];
     }
 
 
@@ -30,7 +59,7 @@ export default class Integration extends AlertableComponent{
         super.componentDidMount();
         Management.fetchPrivilegies().then((data)=>{
             console.log('[Data]',data);
-            const privileges = Object.keys(data.privilegies);
+            const privileges = Object.keys(data.privileges);
             let bounds,items;
             for(let i in data.groups){
                 bounds = data.groups[i];
@@ -47,7 +76,7 @@ export default class Integration extends AlertableComponent{
                 groups: Object.keys(data.groups),
                 groupsDesc: data.groups,
                 privileges,
-                privilegesDesc: data.privilegies,
+                privilegesDesc: data.privileges,
                 loading: false
             });
         }).catch((message)=>{
@@ -57,12 +86,12 @@ export default class Integration extends AlertableComponent{
 
     setChoice(privilege, add = true, render = true){
         if(add){
-            if(this.state.choice.indexOf(privilege) < 0){
-                this.state.choice.push(privilege);
+            if(this.state.choice[this.state.currentBranch].indexOf(privilege) < 0){
+                this.state.choice[this.state.currentBranch].push(privilege);
             }
         }
         else{
-            this.state.choice = this.state.choice.filter((e)=>{
+            this.state.choice[this.state.currentBranch] = this.state.choice[this.state.currentBranch].filter((e)=>{
                 if(e != privilege) return e;
             });
         }
@@ -74,14 +103,13 @@ export default class Integration extends AlertableComponent{
     }
 
     getGroupChoice(name){
-        return 0;
-        let val = 0, total = 0, checked = 0,
+        let total = 0, checked = 0,
             list = this.groups[name],
             bounds = this.state.groupsDesc[name];
         for(let i in list){
             if(list[i] >= bounds[0] & list[i] <= bounds[1]){
                 total++;
-                if(this.state.choice.indexOf(list[i]) >= 0){
+                if(this.state.choice[this.state.currentBranch].indexOf(list[i]) >= 0){
                     checked++;
                 }
             }
@@ -90,38 +118,113 @@ export default class Integration extends AlertableComponent{
     }
 
     isChecked(index){
-        return this.state.choice.indexOf(index) >= 0;
+        return this.state.choice[this.state.currentBranch].indexOf(index) >= 0;
     }
 
-    checkAll(name, check){
+    checkAll(name, state){
         const list = this.groups[name];
-        const bounds = this.state.groupsDesc[name];
-        console.log('[Name]',{name,list,bounds});
+        let check;
         for(let i in list){
-            list[i] *= list[i];
-            if(list[i] >= bounds[0] && list[i] <= bounds[1]){
-                this.setChoice(list[i], check, false);
-            }
+            check = !state ? (i == 0 ? true : false) : (state == 1 ? true : false);
+            this.setChoice(list[i], check, false);
         }
         this.changeState({
             choice: this.state.choice
         });
     }
 
+    async submit(){
+        if(!Filter.contains(this.state, this.required, [null,'']) || !Object.keys(this.state.choice).length){
+            return;
+        }
+        const query = {
+            privileges: this.state.choice,
+            ...Filter.object(this.state,this.required)
+        };
+        this.toggleUploadInfo({
+            text: "Enregistrement des données en cours..."
+        });
+        try{
+            await Management.integrateNewManager(query);
+            this.toggleDialog({
+                content: "Vous venez d'intégrer un nouveau membre !"
+            });
+            Route.back();
+        }catch (content){
+            this.toggleDialog({content})
+        }
+        this.toggleUploadInfo({open:false});
+    }
+
+    initBranch(index){
+        if(!(index in this.state.choice)){
+            this.state.choice[index] = [0];
+        }
+        this.changeState({
+            currentBranch: index,
+            choice: this.state.choice
+        });
+    }
+
+    addBranch(){
+        if(this.state.branches.indexOf(this.state.branchSelected) < 0){
+            this.state.branches.push(this.state.branchSelected);
+            this.changeValue('branches', this.state.branches);
+            this.initBranch(this.state.branchSelected);
+        }
+    }
+
+    removeBranch(branch){
+        if(this.state.branches.indexOf(branch) >= 0){
+            this.state.branches = this.state.branches.filter((val)=>{
+                if(val != branch) return true;
+            });
+            delete this.state.choice[branch];
+            this.changeState({
+                choice: this.state.choice,
+                branches: this.state.branches,
+                currentBranch: this.state.currentBranch == branch || !this.state.branches.length ? null : this.state.currentBranch
+            });
+        }
+    }
+
+    async checkId(which,value){
+        if(which === 'email'){
+            const response = await Management.checkForEmailAvailability(value);
+            this.changeState({
+                checkingEmailStatus: false,
+                emailStatus: response ? 2 : 1
+            });
+        }
+        else{
+            const response = await Management.checkForNickNameAvailability(value);
+            this.changeState({
+                checkingNicknameStatus: false,
+                nicknameStatus: response ? 2 : 1
+            });
+        }
+    }
+
     render(){
-        if(this.state.loading) return <BlankLoader/>
+        if(this.state.loading) return <BlankLoader/>;
+        const ready = Filter.contains(this.state, this.required, [null,'']) && Object.keys(this.state.choice).length;
         return (
             <div className="ui-container ui-fluid ui-unwrap ui-column integration">
                 <div className="ui-container ui-size-fluid header ui-vertical-center">
-                    <h1 className="ui-size-fluid ui-md-size-9 ui-container name">
+                    <h1 className="ui-size-fluid ui-md-size-8 ui-container name">
                         Intégration de membre
                     </h1>
-                    <div className="ui-size-fluid ui-md-size-3 ui-horizontal-right">
+                    <div className="ui-size-fluid ui-md-size-4 ui-horizontal-right">
                         <Button
                             sx={{
                                 textTransform: 'capitalize'
                             }}
+                            disabled={
+                                !ready || this.state.nicknameStatus !== 2 ||
+                                this.state.emailStatus !== 2
+                            }
                             startIcon={<Icon icon="save"/>}
+                            onClick={()=>this.submit()}
                         >
                             Enregistrer les informations
                         </Button>
@@ -132,105 +235,219 @@ export default class Integration extends AlertableComponent{
                         <div className="ui-container ui-size-fluid ui-md-size-6 wrapper">
                             <TextField
                                 className="ui-size-fluid"
-                                label="Le nom"
+                                label="Le Prénom"
                                 size="small"
+                                value={this.state.firstname}
+                                onChange={(e)=>this.changeValue('firstname', Constraint.toFormalName(e.target.value))}
                             />
                         </div>
                         <div className="ui-container ui-size-fluid ui-md-size-6 wrapper">
                             <TextField
                                 className="ui-size-fluid"
-                                label="Le Prénom"
+                                label="Le nom"
                                 size="small"
+                                value={this.state.lastname}
+                                onChange={(e)=>this.changeValue('lastname', Constraint.toFormalName(e.target.value))}
                             />
                         </div>
                         <div className="ui-container ui-size-fluid wrapper">
-                            <TextField
+                            <Writing.TextField
                                 className="ui-size-fluid"
                                 label="Pseudo"
                                 size="small"
-                                placeholder="my.pseudo"
-                                helperText={`Aucun espace ne sera autorisé, 
-                                    ni de caractères spéciaux, 
-                                    seuls les lettres comprises entre A à Z (en évitant les lettres accentuées),
-                                    et les chiffes, sont admisibles
-                                `}
+                                placeholder="Exemple: my.pseudo"
+                                helperText={this.nickNameReport[this.state.nicknameStatus]}
+                                value={this.state.nickname}
+                                endIcon={
+                                    this.state.checkingNicknameStatus ?
+                                    <CircularProgress size="14px"/> :
+                                        !this.state.nicknameStatus ? null :
+                                            <Icon mode="ion" icon={
+                                                this.state.nicknameStatus == 1 ? "alert-circled" : "android-done"
+                                            }/>
+                                }
+                                onBlur={()=>{
+                                    const nick = Constraint.passNickname(this.state.nickname);
+                                    if(nick.length){
+                                        this.checkId('nickname', nick);
+                                    }
+                                    this.changeState({
+                                        nickname: nick,
+                                        checkingNicknameStatus: nick.length > 0
+                                    })
+                                }}
+                                onChange={(e)=>{
+                                    this.changeState({
+                                        nicknameStatus: 0,
+                                        checkingNicknameStatus: false,
+                                        nickname: e.target.value
+                                    });
+                                }}
                             />
                         </div>
                         <div className="ui-container ui-size-fluid wrapper">
-                            <TextField
+                            <Writing.TextField
+                                className="ui-size-fluid"
+                                label="Mot de passe"
+                                size="small"
+                                value={this.state.password}
+                                type={this.state.showPassword ? 'text' : 'password'}
+                                onChange={(e)=>this.changeValue('password', e.target.value)}
+                                endIcon={
+                                    <Icon
+                                        icon={this.state.showPassword ? "eye-slash" : "eye"}
+                                        onClick={()=>this.changeValue('showPassword', !this.state.showPassword)}/>
+                                }
+                            />
+                        </div>
+                        <div className="ui-container ui-size-fluid wrapper">
+                            <Writing.TextField
                                 className="ui-size-fluid"
                                 label="Adresse e-mail"
                                 size="small"
                                 placeholder="Exemple: myname@webmail.com"
+                                helperText={this.emailReport[this.state.emailStatus]}
+                                endIcon={
+                                    this.state.checkingEmailStatus ?
+                                        <CircularProgress size="14px"/> :
+                                        !this.state.emailStatus ? null :
+                                            <Icon mode="ion" icon={
+                                                this.state.emailStatus == 1 ? "alert-circled" : "android-done"
+                                            }/>
+                                }
+                                value={this.state.email}
+                                onBlur={()=>{
+                                    const mail = Constraint.passEmail(this.state.email);
+                                    if(mail.length){
+                                        this.checkId('email',mail);
+                                    }
+                                    this.changeState({
+                                        email: mail,
+                                        checkingEmailStatus: mail.length > 0
+                                    })
+                                    this.changeValue('email', mail);
+                                }}
+                                onChange={(e)=>{
+                                    this.changeState({
+                                        emailStatus: 0,
+                                        checkingEmailStatus: false,
+                                        email: e.target.value
+                                    });
+                                }}
                             />
                         </div>
                         <div className="ui-container ui-size-fluid wrapper">
-                            <Writing.AutoCompletion
+                            <Writing.TextField
                                 label="Numéro de téléphone"
                                 className="ui-size-fluid"
                                 placeholder="XXX XXXXXXXXXXX"
                                 startIcon={'+'}
+                                value={this.state.phone}
+                                onBlur={()=>this.changeValue('phone', Constraint.passPhone(this.state.phone))}
+                                onChange={(e)=>this.changeValue('phone', e.target.value)}
                             />
                         </div>
                         <br/><br/>
                         <h2 className="ui-element ui-horizontal-left ui-size-fluid">
-                            Assignation de privilèges
+                            Assignation de filiale
                         </h2>
-                        <div className="ui-container ui-size-fluid privilegies-list">
-                            <FormControlLabel
-                                disabled={true}
-                                control={<Checkbox defaultChecked />}
-                                label={this.state.privilegesDesc[0]}
+                        <br/><br/>
+                        <div className="ui-container ui-size-fluid ui-unwrap ui-vertical-center branch">
+                            <Writing.RenderSelect
+                                label="Filiale"
+                                variant="outlined"
+                                className="ui-size-8"
+                                onChange={(e)=>this.changeValue('branchSelected',e.target.value)}
+                                size="small"
+                                value={this.state.branchSelected}
+                                list={this.branches}
                             />
+                            <span className="ui-element ui-size-1"/>
+                            <Button
+                                sx={{
+                                    backgroundColor: '#ccc',
+                                    color: '0b1a2d',
+                                    textTransform: 'capitalize'
+                                }}
+                                className="ui-size-10"
+                                disabled={!this.state.branchSelected}
+                                onClick={()=>this.addBranch()}
+                            >
+                                <Icon icon="plus"/> Assigner à cette filiale
+                            </Button>
+                        </div>
+                        <div className="ui-container ui-size-fluid branch">
                             {
-                                this.state.groups.map((name, key)=>{
-                                    const intervals = this.state.groupsDesc[name];
-                                    const state = this.getGroupChoice(name);
-                                    console.log('[State]',state);
-                                    return (
-                                        <>
-                                            <div className="ui-container ui-size-fluid privileges-group">
-                                                <FormControlLabel
-                                                    key={name}
-                                                    control={<Checkbox
-                                                        checked={state == 2}
-                                                        indeterminate={state == 1}
-                                                        onChange={(e)=>this.checkAll(name, e.target.checked)}
-                                                    />}
-                                                    label={name}
-                                                />
-                                            </div>
-                                            <div className="ui-container ui-size-fluid privilegies-items">
-                                                {
-                                                    this.groups[name].map((index)=>{
-                                                        index *= 1;
-                                                        if(index < intervals[0] || index > intervals[1]){
-                                                            return null;
-                                                        }
-                                                        return (
-                                                            <div className="ui-container ui-size-fluid privilege">
-                                                                <FormControlLabel
-                                                                    disabled={index == intervals[0]}
-                                                                    key={index}
-                                                                    control={
-                                                                        <Checkbox
-                                                                            checked={(index == intervals[0] && state > 0) || (this.isChecked(index))}
-                                                                            onChange={(e)=>this.setChoice(index, e.target.checked)}
-                                                                        />}
-                                                                    label={this.state.privilegesDesc[index]}
-                                                                />
-                                                            </div>
-                                                        )
-                                                    })
-                                                }
-                                            </div>
-                                        </>
-                                    )
+                                this.state.branches.map((index)=>{
+                                    return <Chip
+                                        variant={this.state.currentBranch == index ? 'filled' : 'outlined'}
+                                        label={this.branches[index]}
+                                        onDelete={()=>this.removeBranch(index)}
+                                        onClick={()=>this.changeValue('currentBranch', index)}
+                                    />
                                 })
                             }
                         </div>
+                        {
+                            !this.state.currentBranch ? null :
+                            <>
+                                <br/><br/>
+                                <h2 className="ui-element ui-horizontal-left ui-size-fluid">
+                                    Assignation de privilèges
+                                </h2>
+                                <div className="ui-container ui-size-fluid privilegies-list ui-horizontal-left">
+                                    <FormControlLabel
+                                        disabled={true}
+                                        control={<Checkbox defaultChecked />}
+                                        label={this.state.privilegesDesc[0]}
+                                    />
+                                    {
+                                        this.state.groups.map((name, key)=>{
+                                            const intervals = this.state.groupsDesc[name];
+                                            const state = this.getGroupChoice(name);
+                                            return (
+                                                <>
+                                                    <div className="ui-container ui-size-fluid privileges-group">
+                                                        <FormControlLabel
+                                                            key={name}
+                                                            control={<Checkbox
+                                                                checked={state == 2}
+                                                                indeterminate={state == 1}
+                                                                onChange={(e)=>this.checkAll(name, state)}
+                                                            />}
+                                                            label={name}
+                                                        />
+                                                    </div>
+                                                    <div className="ui-container ui-size-fluid privilegies-items">
+                                                        {
+                                                            this.groups[name].map((index)=>{
+                                                                return (
+                                                                    <div className="ui-container ui-size-fluid privilege">
+                                                                        <FormControlLabel
+                                                                            disabled={index == intervals[0]}
+                                                                            key={index}
+                                                                            control={
+                                                                                <Checkbox
+                                                                                    checked={(index == intervals[0] && state > 0) || (this.isChecked(index))}
+                                                                                    onChange={(e)=>this.setChoice(index, e.target.checked)}
+                                                                                />}
+                                                                            label={this.state.privilegesDesc[index]}
+                                                                        />
+                                                                    </div>
+                                                                )
+                                                            })
+                                                        }
+                                                    </div>
+                                                </>
+                                            )
+                                        })
+                                    }
+                                </div>
+                            </>
+                        }
                     </div>
                 </div>
+                {this.renderDialog()}
             </div>
         )
     }

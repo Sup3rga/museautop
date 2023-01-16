@@ -19,6 +19,7 @@ import {
     Menu,
     MenuItem
 } from "@mui/material";
+import Filter from "../utils/Filter";
 
 export default class Main extends React.Component{
 
@@ -34,14 +35,8 @@ export default class Main extends React.Component{
         Main.retryConnection();
         this.routes = Management.getRoutes();
         this.mounted = false;
-        this.branches = {};
-        for(let i in Management.data.branches){
-            if(!Main.branch){
-                Main.branch = Management.data.branches[i].id;
-            }
-            this.branches[Management.data.branches[i].id] = Management.data.branches[i].domain;
-        }
-        // console.log('[Man]',this.branches);
+        this.branches = Filter.toOptions(Management.data.branchesData, 'id', 'name');
+        Main.branch = Object.keys(Management.data.branches)[0] * 1;
         this.state = {
             route: Url.get(),
             expanded: false,
@@ -163,8 +158,10 @@ export default class Main extends React.Component{
                 {
                     props.list.map((data,index)=>{
                         return (
-                            <MenuItem key={index} onClick={data.click ? data.click : props.onClick}>
-                                {data.icon} {data.label}
+                            <MenuItem key={index} className={data.className} onClick={data.click ? data.click : props.onClick}>
+                                {
+                                    data.component ? data.component : [data.icon, data.label]
+                                }
                             </MenuItem>
                         )
                     })
@@ -249,17 +246,6 @@ export default class Main extends React.Component{
                     {Management.getProjectName()}
                 </div>
                 <div className="ui-container ui-vertical-center ui-unwrap ui-size-5 ui-md-size-6 ui-horizontal-right appbar-icons">
-                    <Writing.RenderSelect
-                        label="Filiale"
-                        variant="outlined"
-                        className="ui-element ui-size-4"
-                        onChange={(e)=>this.changeBranch(e.target.value)}
-                        sx = {{
-                            height: 30
-                        }}
-                        value={this.state.branch}
-                        list={this.branches}
-                    />
                     <IconButton onClick={(e)=>{
                         this.setState(state=>{
                             return {
@@ -279,9 +265,24 @@ export default class Main extends React.Component{
                         }}
                         list={[
                             {
+                                component: (
+                                    <Writing.RenderSelect
+                                        label="Filiale"
+                                        variant="outlined"
+                                        className="ui-size-fluid"
+                                        onChange={(e)=>this.changeBranch(e.target.value)}
+                                        sx = {{
+                                            height: 30
+                                        }}
+                                        value={this.state.branch}
+                                        list={this.branches}
+                                    />
+                                )
+                            },
+                            {
                                 icon: <Icon icon="sign-out-alt"/>,
                                 label: "Déconnexion",
-                                click: (e)=>{
+                                click: ()=>{
                                     this.setState(state=>{
                                         return {...state, userMenu: null};
                                     })

@@ -4,6 +4,10 @@ class Constraint{
         return /^[a-z][a-z0-9._]+[a-z0-9_]@[a-z0-9_.]+[a-z0-9_]\.[a-z0-9]{2,}$/.test(value);
     }
 
+    static passEmail(value, nullValue=''){
+        return Constraint.checkEmail(value) ? value : nullValue;
+    }
+
     static toFormalName(value){
         let result = '', up = true;
         value = value.toLowerCase();
@@ -16,6 +20,22 @@ class Constraint{
 
     static containsText(value){
         return /[\w]+/.test(value);
+    }
+
+    static checkNickname(value){
+        return /^[a-z][a-z0-9.]+[a-z]$/i.test(value);
+    }
+
+    static passNickname(value, nullValue = ''){
+        return Constraint.checkNickname(value) ? value : nullValue;
+    }
+
+    static checkPhone(value){
+        return /^[0-9]{1,3} *[0-9]+( *[0-9]+)*$/.test(value);
+    }
+
+    static passPhone(value, nullValue=''){
+        return Constraint.checkPhone(value) ? value : nullValue;
     }
 }
 

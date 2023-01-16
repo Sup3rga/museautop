@@ -6,30 +6,16 @@ import Events from "../../utils/Events";
 import Management from "../../utils/Management";
 import AlertableComponent from "./AlertableComponent";
 import Link from "../../components/Link";
+import UserRow from "../widget/UserRow";
 
 function MessageRow(props){
-    return (
-        <Link href={'/messenging/read/'+props.id}
-            className={"ui-container ui-size-fluid ui-vertical-center ui-unwrap message-row "+(props.readBy ? '': 'unread')}
-        >
-            <Avatar variant="rounded" className="avatar">
-                {props.firstname[0].toUpperCase()}
-            </Avatar>
-            <div className="ui-container data ui-size-fluid ui-md-size-8">
-                <div className="ui-container ui-size-fluid line ui-unwrap ui-vertical-center">
-                    <div className="ui-container ui-size-8 name">
-                        {props.firstname+', '+props.lastname}
-                    </div>
-                    <div className="ui-container date ui-size-4">
-                        {Management.getDateString(props.postOn)}
-                    </div>
-                </div>
-                <div className="ui-container ui-size-fluid message">
-                    {props.message}
-                </div>
-            </div>
-        </Link>
-    )
+    return <UserRow
+        link={'/messenging/read/'+props.id}
+        name={props.firstname+', '+props.lastname}
+        date={props.postOn}
+        info={props.message}
+        read={props.readBy}
+    />;
 }
 
 export default class Messages extends AlertableComponent{

@@ -33,6 +33,7 @@ export default class Home extends React.Component{
 
     async setView(){
         const r = await Management.retrieve();
+        console.log('[R]',r);
         this.setState(state => !r ?  <Login/> : <Main/>);
     }
 

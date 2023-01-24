@@ -272,7 +272,7 @@ var AkaDatetime = function(dateString){
     this.sub = function(date){
         stamp -= date.getStamp();
         if(stamp < 0){
-            stamp = 0;
+            stamp *= -1;
         }
         refresh();
         return this;

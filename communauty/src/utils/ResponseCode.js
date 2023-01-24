@@ -8,7 +8,8 @@ let ResponseCode = {
     BRANCH_ERROR: 700,
     PICTURE_UPDATE_ERROR: 300,
     AUTHENTICATION_ERROR: 60,
-    DENIED_ACCESS: 30
+    DENIED_ACCESS: 30,
+    DOMAIN_EXIST_ERROR: 210
 }
 
 module.exports = ResponseCode;

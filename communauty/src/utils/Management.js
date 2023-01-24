@@ -91,22 +91,30 @@ export default class Management{
 
     static getDateString(val, long = true){
         var date = new AkaDatetime(val),
-            calendar = Management.calendar;
-        var diff = AkaDatetime.diff(new AkaDatetime(), date);
+            calendar = Management.calendar,
+            now = new AkaDatetime();
+        var diff = AkaDatetime.diff(now, date),
+            hour = (date.getHour() == 0 ? "minuit " : date.getHour()+'h ')+(date.getMinute() == 0 ? 'pile' : date.getMinute());
         if(diff.getDay() == 0 && diff.getMonth() == 1 && diff.getYear() == 0){
             if(diff.getHour() == 0){
                 if(diff.getMinute() <= 1){
-                    return (long ? "À" : '')+"l'instant";
+                    return (long ? "À " : '')+"l'instant";
                 }
                 else{
                     return (long ? "Il y a " : '')+diff.getMinute()+' min.'
                 }
             }
+            else if(date.getDay() - now.getDay() == 0){
+                return "Aujourd'hui à "+hour;
+            }
             else{
-                return "Aujourd'hui à "+date.getTime();
+                return "Demain à "+hour
             }
         }
-        return (long ? calendar.days[date.getWeekDay()] : '')+' '+date.getDay()+' '+calendar.months[date.getMonth() * 1 - 1]+' '+date.getFullYear()+(long ? ' à '+ date.getTime() : '');
+        else if(diff.getDay() == 1 && date.getDay() - now.getDay() == 1 && diff.getMonth() == 1 && diff.getYear() == 0){
+            return "Demain à "+hour
+        }
+        return (long ? calendar.days[date.getWeekDay()] : '')+' '+date.getDay()+' '+calendar.months[date.getMonth() * 1 - 1]+' '+date.getFullYear()+(long ? ' à '+ hour : '');
     }
 
     static async replaceData(source, data, criteria){
@@ -215,7 +223,7 @@ export default class Management{
                    return rej(Management.readCode(0));
                }
                if(data.error){
-                   return rej(Management.readCode(data.code));
+                   return rej(data.message != null ? data.message : Management.readCode(data.code));
                }
                res(data);
            })
@@ -295,7 +303,16 @@ export default class Management{
     static async commit(){
         try {
             await Home.openStorage();
-            await Management.storage.setItem('agent', JSON.stringify(Management.data));
+            console.log('[Commit]',Management.storage)
+            if(Management.storage){
+                await Management.storage.setItem('agent', JSON.stringify(Management.data));
+                return false;
+            }
+            await (async()=>{
+                Events.on('storage-open', async ()=>{
+                    await Management.storage.setItem('agent', JSON.stringify(Management.data));
+                });
+            })();
         }catch (e) {
             console.error('[Error]',e, Management.storage);
         }
@@ -419,21 +436,26 @@ export default class Management{
         }
     }
 
-    static async getArticle(id){
+    static async getArticle(id = null){
         let article = null;
 
         if(!('articles' in  Management.data)){
             Management.data.articles = [];
             await Management.commit();
         }
-        for(let i in Management.data.articles){
-            if(Management.data.articles[i].id === id){
-                article = Management.data.articles[i];
-                break;
-            }
+        if(!id && Management.data.articles.length){
+            return Management.data.articles;
         }
-        if(article){
-            return article;
+        if(id) {
+            for (let i in Management.data.articles) {
+                if (Management.data.articles[i].id === id) {
+                    article = Management.data.articles[i];
+                    break;
+                }
+            }
+            if (article) {
+                return article;
+            }
         }
         const data = await Management.request(
             '/articles',{
@@ -442,11 +464,15 @@ export default class Management{
             },
             '/articles/get'
         );
-        console.log('[Data]',data);
         if(data.error){
             return article;
         }
-        Management.data.articles.push(data.data);
+        if(id){
+            await Management.replaceData(Management.data.articles, data.data, 'id');
+        }
+        else{
+            Management.data.articles = data.data;
+        }
         return data.data;
     }
 
@@ -776,5 +802,23 @@ export default class Management{
                 rej(message);
             });
         })
+    }
+
+    static async getEssentials(){
+        const data = await Management.request(
+            '/cog/essentials',
+            Management.defaultQuery(),
+            '/cog/get'
+        );
+        return data.data;
+    }
+
+    static async setEssentials(query){
+        const data = await Management.request(
+            '/cog/essentials/set',
+            {...query, ...Management.defaultQuery()},
+            '/cog/get'
+        );
+        return data;
     }
 }

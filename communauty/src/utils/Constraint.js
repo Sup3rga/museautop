@@ -37,6 +37,22 @@ class Constraint{
     static passPhone(value, nullValue=''){
         return Constraint.checkPhone(value) ? value : nullValue;
     }
+
+    static checkDomain(value){
+        return /^[a-z][a-z0-9-.]+[a-z0-9]\.[a-z0-9]{2,6}$/.test(value);
+    }
+
+    static passDomain(value, nullValue=''){
+        return Constraint.checkDomain(value) ? value : nullValue;
+    }
+
+    static checkBranchName(value){
+        return /^[a-z][a-z0-9. -]+[a-z0-9]$/i.test(value);
+    }
+
+    static passBranchName(value, nullValue=""){
+        return Constraint.checkBranchName(value) ? value : nullValue;
+    }
 }
 
 module.exports = Constraint;

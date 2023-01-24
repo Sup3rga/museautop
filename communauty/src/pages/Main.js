@@ -191,7 +191,7 @@ export default class Main extends React.Component{
         return (
             <div className="ui-fluid-height sidemenu ui-hide ui-md-element ui-all-center">
                 <div className="ui-container ui-size-fluid user-zone ui-vertical-center">
-                    <Button className="ui-element ui-size-fluid toggler"
+                    <Button className="ui-element toggler"
                         onClick={()=>{
                             this.setState(state => {
                                 return {

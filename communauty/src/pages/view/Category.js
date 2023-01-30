@@ -31,25 +31,24 @@ export default class Category extends AlertableComponent{
         }
     }
 
-    componentDidMount() {
+    reload(){
         Management[this.sector == 'writing' ? 'getArticlesCategory' : 'getPunchlinesCategory']().then((data)=>{
             console.log('[Data...',data);
             this.setState(state => {
                 return {
                     ...state,
+                    loading: false,
                     list: data
                 }
             })
         }).catch(message => {
-            this.toggleSnack({
-                content: message
-            })
+            this.setReloadable(message);
         })
-        setTimeout(()=>Events.emit("set-prev",true), 100);
     }
 
-    componentWillUnmount() {
-        setTimeout(()=>Events.emit("set-prev",false), 100);
+    componentDidMount() {
+        super.componentDidMount();
+        this.reload();
     }
 
     exists(name){
@@ -109,7 +108,6 @@ export default class Category extends AlertableComponent{
             if('id' in data) {
                 this.submitable.delete.push(data);
             }
-            console.log('[List]',list,data);
         }
         else{
             this.submitable.delete = this.deleteByName(this.submitable.delete, data.name);
@@ -177,6 +175,7 @@ export default class Category extends AlertableComponent{
     }
 
     render() {
+        if(this.block = this.blockRender()) return this.block;
         return (
             <div className="ui-container ui-size-fluid ui-fluid-height ui-column category-editor">
                 <div className="ui-container ui-size-fluid ui-vertical-center">

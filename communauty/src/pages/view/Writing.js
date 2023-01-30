@@ -17,13 +17,14 @@ import Main from "../Main";
 import Management from "../../utils/Management";
 import {ArticlePreview} from "../../components/ArticleThumbnail";
 import Filter from "../../utils/Filter";
+import AlertableComponent from "./AlertableComponent";
 
-export default class Writing extends Component{
+export default class Writing extends AlertableComponent{
 
     constructor(props) {
         super(props);
         this.state = {
-            loading: true,
+            ...super.getState(),
             currentCategory: 0,
             categories: {},
             articles: [],
@@ -31,10 +32,8 @@ export default class Writing extends Component{
         }
     }
 
-    componentDidMount() {
-        console.log('[Mount]...')
+    reload() {
         Management.getWritingDatas().then(data => {
-            console.log('[Data Writing]',data);
             let r = {
                 0: 'Toutes les catégories'
             };
@@ -42,16 +41,20 @@ export default class Writing extends Component{
             for(let i in categories){
                 r[categories[i].id] = categories[i].name;
             }
-            this.setState(state => {
-                return  {
-                    ...state,
-                    loading: false,
-                    categories: r,
-                    articles: articles
-                }
-            })
-        });
-        this.setState(state => {return {...state, draft: Management.getDraft().length }});
+            this.changeState({
+                loading: false,
+                categories: r,
+                articles: articles
+            });
+        }).catch(this.setReloadable.bind(this));
+        this.changeState({
+            draft: Management.getDraft().length
+        })
+    }
+
+    componentDidMount() {
+        super.componentDidMount();
+        this.reload();
     }
 
     static RenderSelect(props){
@@ -121,10 +124,7 @@ export default class Writing extends Component{
     }
 
     render() {
-
-        if(this.state.loading){
-            return <BlankLoader/>
-        }
+        if(this.block = this.blockRender()) return this.block;
         let nbr = 0,
             empty = (<EmptyView
                 text="Liste des articles vide !"

@@ -102,6 +102,7 @@ export default class Main extends React.Component{
         this.setState(state => {
             return {
                 ...state,
+                userMenu: null,
                 branch: e
             }
         })
@@ -158,7 +159,9 @@ export default class Main extends React.Component{
                 {
                     props.list.map((data,index)=>{
                         return (
-                            <MenuItem key={index} className={data.className} onClick={(e)=>data.click ? data.click(e, props.onClose) : props.onClick(e, props.onClose)}>
+                            <MenuItem key={index} className={data.className} onClick={(e)=> {
+                                return data.click ? data.click(e, props.onClose) : props.onClick ? props.onClick(e, props.onClose) : null
+                            }}>
                                 {
                                     data.component ? data.component : [data.icon, data.label]
                                 }
@@ -235,12 +238,14 @@ export default class Main extends React.Component{
         return (
             <div className="ui-container ui-size-fluid view-app-bar ui-vertical-center">
                 <div className="ui-container ui-size-2 ui-md-size-1 ui-all-center prev">
-                    <IconButton>
+                    <IconButton
+                        sx={{width: '43px'}}
+                        onClick={()=>{
+                            Route.back();
+                        }}
+                    >
                         <Icon icon="arrow-left"
                               className={"back-to-prev "+(this.state.back ? '' : 'ui-hide')}
-                              onClick={()=>{
-                                  Route.back();
-                              }}
                         />
                     </IconButton>
                 </div>

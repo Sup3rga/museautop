@@ -22,10 +22,6 @@ export default class StudioCreation extends AlertableComponent{
             context: null
         }
         this.cardConfig = {
-            retroBackground: 'rgb(50,70,100)',
-            textColor: 'rgb(255,255,255)',
-            rectBackground: 'rgb(255,255,255)',
-            rectColor: 'rgb(0,0,0)',
             mask: 'rgba(0,0,0,0.6)'
         };
         this.inputFile = React.createRef();
@@ -81,7 +77,7 @@ export default class StudioCreation extends AlertableComponent{
         ctx.clearRect(0,0,canvas.width, canvas.height);
         // console.log('[Draw]',this.canvas, this.state.image);
         //Draw rectangle
-        ctx.fillStyle = this.cardConfig.retroBackground;
+        ctx.fillStyle = this.cardConfig.cardBg;
         ctx.fillRect(0,0,canvas.width, canvas.height);
         //Draw Image
         if(this.state.image) {
@@ -125,7 +121,7 @@ export default class StudioCreation extends AlertableComponent{
             lines = [],
             reduceHeight = 0,
             geo,dim;
-        ctx.fillStyle = this.cardConfig.textColor;
+        ctx.fillStyle = this.cardConfig.cardTextColor;
         for(let i = 0; i < text.length; i++){
             /*
                 If the number of characters is up to the breakLength, we will
@@ -160,10 +156,10 @@ export default class StudioCreation extends AlertableComponent{
             ctx.fillText(lines[i], geo.x, geo.y);
         }
         //Draw legend rect
-        ctx.fillStyle = this.cardConfig.rectBackground;
+        ctx.fillStyle = this.cardConfig.cardBandBg;
         ctx.fillRect(0, canvas.height * (1 - legendRatio), canvas.width, legendHeight);
         //Draw legend upline
-        ctx.fillStyle = this.cardConfig.retroBackground;
+        ctx.fillStyle = this.cardConfig.cardBg;
         ctx.fillRect(0, legendPosY + legendPadding / 2, canvas.width, legendPadding / 4);
         //Artiste Name
         ctx.font = this.state.card.artistSize+'pt Rubik-Bold';
@@ -173,7 +169,7 @@ export default class StudioCreation extends AlertableComponent{
             x: (canvas.width - dim.width + dim.actualBoundingBoxLeft + dim.actualBoundingBoxRight) / 2,
             y: legendPosY + (legendHeight + dim.fontBoundingBoxAscent) / 2
         };
-        ctx.fillStyle = this.cardConfig.rectColor;
+        ctx.fillStyle = this.cardConfig.cardBandColor;
         ctx.fillText(this.state.artist.toUpperCase(), artist.x, artist.y);
         //Branch logo
         const logo = StudioCreation.logo[Main.branch];
@@ -235,23 +231,30 @@ export default class StudioCreation extends AlertableComponent{
         });
     }
 
-    async setReady(){
+    async reload(){
+        try{
+            const data = await Management.getPunchlinesConfig();
+            this.cardConfig = {...this.cardConfig, ...data};
+            console.log('[config]',data);
+        }catch (message){
+            return this.setReloadable(message);
+        }
         try{
             const data = await Management.getPunchlinesCategory();
             this.changeValue('categories', Filter.toOptions(data,'id','name'));
         }catch (message){
-            return this.toggleDialog({
-                content: message
-            });
+            return this.setReloadable(message);
         }
         if(/^\/studio\/new\/([0-9]+)$/.test(Url.get())){
             const id = RegExp.$1;
             this.changeValue('edit', await Management.getPunchlinesData(id));
             if(this.state.edit) {
+                console.log('[Edit]',this.state.edit);
                 const image = await this.getImage(this.state.edit.picture.path);
                 this.setState(state => {
                     return {
                         ...state,
+                        loading: false,
                         title: this.state.edit.title,
                         year: this.state.edit.year.toString(),
                         artist: this.state.edit.artist,
@@ -262,6 +265,25 @@ export default class StudioCreation extends AlertableComponent{
                         image
                     }
                 });
+            }
+            else{
+                this.setReloadable(
+                    <>
+                        <p>
+                            Un erreur de ressource s'est produite !
+                        </p>
+                        <p style={{fontSize: '.6em', color: '#5a2e1c'}}>
+                            <ul>
+                                <li>
+                                    Veuillez vérifier si vous vous trouver dans la bonne filiale.
+                                </li>
+                                <li>
+                                    Veuillez vérifier si le lien de l'url est correct.
+                                </li>
+                            </ul>
+                        </p>
+                    </>
+                )
             }
         }
         try {
@@ -278,22 +300,18 @@ export default class StudioCreation extends AlertableComponent{
                 this.changeState({logo});
             }
         }catch(message){
-            return this.toggleDialog({
-                content: message
-            });
+            return this.setReloadable(message);
         }
-        this.changeValue('ready',true);
+        this.changeState({
+            loading: false,
+            ready: true
+        });
         StudioCreation.frame(this.draw.bind(this));
     }
 
     componentDidMount() {
-        Events.emit("set-prev",true);
-        setTimeout(()=>{Events.emit("set-prev",true);},300);
-        this.setReady();
-    }
-
-    componentWillUnmount() {
-        Events.emit("set-prev",false);
+        super.componentDidMount();
+        this.reload();
     }
 
     async submit(){
@@ -345,6 +363,7 @@ export default class StudioCreation extends AlertableComponent{
     }
 
     render() {
+        if(this.block = this.blockRender()) return this.block;
         const adornment = (text = 'pixels')=>{
             return {
                 endAdornment: <InputAdornment position="start">text</InputAdornment>,

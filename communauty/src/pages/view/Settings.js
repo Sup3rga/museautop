@@ -32,7 +32,11 @@ export default class Settings extends AlertableComponent{
         this.state = {
             ...this.getState(),
             readingVisible: false,
+            readingVisibleWithCondition: false,
+            readingVisibilitylimit: 0,
             likesVisible: false,
+            likesVisibleWithCondition: false,
+            likesVisibilitylimit: 0,
             authorVisible: false,
             cardBg: '#000',
             cardBandBg: '#fff',
@@ -84,9 +88,13 @@ export default class Settings extends AlertableComponent{
 
     async commit(){
         let query = {};
+
         query = {...Filter.object(this.state, [
-            'readingVisible', 'likesVisible', 'authorVisible'
+            'readingVisible','likesVisible', 'authorVisible',
+            'readingVisibilitylimit', 'likesVisibilitylimit',
+            'readingVisibleWithCondition', 'likesVisibleWithCondition'
         ])}
+
         query = {...query, ...Filter.object(this.state,[
             'cardBg', 'cardBandBg', 'cardTextColor', 'cardBandColor',
             'cardWidth', 'cardHeight'
@@ -152,8 +160,12 @@ export default class Settings extends AlertableComponent{
     visibilitiesSettings(){
         const list = [
             {label: "Laisser voir le nombre de vue", state: 'readingVisible'},
+            {label: "Fixer une limite minimale", state: 'readingVisibleWithCondition', depend: 'readingVisible'},
+            {label: "La limite minimale pour laisser voir le nombre de vue", state: 'readingVisibilitylimit', numbered: true, depend: 'readingVisibleWithCondition'},
             {label: "Laisser voir le nombre d'appréciation", state: 'likesVisible'},
-            {label: "Afficher les noms du redacteur dans les articles", state: 'authorVisible'},
+            {label: "Fixer une limite minimale", state: 'likesVisibleWithCondition', depend: 'likesVisible'},
+            {label: "La limite minimale pour laisser voir le nombre d'appreciation", state: 'likesVisibilitylimit', numbered: true, depend: 'likesVisibleWithCondition'},
+            {label: "Afficher les noms du rédacteur dans les articles", state: 'authorVisible'},
         ];
         return (
             <>
@@ -168,16 +180,38 @@ export default class Settings extends AlertableComponent{
                         if(!this.isDisplayable(data.label)){
                             return  null;
                         }
+                        const disabled = data.depend && !this.state[data.depend];
+                        if(disabled && data.numbered){
+                            return null;
+                        }
+                        if(disabled && !data.numbered){
+                            this.state[data.state] = false;
+                        }
                         return (
                             <>
-                                <ListItem button onClick={()=>this.changeValue(data.state, !this.state[data.state])}>
+                                <ListItem button disabled={disabled} onClick={()=>this.changeValue(data.state, !this.state[data.state])}>
                                     <ListItemText>
                                         {data.label}
                                     </ListItemText>
-                                    <Switch
-                                        checked={this.state[data.state]}
-                                        onChange={(e)=>this.changeValue(data.state, e.target.checked)}
-                                    />
+                                    {
+                                        data.numbered ?
+                                            <TextField
+                                                label={"nombre minimal"}
+                                                type="number"
+                                                min={20}
+                                                size="small"
+                                                onBlur={(e)=>{
+                                                    this.changeValue(data.state,Constraint.passInt(e.target.value));
+                                                }}
+                                                value={this.state[data.state]}
+                                                onChange={(e)=>this.changeValue(data.state, e.target.value)}
+                                            />
+                                        :
+                                            <Switch
+                                                checked={disabled ? false : this.state[data.state]}
+                                                onChange={(e)=>this.changeValue(data.state, e.target.checked)}
+                                            />
+                                    }
                                 </ListItem>
                                 <Divider light/>
                             </>
@@ -669,8 +703,7 @@ export default class Settings extends AlertableComponent{
     }
 
     render() {
-        if(this.state.reloadable) return this.state.reloadable;
-        if(this.state.loading) return <BlankLoader/>
+        if(this.block = this.blockRender()) return this.block;
         return (
             <div className="ui-container ui-fluid settings ui-horizontal-center">
                 <div className="ui-container ui-unwrap ui-fluid-height ui-column ui-size-fluid ui-sm-size-10 ui-md-size-8 ui-horizontal-left">

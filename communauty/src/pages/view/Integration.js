@@ -353,8 +353,7 @@ export default class Integration extends AlertableComponent{
     }
 
     render(){
-        if(this.state.reloadable) return this.state.reloadable;
-        if(this.state.loading) return <BlankLoader/>;
+        if(this.block = this.blockRender()) return this.block;
         const ready = Filter.contains(this.state, this.required, [null,'']) && Object.keys(this.state.choice).length;
         return (
             <div className="ui-container ui-fluid ui-unwrap ui-column integration">

@@ -35,15 +35,13 @@ export default class Inbox extends AlertableComponent{
         }
     }
 
-    componentDidMount() {
-        super.componentDidMount();
+    reload(){
         /^\/messenging\/read\/([0-9]+)$/.exec(Url.get());
         const id = RegExp.$1;
         if(!id){
             return Route.back();
         }
         Management.getMessages(id).then((messageData)=>{
-            console.log('[Message]',messageData);
             if(!messageData){
                 return this.changeValue('notFound', true);
             }
@@ -56,8 +54,13 @@ export default class Inbox extends AlertableComponent{
             });
             this.refresh();
         }).catch((message)=>{
-            console.log('[Error]',message);
+            this.setReloadable(message);
         })
+    }
+
+    componentDidMount() {
+        super.componentDidMount();
+        this.reload();
     }
 
     refresh(open = true){
@@ -131,6 +134,7 @@ export default class Inbox extends AlertableComponent{
     }
 
     render() {
+        if(this.block = this.blockRender()) return this.block;
         if(this.state.notFound) return <EmptyView
             icon={<Icon icon='times'/>}
             text="Aucun message trouvé !"

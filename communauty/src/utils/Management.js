@@ -230,32 +230,44 @@ export default class Management{
         });
     }
 
-    static setStorage(index, defaultValue){
+    static setStorage(index, defaultValue, branch = null){
+        branch = branch ? branch : Main.branch;
         if(!(index in  Management.data)){
-            Management.data[index] = defaultValue;
+            Management.data[index] = {};
+        }
+        if(!(branch in Management.data[index])){
+            Management.data[index][branch] = defaultValue;
         }
         return Management;
     }
 
-    static setCategoriesStorage(){
+    static getStorage(index, branch){
+        branch = branch ? branch : Main.branch;
+        if(index in Management.data && branch in Management.data[index]){
+            return Management.data[index][branch];
+        }
+        return null;
+    }
+
+    static setCategoriesStorage(branch = null){
         Management.setStorage('categories', {
             writing: [],
             punchlines: []
-        });
+        },branch);
         return Management;
     }
 
-    static setPunchlinesStorage(){
+    static setPunchlinesStorage(branch = null){
         Management.setStorage('punchlines', {
             data: [],
             artists: [],
             years: []
-        });
+        },branch);
         return Management;
     }
 
-    static setArticlesStorage(){
-        Management.setStorage('articles', []);
+    static setArticlesStorage(branch = null){
+        Management.setStorage('articles', [],branch);
         return Management;
     }
 
@@ -335,9 +347,14 @@ export default class Management{
 
     static async getWritingDatas(){
         return new Promise(async (res)=>{
+            let branch = Main.branch;
+            Management.setCategoriesStorage();
             if('categories' in Management.data){
-                if('writing' in Management.data.categories && Management.data.categories.length){
-                    return res(Management.data.categories.writing);
+                if(
+                    'writing' in Management.data.categories[branch] &&
+                    Management.data.categories[branch].length
+                ){
+                    return res(Management.data.categories[branch].writing);
                 }
             }
             await Management.afterReady();
@@ -345,9 +362,11 @@ export default class Management{
             .emit("/writing", Management.defaultQuery())
             .on("/writing/data", async(e)=>{
                 const data = e.data;
-                Management.setCategoriesStorage()
-                .data.categories.writing = data.categories;
-                Management.data.articles = data.articles;
+                Management.setCategoriesStorage(branch)
+                    .getStorage('categories')
+                    .writing = data.categories;
+                Management.setArticlesStorage(branch);
+                Management.data.articles[branch] = data.articles;
                 await Management.commit();
                 res(data);
             });
@@ -366,6 +385,7 @@ export default class Management{
                 if(data.error){
                    return rej(Management.readCode(data.code));
                 }
+                console.log('[Cat..]',data);
                 await Management.commit();
                 res(data.data);
             });
@@ -376,8 +396,7 @@ export default class Management{
         let name = null;
         if(['writing','punchlines'].indexOf(sector) < 0) return name;
         //we defined category storage if not exists;
-        Management.setCategoriesStorage();
-        let list = Management.data.categories[sector];
+        let list = Management.setCategoriesStorage().getStorage('categories')[sector];
         for(let i in list){
             if(list[i].id == id){
                 name = list[i].name;
@@ -395,61 +414,54 @@ export default class Management{
     }
 
     static async addDraft(data){
-        if(!('draft' in Management.data)){
-            Management.data.draft = [];
-        }
+        Management.setStorage('draft', []);
         if('index' in data){
-            Management.data.draft[data.index] = data;
+            Management.data.draft[Main.branch][data.index] = data;
         }
         else {
-            data.index = Management.data.draft.length;
-            Management.data.draft.push(data);
+            data.index = Management.getStorage('draft').length;
+            Management.data.draft[Main.branch].push(data);
         }
         await Management.commit();
     }
 
     static removeDraft(index){
-        if(!('draft' in Management.data)){
-            Management.data.draft = [];
-        }
+        Management.setStorage('draft', []);
         const r = [];
         let item;
-        for(let i in Management.data.draft){
+        for(let i in Management.data.draft[Main.branch]){
             if(i != index){
-                item = Management.data.draft[i];
+                item = Management.data.draft[Main.branch][i];
                 item.index = i;
                 r.push(item);
             }
         }
-        Management.data.draft = r;
+        Management.data.draft[Main.branch] = r;
+        Management.commit();
     }
 
     static getDraft(index = null){
-        if(!('draft' in Management.data)){
-            Management.data.draft = [];
-        }
+        Management.setStorage('draft',[]);
         if(index === null){
-            return Management.data.draft;
+            return Management.data.draft[Main.branch];
         }
         else{
-            return index in Management.data.draft ? Management.data.draft[index] : null;
+            return index in Management.data.draft[Main.branch] ? Management.data.draft[Main.branch][index] : null;
         }
     }
 
     static async getArticle(id = null){
         let article = null;
-
-        if(!('articles' in  Management.data)){
-            Management.data.articles = [];
-            await Management.commit();
-        }
-        if(!id && Management.data.articles.length){
-            return Management.data.articles;
+        let branch = Main.branch;
+        Management.setStorage('articles', []);
+        await Management.commit();
+        if(!id && Management.data.articles[branch].length){
+            return Management.data.articles[branch];
         }
         if(id) {
-            for (let i in Management.data.articles) {
-                if (Management.data.articles[i].id === id) {
-                    article = Management.data.articles[i];
+            for (let i in Management.data.articles[branch]) {
+                if (Management.data.articles[branch][i].id === id) {
+                    article = Management.data.articles[branch][i];
                     break;
                 }
             }
@@ -468,10 +480,10 @@ export default class Management{
             return article;
         }
         if(id){
-            await Management.replaceData(Management.data.articles, data.data, 'id');
+            await Management.replaceData(Management.data.articles[branch], data.data, 'id');
         }
         else{
-            Management.data.articles = data.data;
+            Management.data.articles[branch] = data.data;
         }
         return data.data;
     }
@@ -490,6 +502,7 @@ export default class Management{
 
     static async getMessages(id=null){
         Management.setStorage('messages', []);
+        let branch = Main.branch;
         const read = async ()=>{
             const args = Management.defaultQuery();
             if(id){
@@ -497,38 +510,48 @@ export default class Management{
             }
             const data = await Management.request('/messages/fetch', args, '/messages/get');
             if(id){
-                Management.replaceData(Management.data.messages, data.data, 'id');
+                await Management.replaceData(Management.data.messages[branch], data.data, 'id');
             }
             else {
-                Management.data.messages = data.data;
+                Management.data.messages[branch] = data.data;
             }
             await Management.commit();
             return data;
         }
-        if(Management.data.messages.length){
-            if(!id) return Management.data.messages;
-            for(let i in Management.data.messages){
-                if(Management.data.messages[i].id == id){
-                    if(!Management.data.messages[i].readBy){
+        if(Management.data.messages[branch].length){
+            if(!id) return Management.data.messages[branch];
+            for(let i in Management.data.messages[branch]){
+                if(Management.data.messages[branch][i].id == id){
+                    if(!Management.data.messages[branch][i].readBy){
                         const data = await read();
                         return data.data;
                     }
-                    return Management.data.messages[i];
+                    return Management.data.messages[branch][i];
                 }
             }
         }
         const data = await read();
         if(!id) return data.data;
-        for(let i in Management.data.messages){
-            if(Management.data.messages[i].id == id){
-                return Management.data.messages[i];
+        for(let i in Management.data.messages[branch]){
+            if(Management.data.messages[branch][i].id == id){
+                return Management.data.messages[branch][i];
             }
         }
         return null;
     }
 
+    static async getPunchlinesConfig(){
+        const data = await Management.request(
+            '/punchlines/config/fetch',
+            Management.defaultQuery(),
+            '/punchlines/config/get'
+        );
+        return data.data;
+    }
+
     static async getPunchlinesData(id = null){
-        let  source = Management.setPunchlinesStorage().data.punchlines;
+        let branch = Main.branch;
+        let source = Management.setPunchlinesStorage().data.punchlines[branch];
         if(id){
             for(let i in source.data){
                 if(source.data[i].id == id){
@@ -541,32 +564,34 @@ export default class Management{
         }
         const data = await Management.request('/punchlines/fetch', Management.defaultQuery(), '/punchlines/get');
         source = data.data;
-        Management.setPunchlinesStorage()
-            .data.punchlines.data = data.data.punchlines;
-        Management.data.punchlines.years = data.data.years;
-        Management.data.punchlines.artists = data.data.artists;
+        Management.setPunchlinesStorage(branch)
+            .data.punchlines[branch].data = data.data.punchlines;
+        Management.data.punchlines[branch].years = data.data.years;
+        Management.data.punchlines[branch].artists = data.data.artists;
         await Management.commit();
         if(id){
-            source = Management.data.punchlines;
+            source = Management.data.punchlines[branch];
             for(let i in source.data){
                 if(source.data[i].id == id){
                     return source.data[i];
                 }
             }
+            return null;
         }
-        return Management.data.punchlines;
+        return Management.data.punchlines[branch];
     }
 
     static async commitRedaction(data){
         return new Promise((res,rej)=>{
+            let branch = Main.branch;
             Main.socket
             .emit("/writing/write", data)
             .once('/writing/write/response', async (data)=>{
                 if(data.error){
                     return rej(Management.readCode(data.code));
                 }
-                Management.setArticlesStorage()
-                .data.articles = data.data;
+                Management.setArticlesStorage(branch)
+                .data.articles[branch] = data.data;
                 await Management.commit();
                 res(data);
             })
@@ -578,13 +603,15 @@ export default class Management{
             if(['punchlines', 'writing'].indexOf(sector) < 0){
                 return rej("unrecognized sector given !");
             }
+            let branch = Main.branch;
             Main.socket
             .emit('/'+sector+'/category/set', data)
             .once('/'+sector+'/category/get', async (data)=>{
                 if(data.error){
                     return rej(Management.readCode(data.code));
                 }
-                Management.data.categories[sector] = data.data;
+                Management.setCategoriesStorage(branch);
+                Management.data.categories[branch][sector] = data.data;
                 await Management.commit();
                 res(data);
             })
@@ -609,6 +636,7 @@ export default class Management{
             if(data.image){
                 ths.setFile(data.image)
             }
+            let branch = Main.branch;
             ths.on('progress', (progress)=>{
                 if(feeback){
                     const currentProcess = (progress.file.name === data.card.name ?
@@ -628,16 +656,18 @@ export default class Management{
                 uploadedFileIndexName: 'pch_img'
             })
             .start().then(async (data)=>{
-                console.log('[End]',data, query);
                 try{
-                    const result = await Management.request('/punchlines/create', {
-                        ...query,
-                        res: data.filename
-                    }, '/punchlines/get');
-                    Management.setPunchlinesStorage()
-                    .data.punchlines.data = result.data.punchlines;
-                    Management.data.punchlines.years = result.data.years;
-                    Management.data.punchlines.artists = result.data.artists;
+                    const result = await Management.request(
+                        '/punchlines/create',
+                        {
+                            ...query,
+                            res: data.filename
+                        },
+                        '/punchlines/get');
+                    Management.setPunchlinesStorage(branch)
+                    .data.punchlines[branch].data = result.data.punchlines;
+                    Management.data.punchlines[branch].years = result.data.years;
+                    Management.data.punchlines[branch].artists = result.data.artists;
                     await Management.commit();
                     res(result);
                 }catch (message){
@@ -650,20 +680,24 @@ export default class Management{
     }
 
     static async sendMessageReply(data){
+        let branch = Main.branch;
+        Management.setStorage('messages', []);
         const response = await Management.request('/message/reply', {
             ...Management.defaultQuery(),
             ...data
         }, '/message/get');
-        await Management.replaceData(Management.data.messages, response.data, 'id');
+        await Management.replaceData(Management.data.messages[branch], response.data, 'id');
         return response.data;
     }
 
     static async deleteMessage(data){
+        let branch = Main.branch;
+        Management.setStorage('messages', []);
         const response = await Management.request('/message/delete', {
             ...Management.defaultQuery(),
             ...data
         }, '/message/remove');
-        Management.data.messages = Management.removeData(Management.data.messages, data.delid, 'id');
+        Management.data.messages[branch] = Management.removeData(Management.data.messages[branch], data.delid, 'id');
         await Management.commit();
         return response.data;
     }
@@ -704,6 +738,7 @@ export default class Management{
     }
 
     static async integrateNewManager(query){
+        let branch = Main.branch;
          const data = await Management.request(
              '/manager/integration',
              {...Management.defaultQuery(), ...query},
@@ -713,21 +748,22 @@ export default class Management{
              await Management.updateSelf(data.data);
          }
          else {
-             Management.setStorage('managers', []);
-             await Management.replaceData(Management.data.managers, data.data, 'id');
+             Management.setStorage('managers', [], branch);
+             await Management.replaceData(Management.data.managers[branch], data.data, 'id');
          }
          return data.data;
     }
 
     static async changePassword(query){
+        let branch = Main.branch;
         const data = await Management.request(
             '/manager/reset',
             {...query, ...Management.defaultQuery()},
             '/manager/get'
         );
-        Management.setStorage('managers', []);
-        await Management.replaceData(Management.data.managers, data.data, 'id');
-        return Management.data.managers;
+        Management.setStorage('managers', [], branch);
+        await Management.replaceData(Management.data.managers[branch], data.data, 'id');
+        return Management.data.managers[Main.branch];
     }
 
     static async blockManager(query){
@@ -737,9 +773,8 @@ export default class Management{
             '/manager/get'
         );
         Management.setStorage('managers', []);
-        await Management.replaceData(Management.data.managers, data.data, 'id');
-        console.log('[Change]',data,Management.data.managers);
-        return Management.data.managers;
+        await Management.replaceData(Management.data.managers[Main.branch], data.data, 'id');
+        return Management.data.managers[Main.branch];
     }
 
     static async getAllMembers(){
@@ -750,23 +785,22 @@ export default class Management{
         );
         Management.setStorage('managers', []);
         for(let i in data.data){
-            await Management.replaceData(Management.data.managers, data.data[i],'id');
+            await Management.replaceData(Management.data.managers[Main.branch], data.data[i],'id');
         }
-        console.log('[All]',Management.data.managers);
         return data.data;
     }
 
     static async getMemberData(id){
+        const defaultQuery = Management.defaultQuery();
         const data = await Management.request(
             '/management/member',{
-                ...Management.defaultQuery(),
+                ...defaultQuery,
                 manid: id
             },
             '/management/get'
         );
-        Management.setStorage('managers', []);
-        await Management.replaceData(Management.data.managers, data.data, 'id');
-
+        Management.setStorage('managers', [], defaultQuery.bhid);
+        await Management.replaceData(Management.data.managers[defaultQuery.bhid], data.data, 'id');
         return data.data;
     }
 

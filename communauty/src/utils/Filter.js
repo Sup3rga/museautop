@@ -11,7 +11,7 @@ class Filter{
         return result;
     }
 
-    static contains(object,indexes,nullValues= [null]){
+    static contains(object,indexes,nullValues= [null,undefined]){
         let checked = true;
         indexes.forEach((val)=>{
             if(!(val in object && nullValues.indexOf(object[val]) < 0)){

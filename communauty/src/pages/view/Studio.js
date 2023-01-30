@@ -1,15 +1,15 @@
 import React from "react";
-import Field from "../../components/Field";
 import {Icon} from "../../components/Header";
 import Route from "../../utils/Route";
 import Link from "../../components/Link";
 import Writing from "./Writing";
 import {SpeedDial, SpeedDialAction, SpeedDialIcon} from "@mui/material";
 import Management from "../../utils/Management";
-import BlankLoader, {EmptyView} from "../widget/BlankLoader";
 import Filter from "../../utils/Filter";
+import AlertableComponent from "./AlertableComponent";
+import {EmptyView} from "../widget/BlankLoader";
 
-class Punchline extends React.Component{
+class Punchline extends AlertableComponent{
     render() {
         return (
             <Link href={'/studio/new/'+this.props.id}
@@ -23,12 +23,13 @@ class Punchline extends React.Component{
     }
 }
 
-export default class Studio extends React.Component{
+export default class Studio extends AlertableComponent{
 
     constructor(props) {
         super(props);
 
         this.state = {
+            ...super.getState(),
             category: 0,
             artist: 0,
             year: 0,
@@ -36,36 +37,18 @@ export default class Studio extends React.Component{
             artists: {},
             years: {},
             punchlines: {},
-            loading: true,
-            error: null
+            loading: true
         }
     }
 
-    changeValue(index, value){
-        this.setState(state=>{
-            return {
-                ...state,
-                [index] : value
-            }
-        })
-    }
-
-    setErrorMessage(message){
-        this.setState(state => {
-            return {
-                ...state,
-                error: message
-            }
-        })
-    }
-
-    componentDidMount() {
+    reload() {
         Management.getPunchlinesCategory().then(async (data)=>{
             const categories = {
                 0: 'Toutes les catégories',
                 ...Filter.toOptions(data, 'id', 'name')
             };
             const _data = await Management.getPunchlinesData();
+            console.log('[Data]',_data);
             this.setState({
                 categories,
                 artists: {
@@ -77,18 +60,20 @@ export default class Studio extends React.Component{
                     ...Filter.toOptions(_data.years)
                 },
                 punchlines: _data.data,
-                loading: false,
-                error: null
+                loading: false
             });
         }).catch((message)=>{
-            this.setErrorMessage(message);
+            this.setReloadable(message);
         });
     }
 
+    componentDidMount() {
+        super.componentDidMount();
+        this.reload();
+    }
+
     render() {
-        if(this.state.loading){
-            return <BlankLoader/>;
-        }
+        if(this.block = this.blockRender()) return this.block;
         const empty = (text="Aucune carte de punchline n'a été créée.")=>{
             console.log('Empty',text);
             return <EmptyView

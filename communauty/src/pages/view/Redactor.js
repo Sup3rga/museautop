@@ -100,10 +100,6 @@ export default class Redactor extends AlertableComponent{
         this.reload();
     }
 
-    componentWillUnmount() {
-        Events.emit("set-prev",false);
-    }
-
     extractImg(){
         this.state.img = [];
         const extract = this.state.content.match(/<img src="(.+?)">/g);
@@ -215,10 +211,7 @@ export default class Redactor extends AlertableComponent{
     }
 
     render() {
-        if(this.state.reloadable) return this.state.reloadable;
-        if(this.state.loading){
-            return <BlankLoader/>
-        }
+        if(this.block = this.blockRender()) return this.block;
         return (
             <div className="ui-container editor ui-size-fluid ui-fluid-height">
                 <div className="ui-container ui-size-fluid head ui-vertical-center">

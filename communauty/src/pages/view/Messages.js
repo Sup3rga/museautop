@@ -32,32 +32,21 @@ export default class Messages extends AlertableComponent{
         }
     }
 
-    componentDidMount() {
-        Events.emit('set-prev',true);
-        setTimeout(()=>Events.emit('set-prev',true), 200);
+    reload() {
         Management.getMessages().then((data)=>{
             this.changeValue('list', data);
             this.refresh();
-        }).catch((message)=>{
-            this.toggleSnack({
-                content: message
-            });
-            console.log('[Message]',message);
-        })
+        }).catch(this.setReloadable.bind(this));
+    }
+
+    componentDidMount() {
+        super.componentDidMount();
+        this.reload();
     }
 
     componentWillUnmount(){
-        Events.emit("set-prev",false);
+        super.componentWillUnmount();
         this.refresh(false);
-    }
-
-    changeValue(index, value){
-        this.setState(state=>{
-            return {
-                ...state,
-                [index] : value
-            }
-        })
     }
 
     refresh(open = true){
@@ -72,6 +61,7 @@ export default class Messages extends AlertableComponent{
     }
 
     render() {
+        if(this.block = this.blockRender()) return this.block;
         return (
             <div className="ui-container ui-fluid ui-unwrap ui-column messages">
                 <div className="ui-container ui-size-fluid header">

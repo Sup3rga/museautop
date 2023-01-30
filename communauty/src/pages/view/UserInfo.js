@@ -8,6 +8,7 @@ import {Icon} from "../../components/Header";
 import {createRef} from "react";
 import Events from "../../utils/Events";
 import Route from "../../utils/Route";
+import Main from "../Main";
 
 export default class UserInfo extends AlertableComponent{
     constructor(props) {
@@ -30,7 +31,7 @@ export default class UserInfo extends AlertableComponent{
             avatarUploading: null,
             uploadProgress: 0,
             phone: null,
-            currentBranch: null,
+            currentBranch: Main.branch,
             loadingError: null
         };
     }
@@ -43,7 +44,7 @@ export default class UserInfo extends AlertableComponent{
         console.log('[Data]',data);
         this.setState({
             loading: false,
-            currentBranch: Object.keys(data.level)[0],
+            currentBranch: Main.branch in data.level ? Main.branch : Object.keys(data.level)[0],
             ...data
         });
     }
@@ -90,11 +91,7 @@ export default class UserInfo extends AlertableComponent{
     }
 
     render() {
-
-        if(this.state.reloadable) return this.state.reloadable;
-
-        if(this.state.loading) return <BlankLoader/>
-
+        if(this.block = this.blockRender()) return this.block;
         return (
             <div className="ui-container ui-fluid ui-scroll-y usr ui-horizontal-center">
                 <div className="ui-element ui-size-fluid ui-md-size-6 ui-horizontal-left">

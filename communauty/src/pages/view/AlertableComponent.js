@@ -4,11 +4,13 @@ import {Button, CircularProgress, Grid, Snackbar, Typography} from "@mui/materia
 import UploaderInfo from "../widget/UploaderInfo";
 import Events from "../../utils/Events";
 import {Icon} from "../../components/Header";
+import BlankLoader from "../widget/BlankLoader";
 
 export default class AlertableComponent extends React.Component{
     constructor(props) {
         super(props);
         this.executor = null;
+        this.block = null;
         this.state = this.getState();
         this.mounted = false;
     }
@@ -32,13 +34,17 @@ export default class AlertableComponent extends React.Component{
     }
 
     componentWillUnmount() {
-        this.mounted = true;
+        this.mounted = false;
         Events.emit("set-prev",false);
     }
 
     componentDidMount() {
-        this.mounted = false;
+        this.mounted = true;
         Events.emit("set-prev",true);
+        Events.on("branch-switch", ()=>{
+            this.changeValue('loading', true);
+            this.reload();
+        },this);
         setTimeout(()=>{Events.emit("set-prev",true);},300);
     }
 
@@ -149,6 +155,11 @@ export default class AlertableComponent extends React.Component{
                 </Grid>
             ]
         });
+    }
+
+    blockRender(){
+        if(this.state.reloadable) return this.state.reloadable;
+        if(this.state.loading) return <BlankLoader/>;
     }
 
     renderDialog(){

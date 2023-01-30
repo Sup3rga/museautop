@@ -53,6 +53,14 @@ class Constraint{
     static passBranchName(value, nullValue=""){
         return Constraint.checkBranchName(value) ? value : nullValue;
     }
+
+    static checkInt(value){
+        return /^[0-9]+$/.test(value);
+    }
+
+    static passInt(value, nullValue=0){
+        return Constraint.checkInt(value) ? value : nullValue;
+    }
 }
 
 module.exports = Constraint;

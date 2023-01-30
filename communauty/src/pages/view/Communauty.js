@@ -12,6 +12,7 @@ import {EmptyView} from "../widget/BlankLoader";
 
 function ManagerRow(props){
     const {modifier = null, state = null} = props;
+    console.log('[Props]',props);
     return (
         <div className="ui-container ui-size-fluid row">
            <UserRow
@@ -57,15 +58,17 @@ function ManagerRow(props){
                      <Icon icon="lock"/> compte bloqué
                  </div>
                  :
-                 props.status[Main.branch].map((status,key)=>{
-                     return <Chip
-                         variant="filled"
-                         key={key}
-                         label={status}
-                         sx={{margin: ".2em"}}
-                         size="small"
-                     />
-                 })
+                     !props.status[Main.branch] ? null
+                     :
+                     props.status[Main.branch].map((status,key)=>{
+                         return <Chip
+                             variant="filled"
+                             key={key}
+                             label={status}
+                             sx={{margin: ".2em"}}
+                             size="small"
+                         />
+                     })
              }
            />
         </div>
@@ -89,13 +92,22 @@ export default class Communauty extends AlertableComponent{
         };
     }
 
-    componentDidMount() {
+    reload() {
         console.log('[Fetching...]')
         Management.getAllMembers().then((data)=>{
-            this.changeValue('list',data);
+            console.log('[Data]',data);
+            this.changeState({
+                loading: false,
+                list: data
+            });
         }).catch((message)=>{
-            console.log('[Message]',message);
+            this.setReloadable(message);
         })
+    }
+
+    componentDidMount() {
+        super.componentDidMount();
+        this.reload();
     }
 
     async submit(){
@@ -143,7 +155,7 @@ export default class Communauty extends AlertableComponent{
     }
 
     render() {
-        console.log('[box]',this.state.showBox);
+        if(this.block = this.blockRender()) return this.block;
         let ttl = 0;
         return (
             <div className="ui-container ui-fluid communauty">

@@ -70,7 +70,7 @@ export default class ArticlesDraft extends AlertableComponent{
         };
     }
 
-    fetch(){
+    reload(){
         const list = Management.getDraft();
         this.setState({
             list,
@@ -79,19 +79,12 @@ export default class ArticlesDraft extends AlertableComponent{
     }
 
     componentDidMount() {
-        Events.emit("set-prev", true);
-        setTimeout(()=>Events.emit("set-prev", true), 300);
-        this.fetch();
-    }
-
-    componentWillUnmount() {
-        Events.emit("set-prev",false);
+        super.componentDidMount();
+        this.reload();
     }
 
     render() {
-        if(this.state.loading){
-            return <BlankLoader/>
-        }
+        if(this.block = this.blockRender()) return this.block;
         return (
             <div className="ui-element ui-size-fluid ui-fluid-height ui-scroll-y article-list">
                 {

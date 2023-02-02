@@ -34,7 +34,8 @@ export default class Management{
             "/writing": {
                 icon: "feather",
                 text: "Redaction",
-                view: <Writing/>
+                view: <Writing/>,
+                privilege: 1
             },
             "/writing/new": {
                 view: <Redactor/>
@@ -42,7 +43,8 @@ export default class Management{
             "/studio":{
                 icon: "palette",
                 text: "Punch studio",
-                view: <Studio/>
+                view: <Studio/>,
+                privilege: 100
             },
             "/studio/new": {
                 view: <StudioCreation/>
@@ -60,7 +62,8 @@ export default class Management{
             "/messenging":{
                 icon: "mail-bulk",
                 text: "Messagerie",
-                view: <Messages/>
+                view: <Messages/>,
+                privilege: 200
             },
             "/messenging/read":{
                 view: <Inbox/>
@@ -231,11 +234,11 @@ export default class Management{
     }
 
     static setStorage(index, defaultValue, branch = null){
-        branch = branch ? branch : Main.branch;
+        branch = branch || branch === 0 ? branch : Main.branch;
         if(!(index in  Management.data)){
-            Management.data[index] = {};
+            Management.data[index] = branch === 0 ? [] :{};
         }
-        if(!(branch in Management.data[index])){
+        if(branch && !(branch in Management.data[index])){
             Management.data[index][branch] = defaultValue;
         }
         return Management;
@@ -296,8 +299,8 @@ export default class Management{
                 return "Un erreur non identifiée s'est produite !";
                 break;
             case ResponseCode.LOGOUT:
+                Events.emit("logout-requirement");
                 return "Vous allez être déconnecté(e)";
-                break;
             case ResponseCode.BRANCH_ERROR:
                 return "Un problème de filiale se pose lors de l'opération";
             case ResponseCode.AUTHENTICATION_ERROR:
@@ -306,10 +309,37 @@ export default class Management{
                 return "Une erreur s'est produite lors du chargement d'image";
             case ResponseCode.DENIED_ACCESS:
                 return "Ce compte n'a plus accès aux ressources de l'administration. Contactez l'administration pour demander de l'aide.";
+            case ResponseCode.INSUFFICIENT_PRIVILEGE:
+                return "Vous n'avez pas assez de privilège pour exécuter cette opération";
             default:
                 return "Erreur inconnue ! [code] 0x"+code;
                 break;
         }
+    }
+
+    static isGranted(privilege, any = false){
+        privilege = Array.isArray(privilege) ? privilege : [privilege];
+        const branch = Main.branch,
+              list = Management.data.branches[branch];
+        if(any) {
+            for (let access of list) {
+                if(privilege.indexOf(access * 1) >= 0){
+                    return true;
+                }
+            }
+        }
+        else{
+            let found = 0;
+            for(let number of privilege){
+                for (let access of list) {
+                    if(access == number){
+                        found++;
+                    }
+                }
+            }
+            return found == privilege.length;
+        }
+        return false;
     }
 
     static async commit(){
@@ -737,6 +767,20 @@ export default class Management{
         await Management.commit();
     }
 
+    static getMemberOnBranch(item = null){
+        const branch = Main.branch;
+        if(item){
+            return branch in item.branches ? item : null;
+        }
+        const list = [];
+        for(let i in Management.data.managers){
+            if(branch in Management.data.managers[i].branches){
+                list.push(Management.data.managers[i]);
+            }
+        }
+        return list;
+    }
+
     static async integrateNewManager(query){
         let branch = Main.branch;
          const data = await Management.request(
@@ -744,26 +788,26 @@ export default class Management{
              {...Management.defaultQuery(), ...query},
              '/manager/approval'
          );
+         console.log('[Integration]',data);
          if(data.data.id == Management.data.id){
              await Management.updateSelf(data.data);
          }
          else {
-             Management.setStorage('managers', [], branch);
-             await Management.replaceData(Management.data.managers[branch], data.data, 'id');
+             Management.setStorage('managers', [], 0);
+             await Management.replaceData(Management.data.managers, data.data, 'id');
          }
-         return data.data;
+         return Management.getMemberOnBranch(data.data);
     }
 
     static async changePassword(query){
-        let branch = Main.branch;
         const data = await Management.request(
             '/manager/reset',
             {...query, ...Management.defaultQuery()},
             '/manager/get'
         );
-        Management.setStorage('managers', [], branch);
-        await Management.replaceData(Management.data.managers[branch], data.data, 'id');
-        return Management.data.managers[Main.branch];
+        Management.setStorage('managers', [], 0);
+        await Management.replaceData(Management.data.managers, data.data, 'id');
+        return Management.getMemberOnBranch();
     }
 
     static async blockManager(query){
@@ -772,9 +816,9 @@ export default class Management{
             {...query, ...Management.defaultQuery()},
             '/manager/get'
         );
-        Management.setStorage('managers', []);
-        await Management.replaceData(Management.data.managers[Main.branch], data.data, 'id');
-        return Management.data.managers[Main.branch];
+        Management.setStorage('managers', [],0);
+        await Management.replaceData(Management.data.managers, data.data, 'id');
+        return Management.getMemberOnBranch();
     }
 
     static async getAllMembers(){
@@ -783,11 +827,12 @@ export default class Management{
             Management.defaultQuery(),
             '/management/get'
         );
-        Management.setStorage('managers', []);
+        console.log('[Manager]',data);
+        Management.setStorage('managers', [], 0);
         for(let i in data.data){
-            await Management.replaceData(Management.data.managers[Main.branch], data.data[i],'id');
+            await Management.replaceData(Management.data.managers, data.data[i],'id');
         }
-        return data.data;
+        return Management.getMemberOnBranch();
     }
 
     static async getMemberData(id){
@@ -799,9 +844,9 @@ export default class Management{
             },
             '/management/get'
         );
-        Management.setStorage('managers', [], defaultQuery.bhid);
-        await Management.replaceData(Management.data.managers[defaultQuery.bhid], data.data, 'id');
-        return data.data;
+        Management.setStorage('managers', [], 0);
+        await Management.replaceData(Management.data.managers, data.data, 'id');
+        return Management.getMemberOnBranch(data.data);
     }
 
     static async setProfile(avatar, feeback = null){

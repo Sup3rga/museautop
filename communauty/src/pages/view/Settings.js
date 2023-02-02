@@ -83,47 +83,62 @@ export default class Settings extends AlertableComponent{
 
     componentDidMount() {
         super.componentDidMount();
+        if(!Management.isGranted([300,301,302,409],true)){
+            return this.banForPrivilege();
+        }
         this.reload();
     }
 
     async commit(){
         let query = {};
 
-        query = {...Filter.object(this.state, [
-            'readingVisible','likesVisible', 'authorVisible',
-            'readingVisibilitylimit', 'likesVisibilitylimit',
-            'readingVisibleWithCondition', 'likesVisibleWithCondition'
-        ])}
-
-        query = {...query, ...Filter.object(this.state,[
-            'cardBg', 'cardBandBg', 'cardTextColor', 'cardBandColor',
-            'cardWidth', 'cardHeight'
-        ])}
-
-        query = {...query, ...Filter.object(this.state, ['branches'])}
-
-        const listIndex = ['sponsoredArticles','sponsoredPunchlines'];
-        let list, found;
-        for(let index of listIndex){
-            list = this.state[index];
-            for(let oldSponsor of this.state.old[index]){
-                found = false;
-                for(let sponsor of list){
-                    if(sponsor.id == oldSponsor.id){
-                        found = true;
-                    }
-                }
-                if(!found){
-                    list.push({
-                        ...oldSponsor,
-                        sponsoredUntil: null
-                    });
-                }
+        if(Management.isGranted(302)) {
+            query = {
+                ...Filter.object(this.state, [
+                    'readingVisible', 'likesVisible', 'authorVisible',
+                    'readingVisibilitylimit', 'likesVisibilitylimit',
+                    'readingVisibleWithCondition', 'likesVisibleWithCondition'
+                ])
             }
         }
-        query = {...query, ...Filter.object(this.state,listIndex)}
 
-        query = {...query, ...Filter.object(this.state, ['branches'])};
+        if(Management.isGranted(301)) {
+            query = {
+                ...query, ...Filter.object(this.state, [
+                    'cardBg', 'cardBandBg', 'cardTextColor', 'cardBandColor',
+                    'cardWidth', 'cardHeight'
+                ])
+            }
+        }
+
+
+        if(Management.isGranted(409)) {
+            query = {...query, ...Filter.object(this.state, ['branches'])}
+        }
+
+
+        if(Management.isGranted(300)) {
+            const listIndex = ['sponsoredArticles', 'sponsoredPunchlines'];
+            let list, found;
+            for (let index of listIndex) {
+                list = this.state[index];
+                for (let oldSponsor of this.state.old[index]) {
+                    found = false;
+                    for (let sponsor of list) {
+                        if (sponsor.id == oldSponsor.id) {
+                            found = true;
+                        }
+                    }
+                    if (!found) {
+                        list.push({
+                            ...oldSponsor,
+                            sponsoredUntil: null
+                        });
+                    }
+                }
+            }
+            query = {...query, ...Filter.object(this.state, listIndex)}
+        }
 
         console.log('[Query]',query);
         this.toggleUploadInfo({
@@ -729,10 +744,10 @@ export default class Settings extends AlertableComponent{
                     </div>
                     <div className="ui-container ui-size-fluid ui-scroll-y">
                         <List className="ui-size-fluid">
-                            {this.visibilitiesSettings()}
-                            {this.punchlineSettings()}
-                            {this.billboardSettings()}
-                            {this.branchSettings()}
+                            {!Management.isGranted(302) ? null :this.visibilitiesSettings()}
+                            {!Management.isGranted(301) ? null : this.punchlineSettings()}
+                            {!Management.isGranted(300) ? null :this.billboardSettings()}
+                            {!Management.isGranted(409) ? null :this.branchSettings()}
                         </List>
                     </div>
                 </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {createRef} from 'react';
 import {CKEditor} from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import Events from "../../utils/Events";
@@ -20,6 +20,7 @@ export default class Redactor extends AlertableComponent{
 
     constructor(props) {
         super(props);
+        this.page = createRef();
         this.state = {
             ...super.getState(),
             title: '',
@@ -32,7 +33,8 @@ export default class Redactor extends AlertableComponent{
             loading: true,
             img: [],
             openConfig: false,
-            edit: null
+            edit: null,
+            readOnly: false
         }
     }
 
@@ -59,6 +61,13 @@ export default class Redactor extends AlertableComponent{
             if(!data){
                 return Route.back();
             }
+            console.log('[Data]',data);
+            //ban for article which wasn't writen by current user
+            if(data.createdBy.id != Management.data.id && !Management.isGranted(2)){
+                return this.banForPrivilege();
+            }
+            let readOnly = data.createdBy.id != Management.data.id && !Management.isGranted(2);
+            if(readOnly) this.page.current.innerHTML = data.content;
             this.setState(state => {
                 return {
                     ...state,
@@ -70,7 +79,8 @@ export default class Redactor extends AlertableComponent{
                     date: data.date,
                     time: data.time,
                     draft: true,
-                    edit: data
+                    edit: data,
+                    readOnly
                 }
             });
             return;
@@ -79,7 +89,10 @@ export default class Redactor extends AlertableComponent{
             if(!data){
                 return Route.back();
             }
+            console.log('[Data]',data);
+            //ban for article which wasn't writen by current user
             const schedule = new AkaDatetime(data.postOn);
+            let readOnly = data.createdBy.id != Management.data.id && !Management.isGranted(2);// if(readOnly) this.page.current.innerHTML = data.content;
             this.setState(state => {
                 return {
                     ...state,
@@ -89,7 +102,8 @@ export default class Redactor extends AlertableComponent{
                     loading: false,
                     date: schedule.getDate(),
                     time: schedule.getTime(),
-                    edit: data
+                    edit: data,
+                    readOnly
                 }
             });
         }).catch(this.setReloadable.bind(this));
@@ -97,6 +111,9 @@ export default class Redactor extends AlertableComponent{
 
     componentDidMount() {
         super.componentDidMount();
+        if(!Management.isGranted(1)){
+            return this.banForPrivilege();
+        }
         this.reload();
     }
 
@@ -212,6 +229,16 @@ export default class Redactor extends AlertableComponent{
 
     render() {
         if(this.block = this.blockRender()) return this.block;
+        if(this.state.readOnly){
+            return <div className="ui-container ui-fluid ui-scroll-y">
+                <h1>
+                    {this.state.title}
+                </h1>
+                <div className="ui-element ui-size-fluid">
+                    {this.state.content}
+                </div>
+            </div>
+        }
         return (
             <div className="ui-container editor ui-size-fluid ui-fluid-height">
                 <div className="ui-container ui-size-fluid head ui-vertical-center">

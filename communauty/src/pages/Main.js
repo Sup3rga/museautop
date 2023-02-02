@@ -47,7 +47,8 @@ export default class Main extends React.Component{
             dialogBox: {
                 open: false,
                 title: null,
-                content: ''
+                content: '',
+                forced: false
             }
         }
     }
@@ -69,6 +70,9 @@ export default class Main extends React.Component{
         window.addEventListener("popstate", ()=>{
             Events.emit("nav");
         });
+        if(!Management.data.token){
+            return this.toggleDialogBox(true, true);
+        }
         Events.on("nav", ()=>{
             this.setState(state=>{
                 return {
@@ -89,6 +93,9 @@ export default class Main extends React.Component{
             this.setState(state=>{
                 return {...state}
             })
+        })
+        .on("logout-requirement", ()=>{
+            this.toggleDialogBox(true,true);
         })
     }
 
@@ -130,13 +137,14 @@ export default class Main extends React.Component{
         )
     }
 
-    toggleDialogBox(open){
+    toggleDialogBox(open, forced=false){
         this.setState(state=>{
             return {
                 ...state,
                 dialogBox: {
                     ...state.dialogBox,
-                    open: open
+                    open: open,
+                    forced
                 }
             }
         })
@@ -158,6 +166,7 @@ export default class Main extends React.Component{
             >
                 {
                     props.list.map((data,index)=>{
+                        if(!data) return null;
                         return (
                             <MenuItem key={index} className={data.className} onClick={(e)=> {
                                 return data.click ? data.click(e, props.onClose) : props.onClick ? props.onClick(e, props.onClose) : null
@@ -210,6 +219,7 @@ export default class Main extends React.Component{
                 {
                     this.list[0].map((key,index)=>{
                         let active = (this.state.route == key && key == '/') || (Url.match(key,this.state.route) && key != '/');
+                        if(this.routes[key].privilege && !Management.isGranted(this.routes[key].privilege)) return null;
                         return (
                             <Link href={key} key={index} className={
                                 "ui-container ui-all-center ui-size-fluid ui-unwrap link ui-nowrap " +
@@ -306,6 +316,7 @@ export default class Main extends React.Component{
                                     Route.pushState("/usr");
                                 }
                             },
+                            !Management.isGranted(300) ? null :
                             {
                                 icon: <Icon icon="cog"/>,
                                 className: 'option-item',
@@ -381,9 +392,12 @@ export default class Main extends React.Component{
                     open={this.state.dialogBox.open}
                     content="Vous allez vous déconnecter !"
                     buttons={[
-                        <Button variant="text" onClick={()=>{
-                            this.toggleDialogBox(false);
-                        }}>Annuler</Button>,
+                        (
+                            this.state.dialogBox.forced ? null:
+                            <Button variant="text" onClick={()=>{
+                                this.toggleDialogBox(false);
+                            }}>Annuler</Button>
+                        ),
                         <Button variant="text" onClick={()=>{
                             this.toggleDialogBox(false);
                             Management.storage.setItem('agent', null).then(()=>{

@@ -9,7 +9,8 @@ let ResponseCode = {
     PICTURE_UPDATE_ERROR: 300,
     AUTHENTICATION_ERROR: 60,
     DENIED_ACCESS: 30,
-    DOMAIN_EXIST_ERROR: 210
+    DOMAIN_EXIST_ERROR: 210,
+    INSUFFICIENT_PRIVILEGE: 31
 }
 
 module.exports = ResponseCode;

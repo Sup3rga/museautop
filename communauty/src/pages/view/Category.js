@@ -32,6 +32,9 @@ export default class Category extends AlertableComponent{
     }
 
     reload(){
+        if(!Management.isGranted(this.sector == 'writing' ? 4 : 104)){
+            return this.banForPrivilege();
+        }
         Management[this.sector == 'writing' ? 'getArticlesCategory' : 'getPunchlinesCategory']().then((data)=>{
             console.log('[Data...',data);
             this.setState(state => {

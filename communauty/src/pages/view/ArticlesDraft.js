@@ -80,6 +80,9 @@ export default class ArticlesDraft extends AlertableComponent{
 
     componentDidMount() {
         super.componentDidMount();
+        if(!Management.isGranted(300)){
+            return this.banForPrivilege();
+        }
         this.reload();
     }
 

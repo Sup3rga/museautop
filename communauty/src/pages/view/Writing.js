@@ -54,6 +54,9 @@ export default class Writing extends AlertableComponent{
 
     componentDidMount() {
         super.componentDidMount();
+        if(!Management.isGranted(300)){
+            return this.banForPrivilege();
+        }
         this.reload();
     }
 
@@ -191,12 +194,15 @@ export default class Writing extends AlertableComponent{
                         title={"Nouvel article"}
                         onClick={()=>Route.pushState('./writing/new')}
                     />
-                    <SpeedDialAction
-                        title="Catégorie"
-                        name="category"
-                        icon={<Icon icon="layer-group"/>}
-                        onClick={()=>Route.pushState('./writing/category')}
-                    />
+                    {
+                        !Management.isGranted(4) ? null:
+                        <SpeedDialAction
+                            title="Catégorie"
+                            name="category"
+                            icon={<Icon icon="layer-group"/>}
+                            onClick={()=>Route.pushState('./writing/category')}
+                        />
+                    }
                 </SpeedDial>
             </div>
         );

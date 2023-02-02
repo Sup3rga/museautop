@@ -61,6 +61,7 @@ export default class UserInfo extends AlertableComponent{
                 return this.changeValue('loadingError', true);
             }
             Management.getMemberData(id).then((data)=>{
+                if(!data) return Route.back();
                 this.setReady(data);
             }).catch(this.setReloadable.bind(this));
         }

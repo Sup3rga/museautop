@@ -34,7 +34,10 @@ export default class Messages extends AlertableComponent{
 
     reload() {
         Management.getMessages().then((data)=>{
-            this.changeValue('list', data);
+            this.changeState({
+                loading: false,
+                list: data
+            });
             this.refresh();
         }).catch(this.setReloadable.bind(this));
     }

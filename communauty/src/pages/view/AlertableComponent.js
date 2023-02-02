@@ -81,28 +81,31 @@ export default class AlertableComponent extends React.Component{
         }
     }
 
-    getReloadableView(message = "Oupps !"){
+    getReloadableView(message = "Oupps !", reloadable=true, icon = "plug"){
         return (
             <div className="ui-container ui-fluid ui-all-center reload-view">
                 <div className="ui-container ui-size-fluid ui-sm-size-8 ui-md-size-6 ui-horizontal-center">
-                    <Icon icon="plug"/>
+                    <Icon icon={icon}/>
                     <div className="ui-container ui-size-fluid ui-horizontal-justify message">
                         {message}
                     </div>
-                    <Button
-                        startIcon={<Icon icon="sync"/>}
-                        onClick={()=>{
-                            this.state.reloadable = null;
-                            this.reload();
-                        }}
-                    >Recharger</Button>
+                    {
+                        !reloadable ? null :
+                        <Button
+                            startIcon={<Icon icon="sync"/>}
+                            onClick={()=>{
+                                this.state.reloadable = null;
+                                this.reload();
+                            }}
+                        >Recharger</Button>
+                    }
                 </div>
             </div>
         )
     }
 
-    setReloadable(message){
-        this.changeValue('reloadable', this.getReloadableView(message))
+    setReloadable(message, reloadable=true, icon = "plug"){
+        this.changeValue('reloadable', this.getReloadableView(message,reloadable,icon))
     }
 
     toggleUploadInfo(data){
@@ -139,6 +142,21 @@ export default class AlertableComponent extends React.Component{
                 }
             }
         });
+    }
+
+    banForPrivilege(){
+        this.setReloadable(
+            <div className="ui-container ui-fluid ui-all-center ban-message">
+                <div className="ui-container">
+                    <h1 className="ui-container ui-size-fluid ui-horizontal-center">Ouups !</h1>
+                    <p>
+                        Il semblerait que vous n'avez pas accès à cet espace !
+                    </p>
+                </div>
+            </div>,
+            false,
+            "user-shield"
+        )
     }
 
     showLoading(text = "Requête en cours..."){

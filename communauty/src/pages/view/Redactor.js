@@ -14,6 +14,7 @@ import BlankLoader from "../widget/BlankLoader";
 import Url from "../../utils/Url";
 import AkaDatetime from '../../utils/AkaDatetime';
 import Scheduler from "../widget/Scheduler";
+import parser from "html-react-parser";
 
 
 export default class Redactor extends AlertableComponent{
@@ -230,12 +231,12 @@ export default class Redactor extends AlertableComponent{
     render() {
         if(this.block = this.blockRender()) return this.block;
         if(this.state.readOnly){
-            return <div className="ui-container ui-fluid ui-scroll-y">
+            return <div className="ui-element ui-fluid ui-scroll-y">
                 <h1>
                     {this.state.title}
                 </h1>
-                <div className="ui-element ui-size-fluid">
-                    {this.state.content}
+                <div className="ui-element ui-size-fluid article-reader">
+                    {parser(this.state.content)}
                 </div>
             </div>
         }

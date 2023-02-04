@@ -41,18 +41,16 @@ export class ArticlePreview extends React.Component{
                 <div className="ui-container ui-size-fluid ui-vertical-center">
                     {
                         !caption ? null :
-                            <div className="ui-container caption ui-size-3 ui-md-size-2" style={{
+                            <div className="ui-container caption ui-size-fluid ui-md-size-3" style={{
                                 backgroundImage: 'url('+caption+')'
                             }}/>
                     }
-                    <div className={"ui-container metadata ui-size-"+(caption ? '9' : '12')}>
-                        <div className="ui-container ui-size-fluid title">{title}</div>
-                        <div className="ui-container ui-size-fluid else ui-vertical-center">
-                            <label className="ui-element">Catégorie :</label>
-                            <span className="ui-element">{category.name}</span>
+                    <div className={"ui-container metadata  ui-size-"+(caption ? '9' : '12')}>
+                        <div className="ui-container ui-size-fluid title ui-vertical-center">
+                            {title}
+                            <span className="ui-element category">{category.name}</span>
                         </div>
                         <div className="ui-container ui-size-fluid else ui-vertical-center">
-                            <label className="ui-element">Par :</label>
                             <span className="ui-element">{createdBy.firstname+ ' ' +createdBy.lastname}</span>
                         </div>
                         {
@@ -62,18 +60,20 @@ export class ArticlePreview extends React.Component{
                                 <span className="ui-element">{modifiedBy.firstname+ ' ' +modifiedBy.lastname}</span>
                             </div>
                         }
-                        <div className="ui-container ui-size-fluid grid">
+                        <div className="ui-container ui-size-fluid grid stats ui-vertical-center">
                             <div className="ui-container item ui-vertical-center ui-unwrap">
-                                <Icon icon="eye"/>
                                 <span className="ui-element label">{reading}</span>
+                                vues
                             </div>
+                            <div className="dot"/>
                             <div className="ui-container item ui-vertical-center ui-unwrap">
-                                <Icon icon="thumbs-up"/>
                                 <span className="ui-element label">{likes}</span>
+                                J'aime
                             </div>
+                            <div className="dot"/>
                             <div className="ui-container item ui-vertical-center ui-unwrap">
-                                <Icon icon="thumbs-down"/>
                                 <span className="ui-element label">{dislikes}</span>
+                                Je n'aime pas
                             </div>
                         </div>
                     </div>

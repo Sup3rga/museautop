@@ -25,7 +25,7 @@ export default class UserInfo extends AlertableComponent{
             firstname: null,
             lastname: null,
             level: null,
-            branchesData: null,
+            branchesData: Filter.toOptions(Management.data.branchesData,'id', 'name'),
             mail: null,
             nickname: null,
             avatarUploading: null,
@@ -39,9 +39,8 @@ export default class UserInfo extends AlertableComponent{
     setReady(data){
         data = Filter.object(data, [
             'active','createdAt','createdBy','firstname','lastname',
-            'level','branchesData','mail','nickname','phone', 'id', 'avatar'
+            'level','mail','nickname','phone', 'id', 'avatar'
         ]);
-        console.log('[Data]',data);
         this.setState({
             loading: false,
             currentBranch: Main.branch in data.level ? Main.branch : Object.keys(data.level)[0],
@@ -183,9 +182,9 @@ export default class UserInfo extends AlertableComponent{
                         {
                             Object.keys(this.state.level).map((branch)=>{
                                 return <Chip
-                                    label={this.state.branchesData[branch].name}
+                                    label={this.state.branchesData[branch]}
                                     variant={branch == this.state.currentBranch ? 'filled' : 'outlined'}
-                                    key={this.state.branchesData[branch].name}
+                                    key={this.state.branchesData[branch]}
                                     onClick={()=>this.changeValue('currentBranch', branch)}
                                 />
                             })

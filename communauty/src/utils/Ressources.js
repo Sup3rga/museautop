@@ -15,10 +15,32 @@ export default class Ressources{
 
     static apis = "http://localhost:7070";
 
-    static getDateString(val){
+    static getDateString(val, long = true){
         var date = new AkaDatetime(val),
-            calendar = Ressources.calendar;
-        return calendar.days[date.getWeekDay()]+' '+date.getDay()+' '+calendar.months[date.getMonth() * 1 - 1]+' '+date.getFullYear();
+            calendar = Ressources.calendar,
+            now = new AkaDatetime();
+        var diff = AkaDatetime.diff(now, date),
+            hour = (date.getHour() == 0 ? "minuit " : date.getHour()+'h ')+(date.getMinute() == 0 ? 'pile' : date.getMinute());
+        if(diff.getDay() == 0 && diff.getMonth() == 1 && diff.getYear() == 0){
+            if(diff.getHour() == 0){
+                if(diff.getMinute() <= 1){
+                    return (long ? "À " : '')+"l'instant";
+                }
+                else{
+                    return (long ? "Il y a " : '')+diff.getMinute()+' min.'
+                }
+            }
+            else if(date.getDay() - now.getDay() == 0){
+                return "Aujourd'hui à "+hour;
+            }
+            else{
+                return "Demain à "+hour
+            }
+        }
+        else if(diff.getDay() == 1 && date.getDay() - now.getDay() == 1 && diff.getMonth() == 1 && diff.getYear() == 0){
+            return "Demain à "+hour
+        }
+        return (long ? calendar.days[date.getWeekDay()] : '')+' '+date.getDay()+' '+calendar.months[date.getMonth() * 1 - 1]+' '+date.getFullYear()+(long ? ' à '+ hour : '');
     }
 
     static async fetch(route, data){
@@ -120,45 +142,11 @@ export default class Ressources{
     }
 
     static async getArticles(){
-        return [
-            {
-                id: 12,
-                title: "50 Cent sur le podium...",
-                subtitle: "La nuit dernière était épique. Mais à savoir comment, il faut lire la suite pour savoir.",
-                caption: './assets/captions/rapcap004.jpg',
-                categorie: "musique",
-                date: '2022-11-13'
-            },{
-                id: 15,
-                title: "La victoire de je ne sais qui !",
-                subtitle: "Découvrez ce qui s'est passé lors de la cérémonie de BET",
-                caption: './assets/captions/rapcap006.jpg',
-                categorie: "actualites",
-                date: '2022-11-06'
-            },{
-                id: 19,
-                title: "La victoire de je ne sais qui !",
-                subtitle: "Découvrez ce qui s'est passé lors de la cérémonie de BET",
-                caption: './assets/captions/rapcap007.jpg',
-                categorie: "actualites",
-                date: '2022-11-06'
-            },{
-                id: 21,
-                title: "La victoire de je ne sais qui !",
-                subtitle: "Découvrez ce qui s'est passé lors de la cérémonie de BET",
-                caption: './assets/captions/rapcap008.jpg',
-                categorie: "hip-hop",
-                date: '2022-11-06'
-            },{
-                id: 17,
-                title: "Jay-z est de retour pour...",
-                subtitle: "Par manque d'inspiration pour écrire des concepts d'articles, nous voilà quelque part " +
-                    "sur Jay-z pour dire un truc, quoi !  ",
-                caption: './assets/captions/rapcap009.jpg',
-                categorie: "actualites",
-                date: '2022-11-06'
-            }
-        ];
+        const data = await Ressources.fetch('/fetch', {
+            articles: 'normal',
+            bhid: window.currentBranch
+        });
+        return data.data;
     }
 
     static getArticlesFakeData(){
@@ -175,24 +163,23 @@ export default class Ressources{
         return r;
     }
 
+    static text(html){
+        const parse = !html ? [] : html.match(/<p>([\s\S]+?)<\/p>/g);
+        let content = '';
+        for(let i = 0; i < parse.length; i++){
+            content += parse[i];
+        }
+        let element = document.createElement('div');
+        element.innerHTML = content;
+        return element.innerText;
+    }
+
     static async getSlidesData(){
-        return [
-            {
-                title: "Cet artiste est capable de faire vibrer littéralement une salle !",
-                text: "Découvrez ce qui s'est passé lors de la cérémonie de BET",
-                caption: './assets/captions/rapcap003.jpg',
-            },
-            {
-                title: "La ligue reprend !",
-                text: "La rédaction de Rap-au-top souhaite vous faire vivre les dernières images du retour de la ligue.",
-                caption: './assets/captions/rapcap002.jpg',
-            },
-            {
-                title: "Un projet est en préparation dans les coulisses !",
-                text: "Découvrez ce qui s'est passé lors de la cérémonie de BET",
-                caption: './assets/captions/rapcap001.jpg',
-            }
-        ];
+        const data = await Ressources.fetch('/fetch', {
+            bhid: window.currentBranch,
+            articles: 'sponsored'
+        });
+        return data.data;
     }
 
     static getSlidesDataFakeData(){
@@ -209,17 +196,12 @@ export default class Ressources{
     }
 
     static async getLastPunchLinesData(){
-        return [
-            {
-                image: './assets/captions/rappunch001.jpg'
-            },
-            {
-                image: './assets/captions/rappunch002.jpg'
-            },
-            {
-                image: './assets/captions/rappunch003.jpg'
-            }
-        ];
+        const data = await Ressources.fetch('/fetch', {
+            punchlines: 'sponsored',
+            bhid: window.currentBranch
+        });
+        console.log('[Data]',data);
+        return data.data.punchlines;
     }
 
     static async getPunchlinesData(filter){
@@ -302,16 +284,13 @@ export default class Ressources{
         return t;
     }
 
-    static async getArticleData(){
-        return {
-            title: "La sortie d'une nouvelle single de Hip-Hop prochainement dans les bac",
-            text: "Cool",
-            caption: '/assets/captions/rapcap008.jpg',
-            publishDate: '11-08-2022',
-            time: '13:00',
-            stats: [],
-            author: null
-        };
+    static async getArticleData(id){
+        const data = await Ressources.fetch('/fetch', {
+            articles: 'normal',
+            artid: id,
+            bhid: window.currentBranch
+        });
+        return data.data;
     }
 
     static async sendMessage(data){

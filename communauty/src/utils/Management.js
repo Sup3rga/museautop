@@ -126,17 +126,18 @@ export default class Management{
             source[criteria] = data;
             return source;
         }
-        // console.log('[replace]',data);
         for(let i in source){
             if(source[i][criteria] == data[criteria]){
-                index = i;
+                index = i * 1;
                 break;
             }
         }
         if(index >= 0) {
+            console.log('[...update]')
             source[index] = data;
         }
         else{
+            console.log('[...insert]')
             let last = data;
             if(source.length > 1){
                 let tmp;
@@ -148,6 +149,7 @@ export default class Management{
             }
             source.push(last);
         }
+        console.log('[replace]',index,data);
         await Management.commit();
     }
 
@@ -179,7 +181,7 @@ export default class Management{
             })
             .then((response)=> response.json())
             .then(async (result)=>{
-                // console.log('[Result]', result);
+                console.log('[Result]', result);
                 if(result.error){
                     rej(Management.readCode(result.code));
                     return;
@@ -194,6 +196,38 @@ export default class Management{
                 rej(/^[0-9]+$/.test(err) ? Management.readCode(err) : "Une erreur est survénue lors de l'opération !");
             })
         });
+    }
+
+    static watch(){
+        Main.socket
+        .on('/session-expiration', ()=>{
+            Events.emit("logout-requirement");
+        })
+        .on('/user-update', async (data)=>{
+            if(Management.data.id == data.id) {
+                await Management.updateSelf(data);
+                Events.emit("personal-data-updated");
+            }
+            else{
+               Management.setStorage('managers', [], 0);
+               await Management.replaceData(Management.data.managers, data, 'id');
+               Events.emit("manager-list-update");
+            }
+        })
+        .on('/new-contact-message', async (data)=>{
+            Management.setStorage('messages', []);
+            await Management.replaceData(Management.data.messages[Main.branch], data, 'id');
+            Events.emit("new-contact-message");
+        })
+        return Management;
+    }
+
+    static async bind(){
+        return await Management.request(
+            '/connect',
+            Management.defaultQuery(),
+            '/connect/report'
+        );
     }
 
     static async afterReady(){
@@ -345,7 +379,6 @@ export default class Management{
     static async commit(){
         try {
             await Home.openStorage();
-            console.log('[Commit]',Management.storage)
             if(Management.storage){
                 await Management.storage.setItem('agent', JSON.stringify(Management.data));
                 return false;
@@ -376,31 +409,29 @@ export default class Management{
     }
 
     static async getWritingDatas(){
-        return new Promise(async (res)=>{
-            let branch = Main.branch;
-            Management.setCategoriesStorage();
-            if('categories' in Management.data){
-                if(
-                    'writing' in Management.data.categories[branch] &&
-                    Management.data.categories[branch].length
-                ){
-                    return res(Management.data.categories[branch].writing);
-                }
+        let branch = Main.branch;
+        Management.setCategoriesStorage();
+        if('categories' in Management.data){
+            if(
+                'writing' in Management.data.categories[branch] &&
+                Management.data.categories[branch].length
+            ){
+                return Management.data.categories[branch].writing;
             }
-            await Management.afterReady();
-            Main.socket
-            .emit("/writing", Management.defaultQuery())
-            .on("/writing/data", async(e)=>{
-                const data = e.data;
-                Management.setCategoriesStorage(branch)
-                    .getStorage('categories')
-                    .writing = data.categories;
-                Management.setArticlesStorage(branch);
-                Management.data.articles[branch] = data.articles;
-                await Management.commit();
-                res(data);
-            });
-        });
+        }
+        await Management.afterReady();
+        const data = await Management.request(
+            '/writing',
+            Management.defaultQuery(),
+            '/writing/data'
+        );
+        Management.setCategoriesStorage(branch)
+            .getStorage('categories')
+            .writing = data.data.categories;
+        Management.setArticlesStorage(branch);
+        Management.data.articles[branch] = data.data.articles;
+        await Management.commit();
+        return data.data;
     }
 
     static async getCategory(sector){
@@ -788,7 +819,7 @@ export default class Management{
              {...Management.defaultQuery(), ...query},
              '/manager/approval'
          );
-         console.log('[Integration]',data);
+         console.log('[Integration]',data, [...Management.data.managers]);
          if(data.data.id == Management.data.id){
              await Management.updateSelf(data.data);
          }

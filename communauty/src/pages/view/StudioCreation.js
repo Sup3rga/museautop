@@ -37,6 +37,7 @@ export default class StudioCreation extends AlertableComponent{
             comment: '',
             image: null,
             imageFile: null,
+            canEdit: true,
             logo: null,
             years: [],
             artists: [],
@@ -250,6 +251,7 @@ export default class StudioCreation extends AlertableComponent{
             this.changeValue('edit', await Management.getPunchlinesData(id));
             if(this.state.edit) {
                 console.log('[Edit]',this.state.edit);
+                this.state.canEdit = this.state.edit.createdBy.id == Management.data.id || Management.isGranted()
                 const image = await this.getImage(this.state.edit.picture.path);
                 this.setState(state => {
                     return {
@@ -383,6 +385,9 @@ export default class StudioCreation extends AlertableComponent{
                         Punchline Studio
                     </label>
                     <div className="actions ui-element ui-size-6 ui-horizontal-right">
+                        {
+
+                        }
                         <Button
                             variant="contained"
                             startIcon={<Icon icon="save"/>}

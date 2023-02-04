@@ -7,6 +7,7 @@ import Management from "../../utils/Management";
 import AlertableComponent from "./AlertableComponent";
 import Link from "../../components/Link";
 import UserRow from "../widget/UserRow";
+import Main from "../Main";
 
 function MessageRow(props){
     return <UserRow
@@ -33,6 +34,9 @@ export default class Messages extends AlertableComponent{
     }
 
     reload() {
+        if(!Management.isGranted(200)){
+            return this.banForPrivilege();
+        }
         Management.getMessages().then((data)=>{
             this.changeState({
                 loading: false,
@@ -45,6 +49,12 @@ export default class Messages extends AlertableComponent{
     componentDidMount() {
         super.componentDidMount();
         this.reload();
+        Events.on('new-contact-message', ()=>{
+            this.changeValue('list', Management.data.messages[Main.branch]);
+        },this)
+        .on('personal-data-updated', ()=>{
+            this.reload();
+        },this);
     }
 
     componentWillUnmount(){

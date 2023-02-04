@@ -54,7 +54,7 @@ export default class Writing extends AlertableComponent{
 
     componentDidMount() {
         super.componentDidMount();
-        if(!Management.isGranted(300)){
+        if(!Management.isGranted(1)){
             return this.banForPrivilege();
         }
         this.reload();

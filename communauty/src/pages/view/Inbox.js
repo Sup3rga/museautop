@@ -11,6 +11,7 @@ import {CKEditor} from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import Constraint from "../../utils/Constraint";
 import AlertableComponent from "./AlertableComponent";
+import parser from "html-react-parser";
 
 export default class Inbox extends AlertableComponent{
     constructor(props) {
@@ -157,12 +158,18 @@ export default class Inbox extends AlertableComponent{
                         {
                             this.state.openReplier ? null :
                             <div className="ui-container ui-size-4 actions">
-                                <IconButton onClick={()=>this.changeValue('openReplier', true)}>
-                                    <Icon icon="reply"/>
-                                </IconButton>
-                                <IconButton onClick={()=>this.delete()}>
-                                    <Icon icon="trash"/>
-                                </IconButton>
+                                {
+                                    !Management.isGranted(201) ? null:
+                                    <IconButton onClick={()=>this.changeValue('openReplier', true)}>
+                                        <Icon icon="reply"/>
+                                    </IconButton>
+                                }
+                                {
+                                    !Management.isGranted(202) ? null:
+                                    <IconButton onClick={()=>this.delete()}>
+                                        <Icon icon="trash"/>
+                                    </IconButton>
+                                }
                             </div>
                         }
                     </div>
@@ -200,7 +207,7 @@ export default class Inbox extends AlertableComponent{
                                             </div>
                                         </div>
                                         <div className="ui-container ui-size-fluid message">
-                                            {data.body}
+                                            {parser(data.body)}
                                         </div>
                                     </div>
                                 );

@@ -48,6 +48,10 @@ export default class AlertableComponent extends React.Component{
         setTimeout(()=>{Events.emit("set-prev",true);},300);
     }
 
+    // componentDidCatch(error, errorInfo) {
+    //     console.log({error, errorInfo});
+    // }
+
     reload(){}
 
     getState(){

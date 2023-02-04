@@ -35,7 +35,7 @@ export default class Main extends React.Component{
         Main.retryConnection();
         this.routes = Management.getRoutes();
         this.mounted = false;
-        this.branches = Filter.toOptions(Management.data.branchesData, 'id', 'name');
+        this.branches = Main.getBranchOptions();
         Main.branch = Object.keys(Management.data.branches)[0] * 1;
         this.state = {
             route: Url.get(),
@@ -51,6 +51,15 @@ export default class Main extends React.Component{
                 forced: false
             }
         }
+    }
+
+    static getBranchOptions(){
+        const source = Filter.toOptions(Management.data.branchesData, 'id', 'name');
+        const branches = {};
+        for(let i in Management.data.branches){
+            branches[i] = source[i];
+        }
+        return branches;
     }
 
     static retryConnection(){
@@ -73,6 +82,7 @@ export default class Main extends React.Component{
         if(!Management.data.token){
             return this.toggleDialogBox(true, true);
         }
+        Management.watch().bind();
         Events.on("nav", ()=>{
             this.setState(state=>{
                 return {
@@ -94,7 +104,9 @@ export default class Main extends React.Component{
                 return {...state}
             })
         })
-        .on("logout-requirement", ()=>{
+        .on("logout-requirement", async ()=>{
+            Management.data.token = null;
+            await Management.commit();
             this.toggleDialogBox(true,true);
         })
     }
@@ -359,6 +371,7 @@ export default class Main extends React.Component{
                     {
                         this.list[1].map((key,index)=>{
                             let active = (this.state.route == key && key == '/') || (Url.match(key,this.state.route) && key != '/');
+                            if(this.routes[key].privilege && !Management.isGranted(this.routes[key].privilege)) return null;
                             return (
                                 <BottomNavigationAction
                                     className="link"

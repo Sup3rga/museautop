@@ -10,13 +10,14 @@ import Route from "../../utils/Route";
 import Url from "../../utils/Url";
 import AuthBox from "../widget/AuthBox";
 import Events from "../../utils/Events";
+import Main from "../Main";
 
 export default class Integration extends AlertableComponent{
 
     constructor(props) {
         super(props);
         this.groups = {};
-        this.branches = Filter.toOptions(Management.data.branchesData, 'id', 'name');
+        this.branches = Main.getBranchOptions();
         this.state = {
             ...super.getState(),
             firstname: '',
@@ -62,8 +63,11 @@ export default class Integration extends AlertableComponent{
 
     reload() {
         Management.fetchPrivilegies().then(async(data)=>{
-            const privileges = Object.keys(data.privileges);
+            const privileges = data.own;//Object.keys(data.privileges);
             let bounds,items;
+            if(!Management.isGranted(400)){
+                return this.banForPrivilege();
+            }
             for(let i in data.groups){
                 bounds = data.groups[i];
                 this.groups[i] = [];
@@ -73,11 +77,16 @@ export default class Integration extends AlertableComponent{
                         this.groups[i].push(items);
                     }
                 }
+                if(!this.groups[i].length){
+                    delete this.groups[i];
+                }
             }
             let state = {};
-            console.log('[groups]',this.groups);
             if(/^\/communauty\/integration\/([0-9]+)$/.test(Url.get())){
                 const id = RegExp.$1;
+                if(!Management.isGranted(402)){
+                    return this.banForPrivilege();
+                }
                 const edit = id == Management.data.id ? Management.data : await Management.getMemberData(id);
                 Object.keys(edit.branches).map(branch=>{
                     edit.branches[branch] = edit.branches[branch].map(e => e * 1);
@@ -93,13 +102,13 @@ export default class Integration extends AlertableComponent{
                     nicknameStatus: 2,
                     emailStatus: 2,
                     choice: edit.branches,
-                    branches: Object.keys(edit.branchesData)
+                    branches: Object.keys(edit.branches)
                 }
                 this.required.pop();
             }
             this.changeState({
                 ...state,
-                groups: Object.keys(data.groups),
+                groups: Object.keys(this.groups),
                 groupsDesc: data.groups,
                 privileges,
                 privilegesDesc: data.privileges,
@@ -162,18 +171,24 @@ export default class Integration extends AlertableComponent{
         });
     }
 
+    isReady(){
+        const canSetPrivilege = Management.isGranted(407);
+        return Filter.contains(this.state, this.required, [null,'']) &&
+            (Object.keys(this.state.choice).length || !canSetPrivilege);
+    }
+
     async submit(auth=null){
-        if(!Filter.contains(this.state, this.required, [null,'']) || !Object.keys(this.state.choice).length){
+        if(!this.isReady()){
             return;
         }
         let required = [...this.required];
         if(this.state.self && this.state.password.length){
             required.push('password');
         }
-        const query = {
-            privileges: this.state.choice,
-            ...Filter.object(this.state,required)
-        };
+        const query = Filter.object(this.state,required);
+        if(Management.isGranted(407)){
+           query.privileges = this.state.choice;
+        }
         if(!auth){
             return this.changeValue('authenticate', true);
         }
@@ -308,6 +323,10 @@ export default class Integration extends AlertableComponent{
                                     this.state.groups.map((name, key)=>{
                                         const intervals = this.state.groupsDesc[name];
                                         const state = this.getGroupChoice(name);
+                                        if(state > 0 && !this.isChecked(intervals[0])){
+                                            console.log('[intrvals]',intervals[0]);
+                                            this.setChoice(intervals[0], true, false);
+                                        }
                                         return (
                                             <>
                                                 <div className="ui-container ui-size-fluid privileges-group">
@@ -354,7 +373,8 @@ export default class Integration extends AlertableComponent{
 
     render(){
         if(this.block = this.blockRender()) return this.block;
-        const ready = Filter.contains(this.state, this.required, [null,'']) && Object.keys(this.state.choice).length;
+        const canSetPrivilege = Management.isGranted(407);
+        const ready = this.isReady();
         return (
             <div className="ui-container ui-fluid ui-unwrap ui-column integration">
                 <div className="ui-container ui-size-fluid header ui-vertical-center">
@@ -500,7 +520,7 @@ export default class Integration extends AlertableComponent{
                         </div>
                         <br/><br/>
                         {
-                            this.state.self ? null: this.renderPrivileges()
+                            this.state.self || !canSetPrivilege ? null: this.renderPrivileges()
                         }
                     </div>
                 </div>

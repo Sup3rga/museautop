@@ -1,1 +1,78 @@
-../rapautop.com/package.json
+{
+  "name": "react-lap",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@ckeditor/ckeditor5-alignment": "^35.4.0",
+    "@ckeditor/ckeditor5-autoformat": "^35.4.0",
+    "@ckeditor/ckeditor5-basic-styles": "^35.4.0",
+    "@ckeditor/ckeditor5-block-quote": "^35.4.0",
+    "@ckeditor/ckeditor5-build-classic": "^34.2.0",
+    "@ckeditor/ckeditor5-ckbox": "^35.4.0",
+    "@ckeditor/ckeditor5-cloud-services": "^35.4.0",
+    "@ckeditor/ckeditor5-dev-utils": "^30.5.0",
+    "@ckeditor/ckeditor5-dev-webpack-plugin": "^30.5.0",
+    "@ckeditor/ckeditor5-editor-decoupled": "^35.4.0",
+    "@ckeditor/ckeditor5-essentials": "^35.4.0",
+    "@ckeditor/ckeditor5-font": "^35.4.0",
+    "@ckeditor/ckeditor5-heading": "^35.4.0",
+    "@ckeditor/ckeditor5-image": "^35.4.0",
+    "@ckeditor/ckeditor5-indent": "^35.4.0",
+    "@ckeditor/ckeditor5-link": "^35.4.0",
+    "@ckeditor/ckeditor5-list": "^35.4.0",
+    "@ckeditor/ckeditor5-media-embed": "^35.4.0",
+    "@ckeditor/ckeditor5-paragraph": "^35.4.0",
+    "@ckeditor/ckeditor5-paste-from-office": "^35.4.0",
+    "@ckeditor/ckeditor5-react": "^5.0.3",
+    "@ckeditor/ckeditor5-table": "^35.4.0",
+    "@ckeditor/ckeditor5-theme-lark": "^35.4.0",
+    "@ckeditor/ckeditor5-typing": "^35.4.0",
+    "@emotion/react": "^11.10.5",
+    "@emotion/styled": "^11.10.5",
+    "@mui/material": "^5.11.0",
+    "@testing-library/jest-dom": "^5.14.1",
+    "@testing-library/react": "^12.0.0",
+    "@testing-library/user-event": "^13.2.1",
+    "@use-gesture/react": "^10.2.22",
+    "body-parser": "^1.20.1",
+    "bootstrap": "^5.2.2",
+    "chartjs": "^0.3.24",
+    "ckeditor5-custom-build": "file:ckeditor5-custom-build",
+    "cors": "^2.8.5",
+    "express": "^4.17.3",
+    "html-react-parser": "^3.0.8",
+    "localforage": "^1.10.0",
+    "mysql": "^2.18.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-scripts": "^5.0.0",
+    "socket.io": "^4.5.4",
+    "socket.io-client": "^4.5.4",
+    "web-vitals": "^2.1.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
+ 

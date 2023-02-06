@@ -18,6 +18,7 @@ import Management from "../../utils/Management";
 import {ArticlePreview} from "../../components/ArticleThumbnail";
 import Filter from "../../utils/Filter";
 import AlertableComponent from "./AlertableComponent";
+import Events from "../../utils/Events";
 
 export default class Writing extends AlertableComponent{
 
@@ -58,6 +59,11 @@ export default class Writing extends AlertableComponent{
             return this.banForPrivilege();
         }
         this.reload();
+        Events.on("article-data-update", ()=>{
+            this.changeState({
+                articles: Management.data.articles[Main.branch]
+            });
+        }, this);
     }
 
     static RenderSelect(props){

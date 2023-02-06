@@ -219,6 +219,11 @@ export default class Management{
             await Management.replaceData(Management.data.messages[Main.branch], data, 'id');
             Events.emit("new-contact-message");
         })
+        .on('/article-data-update', async (data)=>{
+            Management.setStorage('articles', []);
+            await Management.replaceData(Management.data.articles[Main.branch], data, 'id');
+            Events.emit("article-data-update")
+        })
         return Management;
     }
 

@@ -1,4 +1,5 @@
 import AkaDatetime from './AkaDatetime';
+import Filter from '../utils/Filter';
 
 export default class Ressources{
     static links = {
@@ -56,6 +57,24 @@ export default class Ressources{
 
     static getUrl(){
         return window.location.pathname;
+    }
+
+    static getLocalStorage(key,object = false){
+        let data = localStorage.getItem(key);
+        if(!data){
+            data = [];
+        }
+        else if(object){
+            data = JSON.parse(data);
+        }
+        return data;
+    }
+
+    static setLocalStorage(key,value){
+        if(typeof value == 'object' && value != null){
+            value = JSON.stringify(value);
+        }
+        localStorage.setItem(key,value);
     }
 
     static getProjectName(){
@@ -132,12 +151,13 @@ export default class Ressources{
     }
 
     static async getArticleCategories(){
+        const data = await Ressources.fetch('/fetch', {
+            bhid: window.currentBranch,
+            sector: 'articles'
+        });
         return {
-            "all": "Tout",
-            "musique": "Musique",
-            "actualites": "Actualités",
-            "hip-hop": "Hip-hop",
-            "clip": "Clip"
+            0: 'Toutes les catégories',
+            ...Filter.toOptions(data.data, 'id', 'name')
         };
     }
 
@@ -161,6 +181,18 @@ export default class Ressources{
             });
         }
         return r;
+    }
+
+    static async rateArticle(id,positive){
+        try{
+            const data = await Ressources.fetch('/submit', {
+                bhid: window.currentBranch,
+                [positive ? 'like_article' : 'dislike_article']: id
+            });
+            return !data.error;
+        }catch (e){
+            return false;
+        }
     }
 
     static text(html){
@@ -200,67 +232,27 @@ export default class Ressources{
             punchlines: 'sponsored',
             bhid: window.currentBranch
         });
-        console.log('[Data]',data);
         return data.data.punchlines;
     }
 
+    static async watchPunchline(id){
+        try {
+            const data = await Ressources.fetch('/submit', {
+                cardid: id,
+                bhid: window.currentBranch
+            });
+        }catch (e){
+            console.log('[E]',e);
+        }
+    }
+
     static async getPunchlinesData(filter){
-        return [
-            {
-                image: './assets/captions/rappunch001.jpg',
-                artist: 'Dinos',
-                category: 'Hip-Hop',
-                year: 2020,
-                music: 'Titre de la musique',
-                comment: "Ceci est un commentaire sur le punchline",
-                text: 'Ceci est le texte'
-            },
-            {
-                image: './assets/captions/rappunch002.jpg',
-                artist: 'Dinos',
-                category: 'Hip-Hop',
-                year: 2020,
-                music: 'Titre de la musique',
-                comment: "Ceci est un commentaire sur le punchline",
-                text: 'Ceci est le texte'
-            },
-            {
-                image: './assets/captions/rappunch003.jpg',
-                artist: 'Dinos',
-                category: 'Hip-Hop',
-                year: 2020,
-                music: 'Titre de la musique',
-                comment: "Ceci est un commentaire sur le punchline",
-                text: 'Ceci est le texte'
-            },
-            {
-                image: './assets/captions/rappunch002.jpg',
-                artist: 'Dinos',
-                category: 'Hip-Hop',
-                year: 2020,
-                music: 'Titre de la musique',
-                comment: "Ceci est un commentaire sur le punchline",
-                text: 'Ceci est le texte'
-            },
-            {
-                image: './assets/captions/rappunch003.jpg',
-                artist: 'Dinos',
-                category: 'Hip-Hop',
-                year: 2020,
-                music: 'Titre de la musique',
-                comment: "Ceci est un commentaire sur le punchline",
-                text: 'Ceci est le texte'
-            },
-            {
-                image: './assets/captions/rappunch002.jpg',
-                artist: 'Dinos',
-                category: 'Hip-Hop',
-                year: 2020,
-                music: 'Titre de la musique',
-                comment: "Ceci est un commentaire sur le punchline",
-                text: 'Ceci est le texte'
-            }
-        ];
+        const data = await Ressources.fetch('/fetch', {
+            punchlines: 'grid',
+            meta: true,
+            bhid: window.currentBranch
+        });
+        return data.data;
     }
 
     static getLastPunchLinesDataFakeData(){

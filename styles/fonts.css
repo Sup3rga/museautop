@@ -1,0 +1,408 @@
+@font-face{
+    font-family: 'AdventPro-Bold';
+    src: url('fonts/Advent/AdventPro-Bold.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'AdventPro-ExtraLight';
+    src: url('fonts/Advent/AdventPro-ExtraLight.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'AdventPro-Light';
+    src: url('fonts/Advent/AdventPro-Light.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'AdventPro-Medium';
+    src: url('fonts/Advent/AdventPro-Medium.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'AdventPro';
+    src: url('fonts/Advent/AdventPro-Regular.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'AdventPro-SemiBold';
+    src: url('fonts/Advent/AdventPro-SemiBold.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'AdventPro-Thin';
+    src: url('fonts/Advent/AdventPro-Thin.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Avenir-Black';
+    src: url('fonts/Avenir/AvenirLTStd-Black.otf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Avenir-Book';
+    src: url('fonts/Avenir/AvenirLTStd-Book.otf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Avenir-Roman';
+    src: url('fonts/Avenir/AvenirLTStd-Roman.otf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'JosefinSans-Bold';
+    src: url('fonts/JosefinSans/JosefinSans-Bold.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'JosefinSans-Light';
+    src: url('fonts/JosefinSans/JosefinSans-Light.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'JosefinSans';
+    src: url('fonts/JosefinSans/JosefinSans-Regular.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'JosefinSans-Thin';
+    src: url('fonts/JosefinSans/JosefinSans-Thin.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Lexend-Bold';
+    src: url('fonts/Lexend/Lexend-Bold.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Lexend-ExtraBold';
+    src: url('fonts/Lexend/Lexend-ExtraBold.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Lexend-Light';
+    src: url('fonts/Lexend/Lexend-Light.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Lexend-Medium';
+    src: url('fonts/Lexend/Lexend-Medium.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Lexend';
+    src: url('fonts/Lexend/Lexend-Regular.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Lexend-SemiBold';
+    src: url('fonts/Lexend/Lexend-SemiBold.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Lexend-Thin';
+    src: url('fonts/Lexend/Lexend-Thin.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'OFL';
+    src: url('fonts/Lexend/OFL.txt');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Merriweather-Black';
+    src: url('fonts/Merriweather/Merriweather-Black.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Merriweather-Bold';
+    src: url('fonts/Merriweather/Merriweather-Bold.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Merriweather-Light';
+    src: url('fonts/Merriweather/Merriweather-Light.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Merriweather';
+    src: url('fonts/Merriweather/Merriweather-Regular.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Muli-Black';
+    src: url('fonts/Muli/Muli-Black.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Muli-Bold';
+    src: url('fonts/Muli/Muli-Bold.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Muli-ExtraLight';
+    src: url('fonts/Muli/Muli-ExtraLight.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Muli-Light';
+    src: url('fonts/Muli/Muli-Light.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Muli';
+    src: url('fonts/Muli/Muli-Regular.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'OpenSans-Bold';
+    src: url('fonts/OpenSans/OpenSans-Bold.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'OpenSans-Light';
+    src: url('fonts/OpenSans/OpenSans-Light.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'OpenSans';
+    src: url('fonts/OpenSans/OpenSans-Regular.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'OpenSans-Semibold';
+    src: url('fonts/OpenSans/OpenSans-Semibold.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Poppins-BlackItalic';
+    src: url('fonts/Poppins/Poppins-BlackItalic.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Poppins-Black';
+    src: url('fonts/Poppins/Poppins-Black.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Poppins-BoldItalic';
+    src: url('fonts/Poppins/Poppins-BoldItalic.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Poppins-Bold';
+    src: url('fonts/Poppins/Poppins-Bold.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Poppins-ExtraBoldItalic';
+    src: url('fonts/Poppins/Poppins-ExtraBoldItalic.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Poppins-ExtraBold';
+    src: url('fonts/Poppins/Poppins-ExtraBold.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Poppins-ExtraLightItalic';
+    src: url('fonts/Poppins/Poppins-ExtraLightItalic.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Poppins-ExtraLight';
+    src: url('fonts/Poppins/Poppins-ExtraLight.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Poppins-Italic';
+    src: url('fonts/Poppins/Poppins-Italic.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Poppins-LightItalic';
+    src: url('fonts/Poppins/Poppins-LightItalic.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Poppins-Light';
+    src: url('fonts/Poppins/Poppins-Light.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Poppins-MediumItalic';
+    src: url('fonts/Poppins/Poppins-MediumItalic.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Poppins-Medium';
+    src: url('fonts/Poppins/Poppins-Medium.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Poppins';
+    src: url('fonts/Poppins/Poppins-Regular.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Poppins-SemiBoldItalic';
+    src: url('fonts/Poppins/Poppins-SemiBoldItalic.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Poppins-SemiBold';
+    src: url('fonts/Poppins/Poppins-SemiBold.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Poppins-ThinItalic';
+    src: url('fonts/Poppins/Poppins-ThinItalic.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Poppins-Thin';
+    src: url('fonts/Poppins/Poppins-Thin.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Raleway-ExtraLight';
+    src: url('fonts/Raleway/Raleway-ExtraLight.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Raleway-Light';
+    src: url('fonts/Raleway/Raleway-Light.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Raleway-Medium';
+    src: url('fonts/Raleway/Raleway-Medium.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Raleway';
+    src: url('fonts/Raleway/Raleway-Regular.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Raleway-Thin';
+    src: url('fonts/Raleway/Raleway-Thin.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Roboto-Black';
+    src: url('fonts/Roboto/Roboto-Black.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Roboto-Bold';
+    src: url('fonts/Roboto/Roboto-Bold.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Roboto-Light';
+    src: url('fonts/Roboto/Roboto-Light.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Roboto-Medium';
+    src: url('fonts/Roboto/Roboto-Medium.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Roboto';
+    src: url('fonts/Roboto/Roboto-Regular.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Roboto-Thin';
+    src: url('fonts/Roboto/Roboto-Thin.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Rubik-Black';
+    src: url('fonts/Rubik/Rubik-Black.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Rubik-Bold';
+    src: url('fonts/Rubik/Rubik-Bold.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Rubik-Light';
+    src: url('fonts/Rubik/Rubik-Light.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Rubik';
+    src: url('fonts/Rubik/Rubik-Regular.ttf');
+    font-weight: normal;
+    font-style: normal;
+}

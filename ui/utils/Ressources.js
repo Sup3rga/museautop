@@ -177,7 +177,12 @@ export default class Ressources{
         });
         return data.data;
     }
-
+    static async getHomeSummary(){
+        const data = await Ressources.fetch('/fetch', {
+            home: true
+        });
+        return data.data;
+    }
     static getArticlesFakeData(){
         let qty = Math.ceil(Math.random() * 3 + 5),
             r = [];

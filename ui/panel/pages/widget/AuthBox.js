@@ -9,11 +9,13 @@ export default function AuthBox(props){
         title=null, open=false, onSubmit=null,
         hint="Votre mot de passe",
         authenticate=true, actionText="Authentifier",
-        onAbort=null
+        onAbort=null,
+        confirmation=false
     } = props;
     const [state, setState] = useState({
         text: false,
-        password: ''
+        password: '',
+        confirmation: ''
     });
     return (
         <Main.DialogBox
@@ -30,22 +32,42 @@ export default function AuthBox(props){
                     width: '100%',
                     padding: '.4em'
                 }}>
-                    <Writing.TextField
-                        label={hint}
-                        type={state.text ? "text" : "password"}
-                        endIcon={
-                            <Icon
-                                icon={state.text ? "eye-slash" : "eye"}
-                                onClick={()=>setState(state =>{
-                                    return {...state, text: !state.text}
+                    <div className={"flex flex-col gap-1.5 w-full"}>
+                        <Writing.TextField
+                            label={hint}
+                            type={state.text ? "text" : "password"}
+                            endIcon={
+                                <Icon
+                                    icon={state.text ? "eye-slash" : "eye"}
+                                    onClick={()=>setState(state =>{
+                                        return {...state, text: !state.text}
+                                    })}
+                                />
+                            }
+                            onChange={(e)=>setState(state =>{
+                                return {...state, password: e.target.value}
+                            })}
+                            value={state.password}
+                        />
+                        {confirmation && (
+                            <Writing.TextField
+                                label={"Confirmation admin"}
+                                type={state.text ? "text" : "password"}
+                                endIcon={
+                                    <Icon
+                                        icon={state.text ? "eye-slash" : "eye"}
+                                        onClick={()=>setState(state =>{
+                                            return {...state, text: !state.text}
+                                        })}
+                                    />
+                                }
+                                onChange={(e)=>setState(state =>{
+                                    return {...state, confirmation: e.target.value}
                                 })}
+                                value={state.confirmation}
                             />
-                        }
-                        onChange={(e)=>setState(state =>{
-                            return {...state, password: e.target.value}
-                        })}
-                        value={state.password}
-                    />
+                        )}
+                    </div>
                 </Box>
             }
             buttons={
@@ -56,7 +78,7 @@ export default function AuthBox(props){
                             return;
                         }
                         if(onSubmit){
-                            onSubmit(state.password);
+                            onSubmit(state.password, state.confirmation);
                         }
                     }}
                     sx={{textTransform: 'capitalize'}}

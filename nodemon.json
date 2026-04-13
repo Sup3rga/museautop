@@ -2,5 +2,7 @@
   "watch": ["server/*"],
   "ext": "js,jsx,ts,tsx",
   "ignore": ["node_modules/**", ".next/**", "ui/**"],
-  "exec": "node server/index.js"
+  "exec": "node server/index.js",
+  "signal": "SIGTERM",
+  "killSignal": "SIGKILL"
 }

@@ -79,7 +79,7 @@ class Category extends TracableData{
             ...(_public ? [] : ['createdBy','createdAt', 'modifiedAt','modifiedBy', 'branch'])
         ]);
         if(!_public) {
-            data.createdBy = await (await Manager.getById(data.createdBy)).data(true, false, true);
+            data.createdBy = await (await Manager.fetchById(data.createdBy)).data(true, false, true);
             data.modifiedBy = await (await Manager.getById(data.modifiedBy)).data(true, false, true);
         }
         return data;

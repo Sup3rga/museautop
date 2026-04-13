@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import Ressources from "@/ui/utils/Ressources";
+import "@/styles/site.css"
+import NavBar from "@/ui/site/components/navbar";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -12,8 +16,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
-      {children}
-    </>
+      <>
+        <NavBar/>
+        {children}
+        <footer>
+          <div className="footer-logo"><span>●</span> {Ressources.getProjectName()}</div>
+          <p className="footer-copy">© 2025 {Ressources.getProjectName()} — Tous droits réservés</p>
+          <ul className="footer-nav">
+            <li><Link href="/">Accueil</Link></li>
+            <li><Link href="/articles">Articles</Link></li>
+            <li><Link href="/contact-us">Punchlines</Link></li>
+          </ul>
+        </footer>
+      </>
   );
 }

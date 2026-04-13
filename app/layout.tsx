@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import "./globals.css";
 import "@/styles/style.css";
 import "@/styles/fonts.css";
 import "@/styles/web.css";
 import "@/styles/ui.css";
 import "@/styles/line-awesome-1.3.0/css/line-awesome.css";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Create Next App",

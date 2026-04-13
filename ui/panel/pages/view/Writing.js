@@ -142,8 +142,8 @@ export default class Writing extends AlertableComponent{
                 icon={<Icon icon="newspaper"/>}
             />);
         return (
-            <div className="ui-container ui-size-fluid ui-fluid-height presentation">
-                <div className="ui-container ui-size-fluid ui-unwrap grid-filter ui-vertical-center ui-height-2">
+            <div className="flex flex-col ui-size-fluid ui-fluid-height presentation">
+                <div className="ui-container ui-size-fluid ui-unwrap grid-filter ui-vertical-center p-4!">
                     <div className="ui-element field-group ui-size-7 ui-sm-size-4 ui-md-size-3">
                         <Writing.RenderSelect
                             className="ui-element ui-size-fluid field"
@@ -165,33 +165,35 @@ export default class Writing extends AlertableComponent{
                         </Link>
                     }
                 </div>
-                <div className="ui-element ui-size-fluid ui-height-10 article-list">
-                    {
-                        !this.state.articles.length ?
-                          empty
-                         :
-                        this.state.articles.map((data, index)=>{
-                            let props = Filter.object(data, [
-                                'title','caption','reading','category',
-                                'likes','dislikes','createdBy', 'modifiedBy', 'id'
-                            ]);
-                            if(this.state.currentCategory == 0 || props.category.id == this.state.currentCategory) {
-                                if (props.modifiedBy.id === props.createdBy.id) {
-                                    props.modifiedBy = null;
-                                }
-                                nbr++;
-                                return <ArticlePreview
-                                    key={index}
-                                    adminMod={true}
-                                    skeleton={!('id' in data)}
-                                    {...props}
-                                />
-                            }
-                        })
-                    }
-                    {
-                        nbr ? null: empty
-                    }
+                <div className="block flex-[1] overflow-y-auto article-list">
+                    <div className={"w-full flex flex-col"}>
+                        {
+                            !this.state.articles.length ?
+                                empty
+                                :
+                                this.state.articles.map((data, index)=>{
+                                    let props = Filter.object(data, [
+                                        'title','caption','reading','category',
+                                        'likes','dislikes','createdBy', 'modifiedBy', 'id'
+                                    ]);
+                                    if(this.state.currentCategory == 0 || props.category.id == this.state.currentCategory) {
+                                        if (props.modifiedBy.id === props.createdBy.id) {
+                                            props.modifiedBy = null;
+                                        }
+                                        nbr++;
+                                        return <ArticlePreview
+                                            key={index}
+                                            adminMod={true}
+                                            skeleton={!('id' in data)}
+                                            {...props}
+                                        />
+                                    }
+                                })
+                        }
+                        {
+                            nbr ? null: empty
+                        }
+                    </div>
                 </div>
                 <SpeedDial sx={{ position: 'absolute', bottom: 70, right: 16 }}
                     icon={<SpeedDialIcon/>}

@@ -1,5 +1,6 @@
 const fs = require("fs");
 const {promisify} = require('util')
+const {speciaLess} = require("./specialess");
 
 function isset(val){
     return val != undefined;
@@ -102,8 +103,23 @@ function in_array(list = [], element, ignoreCase = false){
     return false;
 }
 
+
+function slugNormalizer (text){
+    const withoutAccent = speciaLess(text);
+    return withoutAccent
+        .replace(/\s+?/g, '-')
+        .toLowerCase()
+        .replace(/[^a-z0-9-]+?/ig, '')
+        .replace(/\-$/, '')
+        .trim();
+}
+
+function rand(min, max){
+    return Math.floor(Math.random() * (max - min) + min);
+}
+
 module.exports = {
     isset,empty,time,is_array,base64_decode,
     is_file,rename,unlink,buffer_base64,
-    filter,in_array,toHexa,set
+    filter,in_array,toHexa,set, slugNormalizer, rand
 };

@@ -247,7 +247,7 @@ export default class StudioCreation extends AlertableComponent{
         }catch (message){
             return this.setReloadable(message);
         }
-        if(/^\/studio\/new\/([0-9]+)$/.test(Url.get())){
+        if(/\/studio\/new\/([0-9]+)$/.test(Url.get())){
             const id = RegExp.$1;
             this.changeValue('edit', await Management.getPunchlinesData(id));
             if(this.state.edit) {
@@ -303,6 +303,7 @@ export default class StudioCreation extends AlertableComponent{
                 this.changeState({logo});
             }
         }catch(message){
+            console.log('[READY>>>', message);
             return this.setReloadable(message);
         }
         this.changeState({
@@ -366,7 +367,8 @@ export default class StudioCreation extends AlertableComponent{
     }
 
     render() {
-        if(this.block = this.blockRender()) return this.block;
+        // console.log("{RENDER>>>",this.block == this.blockRender());
+        // if(this.block == this.blockRender()) return this.block;
         const adornment = (text = 'pixels')=>{
             return {
                 endAdornment: <InputAdornment position="start">text</InputAdornment>,
@@ -386,9 +388,6 @@ export default class StudioCreation extends AlertableComponent{
                         Punchline Studio
                     </label>
                     <div className="actions ui-element ui-size-6 ui-horizontal-right">
-                        {
-
-                        }
                         <Button
                             variant="contained"
                             startIcon={<Icon icon="save"/>}

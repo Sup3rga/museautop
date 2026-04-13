@@ -54,6 +54,7 @@ function serve(request, response, uploader){
     .serve(['like_article', 'bhid'], Wayto.likeArticle)
     .serve(['dislike_article', 'bhid'], Wayto.dislikeArticle)
     .serve(['sector', 'bhid'], Wayto.getSiteCategories)
+    .serve(["home"], Wayto.getHomeSummary)
     .notFound();
 }
 

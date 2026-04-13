@@ -113,6 +113,7 @@ export default class Communauty extends AlertableComponent{
 
     async submit(){
         const passwordChange = this.password && this.state.block === null;
+        console.log('Debug>>>',  passwordChange, this.state.block, this.password);
         if(!passwordChange && typeof this.state.block != 'boolean'){
             return;
         }
@@ -122,7 +123,7 @@ export default class Communauty extends AlertableComponent{
                 !this.state.block ? 'Blocage du compte en cours...' : 'Déblocage du compte en cours...'
             });
             let data = [];
-            console.log('[mod]', passwordChange);
+            // console.log('[mod]', passwordChange, this.auth, this.password);
             if(passwordChange) {
                 data = await Management.changePassword({
                     psw: this.password,
@@ -185,7 +186,7 @@ export default class Communauty extends AlertableComponent{
                                     return null;
                                 }
                                 ttl++;
-                                console.log('[Data]',data);
+                                // console.log('[Data]',data);
                                 return <ManagerRow
                                         key={key}
                                         {...data}
@@ -208,14 +209,17 @@ export default class Communauty extends AlertableComponent{
                     </div>
                 </div>
                 <AuthBox
+                    confirmation
                     title="Réinitialisation mot de passe"
                     authenticate={false}
                     actionText="Modifier"
                     hint="Nouveau mot de passe"
                     open={this.state.showBox}
-                    onSubmit={(password)=>{
+                    onSubmit={(password, confirmation)=>{
                         this.password = password;
+                        this.auth = confirmation;
                         this.currentMan = this.state.showBox;
+                        this.submit();
                         this.changeState({
                             showBox: 0,
                             showAuth: 0

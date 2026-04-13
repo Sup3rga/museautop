@@ -13,7 +13,7 @@ import {EmptyView} from "../widget/BlankLoader";
 class Punchline extends AlertableComponent{
     render() {
         return (
-            <Link href={'/studio/new/'+this.props.id}
+            <Link href={'./studio/new/'+this.props.id}
                 className={'punchline ' +this.props.className}
             >
                 <img className="ui-container"

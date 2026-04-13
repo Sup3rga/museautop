@@ -6,7 +6,7 @@ import React, {createRef} from 'react';
 import Events from "../../utils/Events";
 import UploadAdapter from "../../utils/UploadAdapter";
 import Main from "../Main";
-import {Button, TextField, Box, IconButton, Grid, Switch} from "@mui/material";
+import {Button, TextField, IconButton, TextareaAutosize} from "@mui/material";
 import Management from "../../utils/Management";
 import Writing from "./Writing";
 import AlertableComponent from "./AlertableComponent";
@@ -48,6 +48,10 @@ export default class Redactor extends AlertableComponent{
             publishauto: false,
             categories: {},
             category: '',
+            theme: '',
+            resume: '',
+            duration: 0,
+            captionChoosing: false,
             loading: true,
             img: [],
             openConfig: false,
@@ -146,9 +150,6 @@ export default class Redactor extends AlertableComponent{
             let image;
             for (let i = 0; i < extract.length; i++) {
                 image = extract[i].replace(/^<img src="(.+?)">/, '$1');
-                if (i === 0) {
-                    this.state.caption = image;
-                }
                 this.state.img.push(image);
             }
         }
@@ -171,6 +172,9 @@ export default class Redactor extends AlertableComponent{
             content: this.state.content,
             caption: this.state.caption,
             category: this.state.category,
+            theme: this.state.theme,
+            resume: this.state.resume,
+            duration: this.state.duration,
             schdate: schedule,
             img: this.state.img,
             ...Management.defaultQuery()
@@ -225,6 +229,10 @@ export default class Redactor extends AlertableComponent{
             title: this.state.title,
             content: this.state.content,
             category: this.state.category,
+            theme: this.state.theme,
+            duration: this.state.duration,
+            resume: this.state.resume,
+            caption: this.state.caption,
             lastModified: AkaDatetime.now(),
             publishauto: this.state.publishauto,
             date: this.state.date,
@@ -298,7 +306,33 @@ export default class Redactor extends AlertableComponent{
                         </IconButton>
                     </div>
                 </div>
-                <div className="ui-container ui-size-fluid ui-fluid-height ui-scroll-y">
+                <div className={`flex flex-col w-full gap-[10px] p-4! ${this.state.captionChoosing ? 'h-[40vh]' : 'h-[75px]'} duration-300`}>
+                    <div className={"flex w-full justify-between h-[50px]"}>
+                        <div className="flex gap-2 items-center h-full text-gray-600">
+                            <div
+                                style={{backgroundImage: `url(${this.state.caption})`}}
+                                className="flex w-[60px] h-full bg-gray-300 rounded-md bg-cover"
+                            />
+                            Vignette de l'article
+                        </div>
+                        <Button onClick={()=> {
+                            this.extractImg();
+                            this.setState((state)=> ({...state,captionChoosing: !this.state.captionChoosing}))
+                        }}>
+                            {this.state.captionChoosing ? "Fermer la grille" : "voir les images"}
+                        </Button>
+                    </div>
+                    <div className={`grid flex-[1] w-full bg-gray-100 rounded-sm gap-2 grid-cols-3 md:grid-cols-6 lg:grid-cols-8 p-3! overflow-hidden ${this.state.captionChoosing ? 'overflow-y-auto' : ''}`}>
+                        {this.state.img.map((img, key)=>(
+                            <div
+                                style={{backgroundImage: `url(${img})`}}
+                                className={`bg-cover rounded-sm h-[50px] md:h-[70px] lg:h-[120px] cursor-pointer hover:scale-95 duration-200 bg-slate-100 ${img == this.state.caption ? 'border-1 border-blue-950' : ''}`} key={key}
+                                onClick={()=> this.setState((state)=> ({...state,caption: img, captionChoosing: false}))}
+                            />
+                        ))}
+                    </div>
+                </div>
+                <div className="ui-container ui-size-fluid ui-fluid-height max-h-[80vh] ui-scroll-y">
                     <Editor
                         data={this.state.content}
                         onReady={ editor => {
@@ -320,7 +354,7 @@ export default class Redactor extends AlertableComponent{
                     title="Informations de l'article"
                     open={this.state.openConfig}
                     content = {
-                        <Box className="ui-container ui-vwidth-10 ui-md-vwidth-6">
+                        <div className="flex w-full flex-col gap-2">
                             <TextField
                                 className="ui-element ui-size-fluid"
                                 label="Le titre de l'article"
@@ -330,16 +364,39 @@ export default class Redactor extends AlertableComponent{
                                     this.updateData('title', e.target.value);
                                 }}
                             />
-                            <Box sx={{padding: '1em 0', width: '100%'}}>
-                                <Writing.RenderSelect
-                                    label="Catégorie"
-                                    list={this.state.categories}
-                                    value={this.state.category}
+                            <Writing.RenderSelect
+                                label="Catégorie"
+                                list={this.state.categories}
+                                value={this.state.category}
+                                onChange={(e)=>{
+                                    this.updateData('category', e.target.value);
+                                }}
+                            />
+                            <div className={"flex gap-1 flex-col lg:flex-row"}>
+                                <TextField
+                                    label="Thème de l'article"
+                                    value={this.state.theme}
                                     onChange={(e)=>{
-                                        this.updateData('category', e.target.value);
+                                        this.updateData('theme', e.target.value);
                                     }}
                                 />
-                            </Box>
+                                <TextField
+                                    label="Durée de lecture (min.) (estimation)"
+                                    value={this.state.duration}
+                                    onChange={(e)=>{
+                                        this.updateData('duration', e.target.value);
+                                    }}
+                                />
+                            </div>
+                            <TextField
+                                multiline={true}
+                                rows={4}
+                                label="Extrait de l'article"
+                                value={this.state.resume}
+                                onChange={(e)=>{
+                                    this.updateData('resume', e.target.value);
+                                }}
+                            />
                             {
                                 //We cant schedule published articles !!!
                                 this.state.edit && this.state.edit.published ? null:
@@ -359,7 +416,7 @@ export default class Redactor extends AlertableComponent{
                                     }}
                                 />
                             }
-                        </Box>
+                        </div>
                     }
                     buttons={
                         <Button onClick={()=>this.toggleConfigurationBox(false)}>Ok</Button>

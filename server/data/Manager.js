@@ -85,10 +85,11 @@ class Manager extends SocketableData{
      * @param exception <p>allow to avoide a user to include in broadcast</p>
      */
     static broadcast(destination, data, branches=[], exception = null){
+        console.log('[Managers]', Manager.list);
         for(let manager of Manager.list){
             if(manager !== exception){
                 for(let socket of manager.sockets){
-                    socket.emit(destination, data);
+                    if(typeof socket != 'undefined') socket.emit(destination, data);
                 }
             }
         }
@@ -142,6 +143,7 @@ class Manager extends SocketableData{
             }
             else{
                 base.p10 = this.id;
+                console.log('BASE>>>', base);
                 await Pdo.prepare(`
                     update manager set
                     firstname=:p1, lastname=:p2, mail=:p3,
@@ -443,12 +445,7 @@ class Manager extends SocketableData{
      * @returns {Promise<null|Manager>}
      */
     static async getById(id){
-        for(let i in Manager.list){
-            if(Manager.list[i].id == id){
-                return Manager.list[i];
-            }
-        }
-        return null;
+        return this.fetchById(id);
     }
 
     static async fetchById(id){
@@ -513,6 +510,7 @@ class Manager extends SocketableData{
           if (!result.rowCount) {
               return Channel.message({code: code.AUTHENTICATION_ERROR});
           }
+          console.log('[Hydrating>>>')
           let man = await new Manager().hydrate(result.fetch());
           console.log('[MAN]', man);
           if (!man.active) {

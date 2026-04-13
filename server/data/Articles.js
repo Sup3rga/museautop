@@ -10,6 +10,8 @@ let {Pdo} = require('../utils/Connect'),
     {filter,set} = require('../utils/procedures'),
     Sys = require('./Sys');
 const SponsoredData = require("./SponsoredData");
+const {slugNormalizer} = require("../utils/procedures");
+const {rand} = require("../utils/procedures");
 
 class ArticleImage extends Data{
     constructor() {
@@ -154,6 +156,10 @@ class Articles extends SponsoredData{
         this.createdBy = null;
         this.modifiedAt = null;
         this.modifiedBy = null;
+        this.theme = null;
+        this.resume = null;
+        this.slug = null;
+        this.duration = 0;
         this.reading = 0;
         this.likes = 0;
         this.dislikes = 0;
@@ -169,17 +175,18 @@ class Articles extends SponsoredData{
         const data = Filter.object(this, [
            'id', 'title', 'caption','content',
            'createdBy', 'reading', 'likes','dislikes',
-           'category', 'branch', 'postOn',
+           'category', 'branch', 'postOn', 'resume', 'theme', 'duration', 'slug',
             ...(_public ? [] : ['modifiedAt','modifiedBy','published','createdAt','sponsoredUntil'])
         ]);
         if(data.caption) {
             data.caption = await (await ArticleImage.getById(data.caption)).data();
             data.caption = data.caption.path;
         }
-        data.createdBy = await (await Manager.getById(data.createdBy)).data(true, false, true);
+        data.createdBy = await (await Manager.fetchById(data.createdBy)).data(true, false, true);
         if(!_public) {
-            data.modifiedBy = await (await Manager.getById(data.modifiedBy)).data(true, false, true);
+            data.modifiedBy = await (await Manager.fetchById(data.modifiedBy)).data(true, false, true);
         }
+        const cat = await Category.getById(data.category);
         data.category = await (await Category.getById(data.category)).data();
         data.category = Filter.object(data.category, ['id', 'name', 'sector']);
         return data;
@@ -188,7 +195,7 @@ class Articles extends SponsoredData{
     async save(){
         // console.log('[This]',this);
         if(!Filter.contains(this, [
-            'title','content','createdAt','createdBy','branch', 'postOn','category'
+            'title','content','createdAt','createdBy','branch', 'postOn','category', 'theme', 'resume', 'duration'
         ], [null, 0, ''])){
             return Channel.message({code: code.INVALID});
         }
@@ -218,9 +225,9 @@ class Articles extends SponsoredData{
                 await Pdo.prepare(`
                     insert into articles (
                       title,content,created_at,created_by,modified_at,modified_by,
-                      category,branch,post_on
+                      category,branch,post_on, theme, resume, duration, slug
                     )
-                    values(:p1,:p3,:p4,:p5,:p4,:p5,:p6,:p7,:p8)
+                    values(:p1,:p3,:p4,:p5,:p4,:p5,:p6,:p7,:p8, :p9, :p10, :p11, :p12)
                 `)
                 .execute({
                     p1: this.title,
@@ -229,7 +236,11 @@ class Articles extends SponsoredData{
                     p5: this.createdBy,
                     p6: this.category,
                     p7: this.branch,
-                    p8: new AkaDatetime(this.postOn).getDateTime()
+                    p8: new AkaDatetime(this.postOn).getDateTime(),
+                    p9: this.theme,
+                    p10: this.resume,
+                    p11: this.duration,
+                    p12: await this.createSlug()
                 });
                 article = await Articles.getLast(this);
             }
@@ -242,7 +253,11 @@ class Articles extends SponsoredData{
                         modified_by = :p5,
                         modified_at = :p4,
                         category    = :p6,
-                        post_on = :p9
+                        post_on = :p9,
+                        theme = :p10,
+                        resume = :p11,
+                        duration = :p12,
+                        slug = :p13
                     where id = :p7
                       and branch = :p8
                 `)
@@ -254,28 +269,30 @@ class Articles extends SponsoredData{
                     p6: this.category,
                     p7: this.id,
                     p8: this.branch,
-                    p9: this.postOn
+                    p9: this.postOn,
+                    p10: this.theme,
+                    p11: this.resume,
+                    p12: this.duration,
+                    p13: this.slug
                 });
             }
         }catch (e){
             return Channel.logError(e).message({code: code.INTERNAL});
         }
-        if(article) {
-            //We update the ressource list
-            await ArticleImage.setNew(article.id, article[!this.id ? 'createdBy' : 'modifiedBy'], this.pictures);
-            //We get the ressource list data
-            const list = await ArticleImage.fetchAll(article.id);
-            console.log('[After]',this.pictures, list);
-            //Then we update the current Caption
-            try {
-                await Pdo.prepare('update articles set caption=:p1 where id=:p2')
-                    .execute({
-                        p1: list.length ? list[0].id : null,
-                        p2: article.id
-                    });
-            } catch (e) {
-                Channel.logError(e);
-            }
+        //We update the ressource list
+        await ArticleImage.setNew(article.id, article[!this.id ? 'createdBy' : 'modifiedBy'], this.pictures);
+        //We get the ressource list data
+        const list = await ArticleImage.fetchAll(article.id);
+        console.log('[After]',this.pictures, list);
+        //Then we update the current Caption
+        try {
+            await Pdo.prepare('update articles set caption=:p1 where id=:p2')
+                .execute({
+                    p1: list.length ? list[0].id : null,
+                    p2: article.id
+                });
+        } catch (e) {
+            Channel.logError(e);
         }
         return Channel.message({error: false, code: code.SUCCESS});
     }
@@ -359,6 +376,10 @@ class Articles extends SponsoredData{
         this.dislikes = data.dislikes;
         this.category = data.category;
         this.branch = data.branch;
+        this.theme = data.theme;
+        this.resume = data.resume;
+        this.duration = data.duration;
+        this.slug = data.slug;
         const postDate = new AkaDatetime(data.post_on);
         this.postOn = postDate.getDateTime();
         this.published = postDate.isLessThan(new AkaDatetime());
@@ -366,17 +387,100 @@ class Articles extends SponsoredData{
         return this;
     }
 
-    static async getLast(src = null){
-        let article = null,
+    static async getLast(src = null, limit = 1, _public = true){
+        let article = limit > 1 ? [] : null,
             queue = "",
-            arg = {};
+            arg = {limit};
         if(src){
             queue = 'where created_by=:p1 and created_at=:p2';
             arg = {p1: src.createdBy, p2: new AkaDatetime(src.createdAt).getDateTime()};
         }
+        if(_public){
+            // queue = (src ? " and" : "where") + " published=1"
+        }
         try{
-            const req = await Pdo.prepare("select * from articles "+queue+" order by id desc LIMIT 1")
+            const req = await Pdo.prepare("select * from articles "+queue+" order by id desc LIMIT :limit")
                 .execute(arg);
+            if(req.rowCount){
+                if(limit == 1) {
+                    article = new Articles().hydrate(req.fetch());
+                }
+                else{
+                    let data;
+                    while(data = req.fetch()){
+                        article.push(new Articles().hydrate(data));
+                    }
+                }
+            }
+        }catch(e){
+            Channel.logError(e);
+        }
+        return article;
+    }
+
+    static async getCount(){
+        try{
+            const req = await Pdo.prepare("select count(*) as total from articles").execute();
+            if(req.rowCount){
+                return req.fetch().total * 1;
+            }
+        }catch (e) {
+            Channel.logError(e);
+        }
+        return 0;
+    }
+
+    static async getThemes(){
+        const list = [];
+        try{
+            const req = await Pdo.prepare("select distinct theme from articles").execute();
+            if(req.rowCount){
+                let data;
+                while(data = req.fetch()){
+                    list.push(...(data.theme.split(/ *, */)));
+                }
+            }
+        }catch (e) {
+            Channel.logError(e);
+        }
+        return list;
+    }
+
+    async getSimilars(){
+        const list = [];
+        try{
+            const req = await Pdo.prepare(`
+                select distinct b.* from articles a, articles b 
+                where 
+                    a.id = :p1 and
+                    a.id != b.id and  (
+                        b.category = a.category or LOWER(b.theme) REGEXP CONCAT(
+                            '(^|,) *(', REPLACE(LOWER(a.theme), ',', '|'), ') *($|,)'
+                        )
+                    )
+                limit 4
+            `).execute({p1: this.id});
+            if(req.rowCount){
+                let data;
+                while(data = req.fetch()){
+                    list.push(new Articles().hydrate(data));
+                }
+            }
+        }catch (e) {
+            Channel.logError(e);
+        }
+        return list;
+    }
+
+    static async getByThemes(theme){
+        return []; //TODO: implements fetching for request by theme
+    }
+
+    static async getBySlug(slug){
+        let article = null;
+        try{
+            const req = await Pdo.prepare("select * from articles where slug=:slug")
+                .execute({slug});
             if(req.rowCount){
                 article = new Articles().hydrate(req.fetch());
             }
@@ -384,6 +488,28 @@ class Articles extends SponsoredData{
             Channel.logError(e);
         }
         return article;
+    }
+
+    static async slugExists(slug){
+        return (await Articles.getBySlug(slug)) != null;
+    }
+
+    async createSlug(){
+        const baseSlug = slugNormalizer(this.title);
+        let slug= baseSlug;
+        console.log('[SLUG>>>', baseSlug);
+        let existed = false;
+        do{
+            if(await Articles.slugExists(slug)){
+                slug = baseSlug + '-' + rand(10,600);
+                existed = true;
+            }
+            else{
+                existed = false;
+            }
+        }while(existed);
+        this.slug = slug;
+        return slug;
     }
 
     static async getById(id){

@@ -37,15 +37,15 @@ export class ArticlePreview extends React.Component{
             createdBy, modifiedBy
         } = this.props;
         return (
-            <div className="ui-element ui-size-fluid">
+            <div className="flex w-full">
                 <div className="ui-container ui-size-fluid ui-vertical-center">
                     {
                         !caption ? null :
-                            <div className="ui-container caption ui-size-fluid ui-md-size-3" style={{
+                            <div className="ui-container bg-cover h-[100px] w-2/5 lg:w-1/5 rounded-sm" style={{
                                 backgroundImage: 'url('+caption+')'
                             }}/>
                     }
-                    <div className={"ui-container metadata  ui-size-"+(caption ? '9' : '12')}>
+                    <div className={"ui-container metadata  "}>
                         <div className="ui-container ui-size-fluid title ui-vertical-center">
                             {title}
                             <span className="ui-element category">{category.name}</span>

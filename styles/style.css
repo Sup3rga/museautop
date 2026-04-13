@@ -513,9 +513,12 @@
 .editor .ck.ck-editor {
   width: 100%;
   max-height: 95%;
-  border: 1px solid #ccc;
-  border-radius: .4em;
+  /*border: 1px solid #ccc;*/
+  /*border-radius: .4em;*/
   overflow: hidden;
+}
+.editor .ck.ck-toolbar.ck-toolbar_grouping>.ck-toolbar__items{
+  height: 60px;
 }
 /* line 376, ../../sass/style.scss */
 .editor .ck.ck-toolbar {
@@ -577,7 +580,7 @@
 }
 /* line 429, ../../sass/style.scss */
 .article-list .article-preview .caption {
-  height: 20vmin;
+  /*height: 20vmin;*/
   background-color: #eee;
   border-radius: 1em;
   background-size: cover;

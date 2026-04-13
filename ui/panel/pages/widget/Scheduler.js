@@ -40,28 +40,24 @@ export default class Scheduler extends React.Component{
                 </div>
                 {
                     this.state.auto ? null :
-                        <Grid container alignItems="center" sx={{padding: '.5em 0', width: '100%'}}>
-                            <Grid item sx={{padding: '0', width: '50%'}}>
-                                <TextField
-                                    className="ui-container ui-size-fluid"
-                                    type="date"
-                                    value={this.state.date}
-                                    onChange={(e)=>{
-                                        this.updateData('date', e.target.value);
-                                    }}
-                                />
-                            </Grid>
-                            <Grid item sx={{padding: '0', width: '50%'}}>
-                                <TextField
-                                    className="ui-container ui-size-fluid"
-                                    type="time"
-                                    value={this.state.time}
-                                    onChange={(e)=>{
-                                        this.updateData('time', e.target.value);
-                                    }}
-                                />
-                            </Grid>
-                        </Grid>
+                        <div className={"flex gap-1"}>
+                            <TextField
+                                className="ui-container ui-size-fluid"
+                                type="date"
+                                value={this.state.date}
+                                onChange={(e)=>{
+                                    this.updateData('date', e.target.value);
+                                }}
+                            />
+                            <TextField
+                                className="ui-container ui-size-fluid"
+                                type="time"
+                                value={this.state.time}
+                                onChange={(e)=>{
+                                    this.updateData('time', e.target.value);
+                                }}
+                            />
+                        </div>
                 }
             </>
         )

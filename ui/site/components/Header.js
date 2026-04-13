@@ -2,7 +2,7 @@ import React from 'react';
 import Ressources from "@/ui/utils/Ressources";
 import Url from "@/ui/utils/Url";
 import Events from "@/ui/utils/Events";
-import Link from "./Link";
+import Link from "next/link";
 
 export class Icon extends React.Component{
 

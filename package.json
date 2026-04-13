@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "nodemon",
+    "dev": "nodemon --legacy-watch",
     "build": "next build",
     "start": "NODE_ENV=production node server/index.js",
     "lint": "eslint"

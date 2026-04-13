@@ -558,6 +558,7 @@ export default class Management{
             }
             return data;
         }catch(err){
+            console.log('[Err>>>]',err);
             throw err;
         }
     }

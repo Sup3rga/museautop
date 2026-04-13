@@ -86,6 +86,7 @@ Wayto.getAllWritingData = async (data)=>{
 }
 
 Wayto.getArticles = async (data, admin = true)=>{
+    console.log("[CALL ARTICLES>>>", admin)
     if(!Filter.contains(data, admin ? defaultQuery : ['bhid'])){
         return Channel.message({
             error: true,
@@ -110,8 +111,8 @@ Wayto.getArticles = async (data, admin = true)=>{
             code: code.INVALID
         });
     }
-    await article.read();
     if(!admin){
+        await article.read();
         Manager.broadcast('/article-data-update', await article.data(), data.bhid * 1);
     }
     return Channel.message({
@@ -165,7 +166,7 @@ Wayto.getLogo = async (data)=>{
         return Channel.message({code: code.LOGOUT})
     }
     try {
-        const data = await promisify(fs.readFile)('../public/assets/white-logo.jpg');
+        const data = await promisify(fs.readFile)('public/assets/white-logo.jpg');
         // console.log('[logo...]',data);
         return Channel.message({
             error: false,
@@ -173,7 +174,7 @@ Wayto.getLogo = async (data)=>{
         });
     }catch(e){
         return Channel.logError(e).message({
-            code: code.SUCCESS
+            code: code.ERROR
         });
     }
 }
@@ -608,7 +609,7 @@ Wayto.blockManager = async (data)=>{
     if(!manager) return Channel.message({code: code.INVALID});
 
     manager.active = data.block;
-
+    console.log('[ACTIVATE]', manager);
     return await manager.save();
 }
 
@@ -727,13 +728,13 @@ Wayto.commitCategories = async (data, sector)=>{
 Wayto.commitRedaction = async (data)=>{
     if(!Filter.contains(data, [ ...defaultQuery,
         'title','content', 'img', 'category',
-        'schdate'
+        'schdate', 'theme', 'duration', 'resume'
     ], [undefined])){
         return Channel.message({
             code: code.INVALID
         });
     }
-    console.log('[COMMIT]', data);
+    console.log('[COMMIT>>>', data);
     if(!(await Manager.checkAuthentification(data.cmid, data.cmtk))) {
         return Channel.message({code: code.LOGOUT})
     }
@@ -741,11 +742,19 @@ Wayto.commitRedaction = async (data)=>{
     const update = 'id' in data;
     let article = update ? await Articles.getById(data.id) : new Articles();
     // console.log('[UPDATE]',article);
+    const updateSlug = article.title != data.title;
     article.title = data.title;
     article.content = data.content;
     article.category = data.category;
+    article.theme = data.theme;
+    article.caption = data.caption;
+    article.resume = data.resume;
+    article.duration = data.duration;
     if(is_array(data.img)){
         article.pictures = data.img;
+    }
+    if(!article.slug || article.slug.length == 0 || updateSlug){
+        await article.createSlug();
     }
     if(!update){
         article.createdAt = new Date();
@@ -953,6 +962,64 @@ Wayto.setEssentialsSettings = async (data)=>{
         message: error,
         code: code.SUCCESS,
         data: await Wayto.getEssentialsSettings(Filter.object(data, defaultQuery))
+    });
+}
+
+Wayto.getHomeSummary = async ()=>{
+    const response = {
+        lastArticles: [],
+        headLines: null,
+        lastPunchlines: [],
+        totalArticles: 0,
+        totalPunchlines: 0
+    }
+    const articles = await Articles.getLast(null, 4);
+    if(articles.length >= 1){
+        response.headLines = await articles[0].data(true);
+        for(let article of articles.slice(1, articles.length)) {
+            response.lastArticles.push(await article.data(true));
+        }
+    }
+    response.totalArticles = await Articles.getCount();
+    return Channel.message({
+        error: false,
+        message: null,
+        code: code.SUCCESS,
+        data: response
+    });
+}
+
+Wayto.getArticlesPageData = async()=>{
+    return Channel.message({
+        error: false,
+        message: null,
+        code: code.SUCCESS,
+        data: {
+            totalArticles: await Articles.getCount(),
+            themes: await Articles.getThemes(),
+            categories: await Category.fetchAll(1, 'A', true, true),
+            articles: await Articles.fetchAll(1, true, false, true)
+        }
+    });
+}
+
+Wayto.getReadingPageData = async(slug)=>{
+    const article = await Articles.getBySlug(slug);
+    const similars = [];
+    if(article != null){
+        for(const _article of await article.getSimilars()){
+            similars.push(await _article.data(true));
+        }
+    }
+    return Channel.message({
+        error: article == null,
+        message: null,
+        code: article == null ? code.ERROR : code.SUCCESS,
+        data: article == null ? null : {
+            themes: article.theme.split(/ *, */),
+            article: await article.data(true),
+            similars
+        }
     });
 }
 

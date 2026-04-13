@@ -38,8 +38,6 @@
   margin: 0;
   box-sizing: border-box;
   position: relative;
-  font-family: var(--font-family);
-  font-size: var(--font-size);
 }
 
 /**
@@ -48,6 +46,8 @@
 /* line 44, ../../sass/ui.scss */
 body {
   background-color: var(--theme-global);
+  font-family: var(--font-family);
+  font-size: var(--font-size);
 }
 
 /* line 47, ../../sass/ui.scss */

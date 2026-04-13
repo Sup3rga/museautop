@@ -25,8 +25,11 @@ const PORT = process.env.PORT || 3000;
 const dev = process.env.NODE_ENV != "production";
 
 const app = next({dev});
+console.log("{LAUNCH>>>")
 app.prepare().then(async ()=>{
     const httpServer = http.createServer(server);
+
+    console.log("{PRETTY-READY>>>")
 
     const io = new Server(httpServer, {
         cors:{

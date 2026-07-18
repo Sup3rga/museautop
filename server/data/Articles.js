@@ -334,6 +334,13 @@ class Articles extends SponsoredData{
         }
     }
 
+    static async getReadStats(id){
+        const article = await Articles.getById(id);
+        console.log("{READ>>>");
+        if(article != null) return (await article.data())["reading"];
+        return 0;
+    }
+
     async like(){
         const req = await this.updateStats('likes', this.likes+1);
         if(!req.error){

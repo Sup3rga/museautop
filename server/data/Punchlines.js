@@ -1,4 +1,3 @@
-const TracableData = require("./TracableData");
 const Filter = require("../utils/Filter");
 const Pictures = require("./Pictures");
 const Category = require("./Category");
@@ -8,17 +7,17 @@ const {Pdo} = require("../utils/Connect");
 const {in_array} = require("../utils/procedures");
 const AkaDatetime = require("../utils/AkaDatetime");
 const Manager = require("./Manager");
+const Stats = require("./Stats");
+const StatsData = require("./StatsData");
 
-class Punchlines extends TracableData{
+class Punchlines extends StatsData{
 
     constructor() {
         super();
-        this.id = 0;
         this.title = null;
         this.picture = 0; //base picture as punchline card background
         this.card = 0; //punchline card
         this.year = 0;
-        this.watches = 0;
         this.artist = null;
         this.lyrics = null;
         this.punchline = null;
@@ -28,41 +27,39 @@ class Punchlines extends TracableData{
         this.sponsoredUntil = null;
     }
 
-    async data(_public = true){
+    async data(_public = true, _minimalist = false){
         const data = Filter.object(this, [
             'id','title','card', 'year', 'artist', 'lyrics', 'punchline',
-            'category', 'comment', 'postOn',
-            'createdBy', 'branch', 'sponsoredUntil',
-            ...(_public ? [] : ['createdAt','modifiedAt','modifiedBy','picture',])
+            'category', 'comment', 'postOn', 'stats',
+            'createdBy', 'branch', 'sponsoredUntil','picture',
+            ...(_public ? [] : ['createdAt','modifiedAt','modifiedBy',])
         ]);
         data.card = (await Pictures.getById(data.card)).data();
-        if(!_public) {
+        data.stats = await (await this.getStats()).data(_public);
+        if(!_minimalist) {
             data.picture = (await Pictures.getById(data.picture)).data();
+            data.picture = data.picture.path;
             data.category = await (await Category.getById(data.category)).data();
+        }
+        if(!_public) {
             data.createdBy = await (await Manager.getById(data.createdBy)).data(true, false, true);
             data.modifiedBy = await (await Manager.getById(data.modifiedBy)).data(true, false, true);
         }
         else{
             data.card = data.card.path;
+            data.category = data.category.name;
             Filter.flush(data, [
-                'createdBy','createdAt', 'picture',
+                'createdBy','createdAt',
                 'modifiedAt', 'modifiedBy'
             ]);
         }
-        return data;
-    }
-
-    async read(){
-        try{
-            await Pdo.prepare(`
-                update punchlines set watches=:p1 where id=:p2
-            `).execute({
-                p1: this.watches + 1,
-                p2: this.id
-            });
-        }catch (e){
-            Channel.logError(e)
+        if(_minimalist){
+            Filter.flush(data, [
+                'postOn', 'sponsoredUntil', 'comment', 'card', 'picture', 'lyrics'
+            ]);
+            console.log('[Data]',data);
         }
+        return data;
     }
 
     hydrate(data) {
@@ -70,11 +67,12 @@ class Punchlines extends TracableData{
         this.title = data.title;
         this.picture = data.presentation;
         this.card = data.picture;
+        this.table = "punchlines";
         this.punchline = data.punchline;
         this.year = data.year;
         this.lyrics = data.lyrics;
         this.category = data.category;
-        this.watches = data.watches;
+        this.stats = data.stats;
         this.artist = data.artist;
         this.comment = data.comment;
         this.branch = data.branch;
@@ -220,6 +218,7 @@ class Punchlines extends TracableData{
     static async getById(id){
         let punchline = null;
         try{
+            console.log('[ID]', id);
             const request = await Pdo.prepare("select * from punchlines where id=:id").execute({id});
             if(request.rowCount){
                 punchline = new Punchlines().hydrate(request.fetch());
@@ -230,7 +229,7 @@ class Punchlines extends TracableData{
         return punchline;
     }
 
-    static async fetchAll(branch = 0, dataOnly = true, _public = false, sponsored=false){
+    static async fetchAll(branch = 0, dataOnly = true, _public = false, sponsored=false, _minimal = false){
         const r = [];
         try{
             const results = await Pdo.prepare("select * from punchlines where branch=:branch order by id desc")
@@ -241,7 +240,7 @@ class Punchlines extends TracableData{
                 if(!sponsored ||
                     (sponsored && new AkaDatetime(data.sponsoredUntil).isMoreThan(new AkaDatetime()))
                 ){
-                    r.push(dataOnly ? await data.data(_public) : data);
+                    r.push(dataOnly ? await data.data(_public, _minimal) : data);
                 }
             }
         }catch (e){

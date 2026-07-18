@@ -501,6 +501,7 @@ class Manager extends SocketableData{
 
       const withId = /^[0-9]+$/.test(username);
       try {
+          console.log('[Preparing>>>')
           let result = await Pdo.prepare(`
               select *
               from manager

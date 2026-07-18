@@ -24,7 +24,7 @@ class Filter{
 
     static flush(object, indexes = []){
         for(let i in indexes){
-            if(object[indexes[i]]){
+            if(indexes[i] in object){
                 delete object[indexes[i]];
             }
         }

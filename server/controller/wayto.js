@@ -85,6 +85,26 @@ Wayto.getAllWritingData = async (data)=>{
     });
 }
 
+Wayto.getArticleReadingStats = async (data)=>{
+    return Channel.message({
+        error: false,
+        code: code.SUCCESS,
+        data: await Articles.getReadStats(data.artid)
+    });
+}
+
+Wayto.readArticle = async (data)=>{
+    const article = await Articles.getById(data.artid);
+    if(article){
+       await article.read();
+    }
+    return Channel.message({
+        error: article == null,
+        code: !article ? code.INVALID : code.SUCCESS,
+        data: !article ? 0 : article.reading
+    });
+}
+
 Wayto.getArticles = async (data, admin = true)=>{
     console.log("[CALL ARTICLES>>>", admin)
     if(!Filter.contains(data, admin ? defaultQuery : ['bhid'])){
@@ -197,6 +217,46 @@ Wayto.getPunchlines = async (data)=>{
     });
 }
 
+Wayto.getPunchline = async (id)=>{
+    const punchline = await Punchlines.getById(id);
+    return Channel.message({
+        error: !punchline,
+        code: !punchline ? code.ERROR : code.SUCCESS,
+        data : !punchline ? null : {
+            punchline: await punchline.data(true)
+        }
+    });
+}
+
+Wayto.punchlineStats = async function ({punchid}){
+    const punchline = await Punchlines.getById(punchid);
+    if(punchline && /\/punchline\/set\/(views|likes|dislikes)/.test(this.srcUrl)){
+        const index = RegExp.$1;
+        const stats = await punchline.getStats();
+        await punchline.updateStats({
+            ...stats,
+            [index]: stats[index] + 1,
+        })
+    }
+    return Channel.message({
+        error: !punchline,
+        code: !punchline ? code.ERROR : code.SUCCESS,
+        data : !punchline ? null : await (await punchline.getStats()).data(true)
+    });
+}
+
+Wayto.getPunchlinesPageData = async ()=>{
+    return Channel.message({
+        error: false,
+        code : code.SUCCESS,
+        data: {
+            punchlines: await Punchlines.fetchAll(1, true, true, false, true),
+            years: await Punchlines.fetchYears(1),
+            artists: await Punchlines.fetchArtists(1)
+        }
+    })
+}
+
 //public
 Wayto.getSitePunchlines = async (data)=>{
     const sponsored = set(data.article, '') === 'sponsored';
@@ -205,7 +265,7 @@ Wayto.getSitePunchlines = async (data)=>{
         error: false,
         code: code.SUCCESS,
         data: {
-            punchlines: await Punchlines.fetchAll(data.bhid, true, true, sponsored),
+            punchlines: await Punchlines.fetchAll(data.bhid, true, true),
             ...(!meta ? {} : {
                 years: await Punchlines.fetchYears(data.bhid),
                 artists: await Punchlines.fetchArtists(data.bhid),
@@ -614,7 +674,7 @@ Wayto.blockManager = async (data)=>{
 }
 
 Wayto.getAllManagers = async (data)=>{
-    console.log('[Data]',data);
+    // console.log('[Data]',data);
     if(!Filter.contains(data, defaultQuery)){
         return Channel.message({code: code.INVALID});
     }

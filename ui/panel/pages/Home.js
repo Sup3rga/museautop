@@ -20,15 +20,19 @@ export default class Home extends React.Component{
         if(Management.storage){
            return;
         }
-        localforage.config({
-            driver      : localforage.INDEXEDDB,
-            name        : Ressources.getProjectName(),
-            version     : 1.0,
-            storeName   : Ressources.getProjectName().replace(' ','_')+'DataBase',
-            description : 'for storage'
-        });
-        Management.storage = localforage;
-        await localforage.ready()
+        try {
+            localforage.config({
+                driver      : localforage.INDEXEDDB,
+                name        : Ressources.getProjectName(),
+                version     : 1.0,
+                storeName   : Ressources.getProjectName().replace(' ','_')+'DataBase',
+                description : 'for storage'
+            });
+            Management.storage = localforage;
+            await localforage.ready();
+        }catch (e) {
+            console.log("[Err]",e);
+        }
         Events.emit("storage-open");
     }
 

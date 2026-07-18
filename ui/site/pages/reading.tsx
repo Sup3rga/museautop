@@ -1,9 +1,12 @@
 "use client";
 
 import Articles from "@/server/data/Articles";
-import {useMemo} from "react";
+import {useEffect, useMemo} from "react";
 import parser from "html-react-parser";
 import Link from "next/link";
+import Ressources from "@/ui/panel/utils/Ressources";
+import useStreamUIng from "@/ui/lib/streamuing";
+import { motion } from "framer-motion";
 
 interface _ReadingProps{
     themes: string[],
@@ -19,6 +22,12 @@ export default function Reading({themes, article, similars} : _ReadingProps){
         return list;
     }, [similars, themes]);
     const splitTitle = article.title.split(/ +/);
+    const {StreamUI, upstream} = useStreamUIng(Ressources.apis, {artid: article.id});
+    let images = 0;
+    useEffect(() => {
+        upstream({alias: "article.read"})
+        .catch((err)=> console.log("Reading error : ", err))
+    }, []);
     return (
     <div className={"w-full"}>
         <section className="article-hero">
@@ -58,7 +67,9 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                         </div>
                         <div className="meta-divider"></div>
                         <div className="meta-item">
-                            <span className="meta-value">{article.reading}</span>
+                            <span className="meta-value">
+                                <StreamUI alias={"article.reading"} placeholder={article.reading}/>
+                            </span>
                             <span className="meta-label">lectures</span>
                         </div>
                     </div>
@@ -72,7 +83,7 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                     <span className="day">18</span>
                     <span className="month">Novembre 2025</span>
                 </div>
-                <div className={"bg-cover absolute! top-0 left-0 right-0 bottom-0 bg-red"} style={{backgroundImage: `url(${article.caption})`}}/>
+                <motion.div layoutId={`article-image-${article.id}`} className={"bg-cover absolute! article-image top-0 left-0 right-0 bottom-0 bg-red"} style={{backgroundImage: `url(${article.caption})`}}/>
                 <div className="hero-image-caption bg-[#1a1410]/30 backdrop-blur-lg">
                     <p>Photo : Studio Lakay, Port-au-Prince</p>
                     <div className="hero-share-btns">
@@ -87,13 +98,15 @@ export default function Reading({themes, article, similars} : _ReadingProps){
         <div className="article-body-layout">
             <article className="article-content" id="article-content">
                 {parser(article.content, {
-                    // replace: (el)=>{
-                    //     console.log('[El]',el);
-                    //     if(el.name == 'figure' && el.children){
-                    //         return <div/>;
-                    //     }
-                    //     return el;
-                    // }
+                    replace: (el : any)=>{
+                        if(el.name == 'figure' && el.children && el.attribs.class == "image"){
+                            if(el.children[0].attribs.src == article.caption && images == 0){
+                                return <div/>;
+                            }
+                            images++;
+                        }
+                        return el;
+                    }
                 })}
 
                 <div className="article-tags">

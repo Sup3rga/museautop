@@ -1,7 +1,11 @@
+"use client";
+
 import Category from "@/server/data/Category";
 import Articles from "@/server/data/Articles";
 import Link from "next/link";
 import AkaDatetime from "@/server/utils/AkaDatetime";
+import {motion} from "framer-motion"
+
 interface _ArticlesProps{
     totalArticles: number
     themes: string[]
@@ -48,7 +52,7 @@ export default function ArticlesPage({totalArticles, themes, categories, article
                                             {article.duration} min.
                                         </p>
                                     </div>
-                                    <div className="article-row-img bg-cover!" style={{backgroundImage: `url(${article.caption})`}}/>
+                                    <motion.div layoutId={`article-image-${article.id}`} className={`article-row-img ${key == 0 ? 'first-image' : ''} bg-cover!`} style={{backgroundImage: `url(${article.caption})`}}/>
                                 </div>
                             </Link>
                         ))

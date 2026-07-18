@@ -103,21 +103,21 @@ async function saveSuperUser(){
     console.log('[RESULT]',result);
 }
 
-saveSuperUser();
+// saveSuperUser();
 
-initializeDatabase().then(async ()=>{
-    // const result = await Pdo.prepare(`
-    //     insert into manager(firstname, lastname, mail, access, code, nickname, phone, created_at, created_by, active)
-    //     values(:firstname, :lastname, :mail, :access, sha1(:code), :nickname, :phone, NOW(), null, 1)
-    // `).execute({
-    //     firstname: "Admin",
-    //     lastname: "Admin",
-    //     mail: "admin@museautop.com",
-    //     code: "admin",
-    //     nickname: "admin",
-    //     access: "0,1,2,3,4,5,6,101,102,103,104,105,106,200,201,202,203,300,301,302,303,400,401,402,403,404,405,406,407,408,409",
-    //     phone: "+509 1234 2345"
-    // });
-    //
-    // console.log('[RESULT]',result);
-});
+// initializeDatabase().then(async ()=>{
+//     // const result = await Pdo.prepare(`
+//     //     insert into manager(firstname, lastname, mail, access, code, nickname, phone, created_at, created_by, active)
+//     //     values(:firstname, :lastname, :mail, :access, sha1(:code), :nickname, :phone, NOW(), null, 1)
+//     // `).execute({
+//     //     firstname: "Admin",
+//     //     lastname: "Admin",
+//     //     mail: "admin@museautop.com",
+//     //     code: "admin",
+//     //     nickname: "admin",
+//     //     access: "0,1,2,3,4,5,6,101,102,103,104,105,106,200,201,202,203,300,301,302,303,400,401,402,403,404,405,406,407,408,409",
+//     //     phone: "+509 1234 2345"
+//     // });
+//     //
+//     // console.log('[RESULT]',result);
+// });

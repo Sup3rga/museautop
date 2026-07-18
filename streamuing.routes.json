@@ -1,0 +1,4 @@
+{
+  "article.reading": ["/articles/get/reading", "/articles/got/reading"],
+  "article.read": ["/articles/set/reading", "/articles/got/reading"]
+}

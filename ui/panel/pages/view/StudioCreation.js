@@ -12,6 +12,8 @@ import Main from "../Main";
 import Scheduler from "../widget/Scheduler";
 import Filter from "../../utils/Filter";
 import Url from "../../utils/Url";
+import {default as model} from "@/public/assets/themes/museautop-punchline.json";
+import ModelWorker from "@/ui/utils/model_worker";
 
 export default class StudioCreation extends AlertableComponent{
     static logo = {};
@@ -64,7 +66,30 @@ export default class StudioCreation extends AlertableComponent{
         if(!StudioCreation.logo[Main.branch] || !this.canvas.element.current){
             return;
         }
+
+        new ModelWorker(this.canvas.element.current, model, {
+            cardConfig: this.cardConfig,
+            image: this.state.image,
+            text: !this.state.punchline.length ? '' : '"'+this.state.punchline+'"',
+            font: {
+                lyrics: this.state.card.textSize+'pt Merriweather-Bold',
+                artist: this.state.card.artistSize+'pt Rubik-Bold'
+            },
+            logo: StudioCreation.logo[Main.branch],
+            artistName: this.state.artist.toUpperCase(),
+            breakLength : 20
+        });
+
+        if(frame){
+            frame(this.draw.bind(this));
+        }
+    }
+    async draw_old(frame = null){
+        if(!StudioCreation.logo[Main.branch] || !this.canvas.element.current){
+            return;
+        }
         this.canvas.context = this.canvas.element.current.getContext('2d');
+
         const canvas = this.canvas.element.current,
               ctx = this.canvas.context,
               legendRatio = 0.23,
@@ -177,7 +202,7 @@ export default class StudioCreation extends AlertableComponent{
         const logo = StudioCreation.logo[Main.branch];
         ctx.drawImage(logo, logoPos.x, logoPos.y, logoSquare, logoSquare);
         if(frame){
-            frame(this.draw.bind(this));
+            // frame(this.draw.bind(this));
         }
     }
 
@@ -237,7 +262,7 @@ export default class StudioCreation extends AlertableComponent{
         try{
             const data = await Management.getPunchlinesConfig();
             this.cardConfig = {...this.cardConfig, ...data};
-            console.log('[config]',data);
+            // console.log('[config]',data);
         }catch (message){
             return this.setReloadable(message);
         }

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import Ressources from "@/ui/utils/Ressources";
-import "@/styles/site.css"
 import NavBar from "@/ui/site/components/navbar";
 import Link from "next/link";
+import {AnimatePresence} from "framer-motion";
+import "@/styles/site.css"
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -18,7 +18,9 @@ export default function RootLayout({
   return (
       <>
         <NavBar/>
-        {children}
+        <AnimatePresence mode={"wait"}>
+            {children}
+        </AnimatePresence>
         <footer>
           <div className="footer-logo"><span>●</span> {Ressources.getProjectName()}</div>
           <p className="footer-copy">© 2025 {Ressources.getProjectName()} — Tous droits réservés</p>

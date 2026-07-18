@@ -299,6 +299,7 @@
 /* line 180, ../../sass/style.scss */
 #main-panel.expanded .sidemenu .link {
   justify-content: left;
+  padding-left: 1.5em;
 }
 /* line 182, ../../sass/style.scss */
 #main-panel.expanded .sidemenu .link .text {

@@ -1,0 +1,19 @@
+/*.punch-card{*/
+/*    view-transition-name: lyrics;*/
+/*}*/
+
+/*.first-image, .article-image{*/
+/*    view-transition-name: artimage;*/
+/*}*/
+
+/*@view-transition {*/
+/*    navigation: auto;*/
+/*}*/
+
+/*::view-transition-group(lyrics){*/
+/*    animation-duration: 1s;*/
+/*}*/
+
+/*::view-transition-group(artimage){*/
+/*    animation-duration: 1s;*/
+/*}*/

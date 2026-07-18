@@ -1,4 +1,20 @@
-export default function Punchlines(){
+"use client";
+import Punchlines from "@/server/data/Punchlines";
+import {useEffect} from "react";
+import Ressources from "@/ui/utils/Ressources";
+import ExpandableCardDemo from "@/components/expandable-card-demo-standard";
+import Link from "next/link";
+import {motion} from "framer-motion";
+
+interface _PunchlinesProps{
+    punchlines: Punchlines[]
+    years: Array<string|number>
+    artists: string[]
+}
+export default function PunchlinesPage({punchlines, years, artists} : _PunchlinesProps){
+    useEffect(() => {
+        console.log("{{Data>>>", {punchlines, years, artists})
+    }, []);
     return (
         <div id="punchlines" className="page bg-[#0d0d0d] text-[var(--paper)]">
             <section className="punch-hero">
@@ -25,8 +41,34 @@ export default function Punchlines(){
                 <button className="punch-sort-btn">Artiste</button>
                 <button className="punch-sort-btn">Genre</button>
             </div>
-
+            {/*<ExpandableCardDemo/>*/}
             <div className="punch-grid">
+                {
+                    punchlines.map((punchline, index)=>(
+                        <Link key={punchline.id} href={`/punchlines/${punchline.id}`}>
+                            <motion.div layoutId={"punchline"} className={`punch-card ${Ressources.isFibonnaciNumber(index + 1) ? 'large' : ''} accent-golds`}>
+                                <div className="punch-card-deco">&ldquo;</div>
+                                <div className="punch-card-body">
+                                    <p className="punch-card-quote">
+                                        {punchline.punchline}
+                                    </p>
+                                </div>
+                                <div className="punch-card-footer">
+                                    <div>
+                                        <p className="punch-card-artist">{punchline.artist}</p>
+                                        <p className="punch-card-song">{punchline.stats.views}</p>
+                                    </div>
+                                    <div className={"text-right"} >
+                                        <span className="punch-card-genre">{punchline.category}</span>
+                                        <p className="punch-card-like mt-[6px]">♥ {punchline.stats.likes}</p>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </Link>
+                    ))
+                }
+            </div>
+            <div className="hidden">
 
                 <div className="punch-card large accent-gold">
                     <div className="punch-card-deco">&ldquo;</div>

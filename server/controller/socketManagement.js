@@ -38,6 +38,10 @@ async function manage(socket){
     .transfer('/manager/avatar/set', '/manager/get', Wayto.setManagerAvatar)
     .transfer('/cog/essentials', '/cog/get', Wayto.getEssentialsSettings)
     .transfer('/cog/essentials/set', '/cog/get', Wayto.setEssentialsSettings)
+    .transfer('/articles/get/reading', '/articles/got/reading', Wayto.getArticleReadingStats, [], {room: "artid", keyMode: true, emit: SocketTransfer.broadcast.Other})
+    .transfer([
+        "/punchline/set/views", "/punchline/get/stats", "/punchline/set/likes", "/punchline/set/dislikes"
+    ], "/punchline/get/stats", Wayto.punchlineStats, [], {room: "punchid", keyMode: true, emit: SocketTransfer.broadcast.Other});
 }
 
 function serve(request, response, uploader){

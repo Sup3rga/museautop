@@ -302,4 +302,23 @@ export default class Ressources{
     static async sendMessage(data){
         return await Ressources.fetch('/submit', data);
     }
+
+    static getFibonnaciOf(n){
+        if(n <= 2) return 1;
+        return Ressources.getFibonnaciOf(n - 1) + Ressources.getFibonnaciOf(n - 2);
+    }
+
+    static isFibonnaciNumber(n){
+        const root = 5 * n * n;
+        const isInt = (num,precision=2)=>{
+            const power = Math.pow(10, precision);
+            const raw = num * power;
+            const rounded = Math.floor(raw);
+            return rounded === raw;
+        }
+        const isPerfectSquare = (num)=>{
+            return isInt(Math.sqrt(num), 4);
+        }
+        return isPerfectSquare(root + 4) || isPerfectSquare(root - 4)
+    }
 }

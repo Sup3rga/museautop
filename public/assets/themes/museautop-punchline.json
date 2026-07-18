@@ -1,0 +1,349 @@
+{
+  "name": "Museautop style",
+  "draw": [
+    {
+      "method": {
+        "name": "context.clearRect",
+        "params": [0,0, "canvas.width", "canvas.height"]
+      }
+    },
+    {
+      "set": {
+        "theme": "\"rgb(200,40,20)\"",
+        "context.fillStyle": "theme",
+        "lyricStart": 0.65,
+        "artistRectPadding": 5,
+        "artistPosYMargin": {
+            "calc": ["lyricStart", "+", 0.35, "*","canvas.height"]
+        },
+        "legendHeight": {
+          "calc": ["lyricStart", "+", 0.10, "*","canvas.height"]
+        },
+        "img.ratio": {
+          "calc": ["image.width", "/", "image.height"]
+        },
+        "img.height": {
+          "calc": ["canvas.width", "*", "img.ratio"]
+        }
+      }
+    },
+    ["//L'image en arrière-plan"],
+    {
+      "methods": {
+        "context.fillRect": [0,0,"canvas.width", "canvas.height"],
+        "context.drawImage": ["image", 0, 0, "canvas.width", "img.height"]
+      }
+    },
+    ["//Mise en place du logo"],
+    {
+      "method": {
+        "name": "context.drawImage",
+        "params": ["logo", 2, 2, 50, 50]
+      }
+    },
+    ["//mise en place du dégradé pour mettre les paroles"],
+    {
+      "set": {
+        "linear": {
+          "method": {
+            "name": "context.createLinearGradient",
+            "params": [0,0,0,"canvas.height"]
+          }
+        }
+      }
+    },
+    {
+      "methods": [
+        {"linear.addColorStop": [0, "\"transparent\""]},
+        {"linear.addColorStop": [{
+          "calc": ["lyricStart", "-", 0.15]
+        }, "\"transparent\""]},
+        {"linear.addColorStop": ["lyricStart", "\"black\""]}
+      ]
+    },
+    {
+      "set": {
+        "context.fillStyle" : "linear"
+      }
+    },
+    {
+      "methods": {
+        "context.fillRect": [0, 0, "canvas.width", "canvas.height"]
+      }
+    },
+    ["//Mise en place des paroles"],
+    {
+      "set": {
+        "breakLength" : 20,
+        "context.font": "font.lyrics",
+        "context.fillStyle" : "cardConfig.cardTextColor",
+        "lines": {
+          "object": []
+        },
+        "k": 0,
+        "breakit": false,
+        "line": "\"\"",
+        "i": 0,
+        "lineHeight": 0,
+        "lineSpacing": 25,
+        "reduceHeight": 0
+      }
+    },
+    {
+      "loop": {
+        "check": {
+          "calc": ["i", "<", "text.length"]
+        },
+        "exec": [
+          {
+            "if": [
+              {
+                "check": {
+                  "calc": ["k", ">=", "breakLength"]
+                },
+                "exec": [
+                  {
+                    "set": {
+                      "breakit" : true
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "if": [
+              {
+                "debug": "0",
+                "check": {
+                  "calc": [
+                    {
+                      "calc": [{
+                        "test": {
+                          "regex": "[\\s]",
+                          "flag": "",
+                          "value": {
+                            "get": {
+                              "text": ["i"]
+                            }
+                          }
+                        }
+                      }, "&&", "breakit"]
+                    },
+                    "||",
+                    {
+                      "calc": [{
+                        "calc": ["i", "==", {
+                          "calc": ["text.length", "-", 1]
+                        }]
+                      }, "&&", "line.length"]
+                    }
+                  ]
+                },
+                "exec": [
+                  {
+                    "if": [
+                      {
+                        "check": {
+                          "calc": ["i", "==", {
+                            "calc": ["text.length", "-", 1]
+                          }]
+                        },
+                        "exec": [
+                          {
+                            "set": {
+                              "line" : {
+                                "calc": ["line","+", {
+                                  "get": {
+                                    "text": ["i"]
+                                  }
+                                }]
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "set": {
+                      "dim" : {
+                        "method": {
+                          "name": "context.measureText",
+                          "params": [{
+                            "get": {
+                              "lines":["i"]
+                            }
+                          }]
+                        }
+                      },
+                      "reduceHeight": {
+                        "if": [
+                          {
+                            "check": {
+                              "calc": ["i", "==", 0]
+                            },
+                            "exec": [
+                              0
+                            ]
+                          },
+                          {
+                            "exec": [
+                              {
+                                "calc": ["dim.fontBoundingBoxAscent", "+", "lineSpacing", "+", "dim.fontBoundingBoxDescent"]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "method": {
+                      "name": "lines.push",
+                      "params": ["line"]
+                    }
+                  },
+                  {
+                    "set": {
+                      "line": "\"\"",
+                      "k" : 0,
+                      "breakit": false
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "set": {
+              "line" : {
+                "calc": ["line", "+", {
+                  "get": {
+                    "text": ["i"]
+                  }
+                }]
+              },
+              "k": {
+                "calc": ["k", "+", 1]
+              },
+              "i": {
+                "calc": ["i", "+", 1]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "loop": {
+        "source": "lines",
+        "vars": ["_line", "i"],
+        "exec": [
+          {
+            "set": {
+              "dim" : {
+                "method": {
+                  "name": "context.measureText",
+                  "params": [{
+                    "get": {
+                      "lines":["i"]
+                    }
+                  }]
+                }
+              },
+              "lineHeight" :  {
+                "calc": ["lineHeight", "+", {
+                  "if": [
+                    {
+                      "check": {
+                        "calc": ["i" ,"==", 0]
+                      },
+                      "exec": [0]
+                    },
+                    {
+                      "exec": ["dim.fontBoundingBoxAscent", "+", "lineSpacing"]
+                    }
+                  ]
+                }]
+              },
+              "geo.x": {
+                "calc": [
+                  {
+                    "calc": ["canvas.width", "-", "dim.width"]
+                  }, "/", 2
+                ]
+              },
+              "geo.y": {
+                "calc": [
+                  {
+                    "calc": ["legendHeight", "+", "dim.fontBoundingBoxAscent"]
+                  }, "+", "lineHeight", "-", "reduceHeight"
+                ]
+              }
+            }
+          },
+          {
+            "method": {
+              "name": "context.fillText",
+              "params": [{
+                "get": {
+                  "lines":["i"]
+                }
+              }, "geo.x", "geo.y"]
+            }
+          }
+        ]
+      }
+    },
+    ["//Mise en place du nom de l'artiste"],
+    {
+      "set": {
+        "context.font": "font.artist",
+        "dim" : {
+          "method": {
+            "name": "context.measureText",
+            "params": ["artistName"]
+          }
+        },
+        "artist.x": {
+          "calc": [
+            {
+              "calc": ["canvas.width", "-", "dim.width"]
+            }, "/", 2
+          ]
+        },
+        "artist.y": {
+          "calc": [{
+            "calc": ["artistPosYMargin", "-", "dim.fontBoundingBoxAscent"]
+          }]
+        },
+        "context.fillStyle" : "\"red\""
+      }
+    },
+    {
+      "methods": {
+        "context.fillRect": [{
+          "calc": ["artist.x", "-","artistRectPadding"]
+        }, {
+          "calc": ["artist.y", "-","dim.fontBoundingBoxAscent"]
+        }, {
+          "calc": ["artistRectPadding","*",2,"+","dim.width"]
+        }, {
+          "calc": ["dim.fontBoundingBoxAscent","+","artistRectPadding"]
+        }]
+      }
+    },
+    {
+      "set": {
+        "context.fillStyle" : "\"white\""
+      }
+    },
+    {
+      "method": {
+        "name": "context.fillText",
+        "params": ["artistName", "artist.x", "artist.y"]
+      }
+    }
+  ]
+}

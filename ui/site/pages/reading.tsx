@@ -1,19 +1,24 @@
 "use client";
 
 import Articles from "@/server/data/Articles";
-import {useEffect, useMemo} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import parser from "html-react-parser";
 import Link from "next/link";
 import Ressources from "@/ui/panel/utils/Ressources";
-import useStreamUIng from "@/ui/lib/streamuing";
+import {streaming} from "@/ui/lib/streamuing";
 import { motion } from "framer-motion";
+import {setVisites} from "@/app/(museautop)/actions";
+import {ScrollAnalytics} from "@/ui/lib/scrollanalytics";
+import DateTimeUtils from "@/lib/datetimeutils";
 
 interface _ReadingProps{
     themes: string[],
     article: Articles,
     similars: Articles[]
 }
+const months = ["janv.", "fév.", "mars", "avr.", "mai", "juin", "juil.", "aout", "sept.", "oct.", "nov.", "déc."]
 export default function Reading({themes, article, similars} : _ReadingProps){
+    const ref = useRef(null);
     const allThemes = useMemo(()=>{
         const list = [...themes];
         for(const article of similars){
@@ -22,23 +27,41 @@ export default function Reading({themes, article, similars} : _ReadingProps){
         return list;
     }, [similars, themes]);
     const splitTitle = article.title.split(/ +/);
-    const {StreamUI, upstream} = useStreamUIng(Ressources.apis, {artid: article.id});
+    const [viewLock, lockView] = useState(false);
     let images = 0;
+    const dateutils = useMemo(()=> new DateTimeUtils(article.postOn), []);
+    const analytics = useMemo(()=>new ScrollAnalytics(0.5,-1, ref), [ref]);
+    streaming.init(Ressources.apis, {artid: article.id});
+
     useEffect(() => {
-        upstream({alias: "article.read"})
-        .catch((err)=> console.log("Reading error : ", err))
+        analytics.watch(function(){
+            if(this._ready && !viewLock){
+                lockView(true);
+                streaming.upstream({url: "/article/set/views"}).catch((err)=> {
+                    console.log("Reading error : ", err);
+                    lockView(false);
+                })
+            }
+        });
+    }, [viewLock]);
+
+    useEffect(() => {
+        setVisites({artid: article.id} as never).catch((err)=>console.log('[ERR]',err));
+        return ()=>{
+            analytics.dispose();
+        }
     }, []);
     return (
     <div className={"w-full"}>
         <section className="article-hero">
             <div className="article-hero-left">
                 <div>
-                    <div className="article-tag-line">
+                    <motion.div layoutId={`article-themes-${article.id}`} className="article-tag-line">
                         <span className="tag-category">{article.category.name}</span>
                         {themes.map((theme : string, key)=>(
                             <span className="tag-secondary" key={key}>{theme}</span>
                         ))}
-                    </div>
+                    </motion.div>
 
                     <h1 className="article-title">
                         {splitTitle.map((part: string, index : number)=>(
@@ -57,8 +80,8 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                         </div>
                         <div className="meta-divider"></div>
                         <div className="meta-item">
-                            <span className="meta-value">18 nov.</span>
-                            <span className="meta-label">2024</span>
+                            <span className="meta-value">{dateutils.getDay()} {months[dateutils.getMonth()-1]}</span>
+                            <span className="meta-label">{dateutils.getFullYear()}</span>
                         </div>
                         <div className="meta-divider"></div>
                         <div className="meta-item">
@@ -68,22 +91,22 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                         <div className="meta-divider"></div>
                         <div className="meta-item">
                             <span className="meta-value">
-                                <StreamUI alias={"article.reading"} placeholder={article.reading}/>
+                                <streaming.ui.text url={"/article/get/stats"} filter={"views"} placeholder={article.stats.views}/>
                             </span>
                             <span className="meta-label">lectures</span>
                         </div>
                     </div>
                 </div>
             </div>
-            <div className="article-hero-right relative">
+            <motion.div layoutId={`article-image-${article.id}`} className="article-hero-right relative">
                 <div className="hero-image-fill">
                     <span className="hero-image-placeholder">🎵</span>
                 </div>
                 <div className="hero-date-badge">
-                    <span className="day">18</span>
-                    <span className="month">Novembre 2025</span>
+                    <span className="day">{dateutils.getDay()}</span>
+                    <span className="month">{months[dateutils.getMonth()-1]} {dateutils.getFullYear()}</span>
                 </div>
-                <motion.div layoutId={`article-image-${article.id}`} className={"bg-cover absolute! article-image top-0 left-0 right-0 bottom-0 bg-red"} style={{backgroundImage: `url(${article.caption})`}}/>
+                <div className={"bg-cover absolute! article-image top-0 left-0 right-0 bottom-0 bg-red"} style={{backgroundImage: `url(${article.caption})`}}/>
                 <div className="hero-image-caption bg-[#1a1410]/30 backdrop-blur-lg">
                     <p>Photo : Studio Lakay, Port-au-Prince</p>
                     <div className="hero-share-btns">
@@ -93,22 +116,23 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                         <button className="share-btn">⎘</button>
                     </div>
                 </div>
-            </div>
+            </motion.div>
         </section>
         <div className="article-body-layout">
             <article className="article-content" id="article-content">
-                {parser(article.content, {
-                    replace: (el : any)=>{
-                        if(el.name == 'figure' && el.children && el.attribs.class == "image"){
-                            if(el.children[0].attribs.src == article.caption && images == 0){
-                                return <div/>;
+                <div className="w-full" ref={ref}>
+                    {parser(article.content, {
+                        replace: (el : any)=>{
+                            if(el.name == 'figure' && el.children && el.attribs.class == "image"){
+                                if(el.children[0].attribs.src == article.caption && images == 0){
+                                    return <div/>;
+                                }
+                                images++;
                             }
-                            images++;
+                            return el;
                         }
-                        return el;
-                    }
-                })}
-
+                    })}
+                </div>
                 <div className="article-tags">
                     {allThemes.map((theme, key)=>(
                         <span className="article-tag-pill" key={key}>{theme}</span>
@@ -201,16 +225,16 @@ export default function Reading({themes, article, similars} : _ReadingProps){
             </article>
             <aside className="article-sidebar">
                 <div className="sidebar-sticky">
-                    <div className="reading-gauge">
-                        <span className="sidebar-section-label">Progression</span>
-                        <div className="gauge-bar-bg">
-                            <div className="gauge-bar-fill" id="gauge-fill"></div>
-                        </div>
-                        <div className="gauge-label">
-                            <span id="gauge-pct">0%</span>
-                            <span>0 min · <span id="gauge-remaining">{article.duration} min restantes</span></span>
-                        </div>
-                    </div>
+                    {/*<div className="reading-gauge">*/}
+                    {/*    <span className="sidebar-section-label">Progression</span>*/}
+                    {/*    <div className="gauge-bar-bg">*/}
+                    {/*        <div className="gauge-bar-fill" id="gauge-fill"></div>*/}
+                    {/*    </div>*/}
+                    {/*    <div className="gauge-label">*/}
+                    {/*        <span id="gauge-pct">0%</span>*/}
+                    {/*        <span>0 min · <span id="gauge-remaining">{article.duration} min restantes</span></span>*/}
+                    {/*    </div>*/}
+                    {/*</div>*/}
                     <nav className="sidebar-toc hidden">
                         <span className="sidebar-section-label">Dans cet article</span>
                         <ol className="toc-list">
@@ -234,7 +258,7 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                             </li>
                         </ol>
                     </nav>
-                    <div>
+                    <div className={"hidden"}>
                         <span className="sidebar-section-label">Partager</span>
                         <div className="sidebar-share">
                             <button className="share-row-btn">

@@ -1,8 +1,9 @@
 class SocketRequestHandler {
-    constructor(srcUrl = "", emitUrl = "", handler = null) {
+    constructor(srcUrl = "", emitUrl = "", handler = null, uuid = null) {
         this.srcUrl =srcUrl;
         this.emitUrl =emitUrl;
         this.handler = handler;
+        this.uuid = uuid;
     }
 
     async execute(args){
@@ -35,7 +36,7 @@ class SocketTransfer{
                     if (typeof response == 'function') {
                         return response.bind(this.socket, args);
                     }
-                    result = await new SocketRequestHandler(_request, response, execution).execute(args);
+                    result = await new SocketRequestHandler(_request, response, execution, this.socket.data?.visitoruid).execute(args);
                     if (typeof broadcast == "object") {
                         if (typeof broadcast.room == "string") {
                             const room = broadcast.keyMode ? query[broadcast.room] : broadcast.room;

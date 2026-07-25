@@ -1843,6 +1843,9 @@ footer {
     gap:56px;
     align-items:center;
 }
+.main-punchline.main{
+    min-height: calc(100vh - 150px);
+}
 .eyebrow{
     font-family:'JetBrains Mono', monospace;
     font-size:12px; letter-spacing:2px; text-transform:uppercase;
@@ -1882,8 +1885,10 @@ footer {
     border-radius:18px;
     padding-bottom: 100px !important;
     overflow:hidden;
-    transform:rotate(-1.4deg);
     box-shadow:0 30px 60px -20px rgba(0,0,0,0.6), 0 0 0 1px var(--line);
+}
+.featured.rotated{
+    transform:rotate(-1.4deg);
 }
 .featured img{width:100%; height:100%; object-fit:contain; object-position: top;}
 .featured::after{

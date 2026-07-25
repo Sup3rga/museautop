@@ -1,8 +1,9 @@
-let {Pdo} = require('../utils/Connect'),
+const {Pdo} = require('../utils/Connect'),
     Channel = require('../utils/Channel'),
     Data = require('./Data');
+const StatsData = require("./StatsData");
 
-class SponsoredData extends Data{
+class SponsoredData extends StatsData{
 
     static async getSponsored(cls, table, minQty, branch, dataOnly = true, forPublic = false){
         const list = [];

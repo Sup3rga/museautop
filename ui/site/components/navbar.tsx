@@ -1,4 +1,5 @@
 "use client";
+import {visites} from "@/app/(museautop)/actions";
 
 import Ressources from "@/ui/utils/Ressources";
 import {usePathname} from "next/navigation";
@@ -35,6 +36,7 @@ export default function NavBar(){
     const pathname = usePathname();
     useEffect(() => {
         console.log('[Path]',pathname)
+        visites().then((e)=>console.log('[FUnc]',e)).catch((err)=>console.log('[Err]',err));
     }, []);
     return (
         <nav>
@@ -52,7 +54,7 @@ export default function NavBar(){
                     </li>
                 ))}
             </ul>
-            <div className="nav-right">
+            <div className="nav-right hidden!">
                 <div className="nav-search">⌕</div>
             </div>
         </nav>

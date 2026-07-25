@@ -64,6 +64,7 @@ class PDO {
 
     async retryConnection(){
         const $this = this;
+        this.db;
         return new Promise((res)=>{
             if($this.db) {
                 return res();
@@ -85,16 +86,21 @@ class PDO {
 
     setDriver(options){
         let driverName = options.driver.toLowerCase();
-        let driver = null;
-        delete options.driver;
+        const _options = {...options};
+        delete _options.driver;
         if(driverName == 'mysql'){
             const mysql = require('mysql');
-            this.db = mysql.createConnection(options);
-            try {
-                this.db.connect();
-            }catch(e){
-                throw new Error(e);
-            }
+            options.connectionLimit = 50;
+            options.maxIdle = 30;
+            options.idleTimeout = 30000;
+            options.enableKeepAlive = true;
+            options.keepAliveInitialDelay = 0;
+            this.db = mysql.createPool(_options);
+            // try {
+            //     this.db.connect();
+            // }catch(e){
+            //     throw new Error(e);
+            // }
         }
         else if(driverName == 'sqlite'){
             console.log('[SQLITE]');
@@ -112,6 +118,14 @@ class PDO {
         this.cursor = 0;
         this.rowCount = 0;
         return this;
+    }
+
+    async commit(){
+        try {
+            this.db.commit();
+        }catch (e) {
+           console.log('[Commit] err',e);
+        }
     }
 
     async execute(arg = []) {
@@ -169,6 +183,7 @@ class PDO {
             }
         }
         if(!this.connected && this.logError){
+            // console.log("[DB ERROR]",{connected: this.connected, error: this.logError})
             throw new Error(this.logError);
         }
         if(this.driver == 'mysql'){
@@ -196,7 +211,7 @@ class PDO {
     }
 
     close() {
-        db.close();
+        this.db.close();
         this.db = null;
     }
 }

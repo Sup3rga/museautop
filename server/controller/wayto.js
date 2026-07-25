@@ -12,6 +12,7 @@ const fs = require('fs');
 const {promisify} = require('util');
 const defaultQuery = ['cmid', 'bhid','cmtk'];
 const privileges = require('../data/Privileges');
+const Client = require("../data/Client");
 
 const Wayto = {};
 
@@ -85,11 +86,24 @@ Wayto.getAllWritingData = async (data)=>{
     });
 }
 
-Wayto.getArticleReadingStats = async (data)=>{
+Wayto.articleStats = async function ({artid}){
+    const article = await Articles.getById(artid);
+    if(article && /\/article\/set\/(views|likes|dislikes)/.test(this.srcUrl)){
+        const index = RegExp.$1;
+        article.uuid = this.uuid;
+        switch (index){
+            case "views":
+                await article.updateViews();
+                break;
+            case "likes":
+                await article.updateLikes();
+                break;
+        }
+    }
     return Channel.message({
-        error: false,
-        code: code.SUCCESS,
-        data: await Articles.getReadStats(data.artid)
+        error: !article,
+        code: !article ? code.ERROR : code.SUCCESS,
+        data : !article ? null : await (await article.getStats()).data(true)
     });
 }
 
@@ -105,8 +119,15 @@ Wayto.readArticle = async (data)=>{
     });
 }
 
+Wayto.articleVisites = async(id)=>{
+    const article = await Articles.getById(id);
+    if(article){
+        await article.updateVisites();
+    }
+}
+
 Wayto.getArticles = async (data, admin = true)=>{
-    console.log("[CALL ARTICLES>>>", admin)
+    // console.log("[CALL ARTICLES>>>", admin)
     if(!Filter.contains(data, admin ? defaultQuery : ['bhid'])){
         return Channel.message({
             error: true,
@@ -227,16 +248,26 @@ Wayto.getPunchline = async (id)=>{
         }
     });
 }
+Wayto.punchlineVisites = async(id)=>{
+    const punchline = await Punchlines.getById(id);
+    if(punchline){
+        await punchline.updateVisites();
+    }
+}
 
 Wayto.punchlineStats = async function ({punchid}){
     const punchline = await Punchlines.getById(punchid);
     if(punchline && /\/punchline\/set\/(views|likes|dislikes)/.test(this.srcUrl)){
         const index = RegExp.$1;
-        const stats = await punchline.getStats();
-        await punchline.updateStats({
-            ...stats,
-            [index]: stats[index] + 1,
-        })
+        punchline.uuid = this.uuid;
+        switch (index){
+            case "views":
+                await punchline.updateViews();
+            break;
+            case "likes":
+                await punchline.updateLikes();
+            break;
+        }
     }
     return Channel.message({
         error: !punchline,
@@ -1080,6 +1111,23 @@ Wayto.getReadingPageData = async(slug)=>{
             article: await article.data(true),
             similars
         }
+    });
+}
+
+Wayto.getVisiteStats = async()=>{
+    let error = false;
+    let data = {};
+    try{
+        data.lastVisitors = await Client.getCurrentVisitors();
+        data.todayVisitors = await Client.getTodayVisitors();
+        data.getCumulatedVisites = await Client.getCumulatedVisites();
+    }catch (e) {
+        Channel.logError("During fetchin :: ", e);
+    }
+    return Channel.message({
+        error,
+        code: error ? code.ERROR : code.SUCCESS,
+        data
     });
 }
 

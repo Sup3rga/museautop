@@ -20,8 +20,16 @@ class Channel {
         return response;
     }
 
-    static logError(e){
-        console.log('[Error]',e);
+    static async pause(time=0){
+        return new Promise((res)=>{
+            setTimeout(()=>{
+                res();
+            }, time);
+        })
+    }
+
+    static logError(...e){
+        console.log.apply(console, ['[Error]',...e]);
         return Channel;
     }
 }

@@ -2,6 +2,7 @@ const next = require("next");
 const fs = require("fs");
 const path = require("path");
 const MongoSql = require("./utils/MongoSql");
+const {parseCookie} = require("cookie");
 
 const currpath = (res)=> path.join(__dirname, res);
 global.DIR = {
@@ -33,7 +34,7 @@ app.prepare().then(async ()=>{
 
     const io = new Server(httpServer, {
         cors:{
-            origin: 'http://localhost:3000',
+            origin: dev ? 'http://localhost:3000' : 'https://musautop.com',
             methods: ["GET","POST"]
         }
     });
@@ -51,6 +52,25 @@ app.prepare().then(async ()=>{
     server.use(bodyParser.json(requestConfig))
     server.use(bodyParser.raw(requestConfig))
     server.use(ths.watch(['artimg','upl_pch','mailimg','upl_avt']))
+
+    io.use((socket, next)=>{
+        const cookieHeader = socket.handshake.headers.cookie;
+        if(cookieHeader){
+            try{
+                const cookies = parseCookie(cookieHeader);
+                const uuid = cookies["clientuid"];
+                if(uuid){
+                    socket.data.visitoruid = uuid;
+                }
+
+            }catch (e) {
+                console.log('[ERROR SOCKET]',e);
+            }
+            return next();
+        }
+    });
+
+    global.io = io;
 
     io.on("connection", (socket)=>manage(socket));
 

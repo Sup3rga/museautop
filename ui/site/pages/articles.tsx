@@ -28,7 +28,7 @@ export default function ArticlesPage({totalArticles, themes, categories, article
                 </div>
             </section>
 
-            <div className="filter-bar">
+            <div className="filter-bar hidden!">
                 <button className="filter-chip active">Tout</button>
                 {
                     categories.map((category)=>(
@@ -45,7 +45,7 @@ export default function ArticlesPage({totalArticles, themes, categories, article
                                 <span className="article-row-num">{(key + 1).toString().padStart(2, '0')}</span>
                                 <div className="article-row-body">
                                     <div className="article-row-content">
-                                        <p className="article-row-tag">{article.category.name} · {article.theme}</p>
+                                        <motion.p layoutId={`article-themes-${article.id}`} className="article-row-tag">{article.category.name} · {article.theme}</motion.p>
                                         <h3 className="article-row-title">{article.title}</h3>
                                         <p className="article-row-meta">{`${article.createdBy.firstname} ${article.createdBy.lastname}`} &nbsp;·&nbsp;
                                             {new AkaDatetime(article.createdAt).toD} &nbsp;·&nbsp;

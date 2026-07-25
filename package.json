@@ -52,6 +52,7 @@
     "ckeditor5-custom-build": "file:ckeditor5-custom-build",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cookie": "^2.0.1",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "express": "^4.17.3",

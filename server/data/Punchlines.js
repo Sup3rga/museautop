@@ -7,7 +7,6 @@ const {Pdo} = require("../utils/Connect");
 const {in_array} = require("../utils/procedures");
 const AkaDatetime = require("../utils/AkaDatetime");
 const Manager = require("./Manager");
-const Stats = require("./Stats");
 const StatsData = require("./StatsData");
 
 class Punchlines extends StatsData{
@@ -24,6 +23,7 @@ class Punchlines extends StatsData{
         this.category = 0;
         this.comment = null;
         this.postOn = null;
+        this.table = "punchlines";
         this.sponsoredUntil = null;
     }
 
@@ -55,7 +55,7 @@ class Punchlines extends StatsData{
         }
         if(_minimalist){
             Filter.flush(data, [
-                'postOn', 'sponsoredUntil', 'comment', 'card', 'picture', 'lyrics'
+                'postOn', 'sponsoredUntil', 'comment', 'picture', 'lyrics'
             ]);
             console.log('[Data]',data);
         }
@@ -67,7 +67,6 @@ class Punchlines extends StatsData{
         this.title = data.title;
         this.picture = data.presentation;
         this.card = data.picture;
-        this.table = "punchlines";
         this.punchline = data.punchline;
         this.year = data.year;
         this.lyrics = data.lyrics;

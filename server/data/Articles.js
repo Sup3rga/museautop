@@ -160,9 +160,7 @@ class Articles extends SponsoredData{
         this.resume = null;
         this.slug = null;
         this.duration = 0;
-        this.reading = 0;
-        this.likes = 0;
-        this.dislikes = 0;
+        this.table = "articles";
         this.pictures = [];
         this.category = 0;
         this.branch = 0;
@@ -174,7 +172,7 @@ class Articles extends SponsoredData{
     async data(_public = false){
         const data = Filter.object(this, [
            'id', 'title', 'caption','content',
-           'createdBy', 'reading', 'likes','dislikes',
+           'createdBy', 'stats',
            'category', 'branch', 'postOn', 'resume', 'theme', 'duration', 'slug',
             ...(_public ? [] : ['modifiedAt','modifiedBy','published','createdAt','sponsoredUntil'])
         ]);
@@ -182,11 +180,11 @@ class Articles extends SponsoredData{
             data.caption = await (await ArticleImage.getById(data.caption)).data();
             data.caption = data.caption.path;
         }
+        data.stats = await (await this.getStats()).data(_public);
         data.createdBy = await (await Manager.fetchById(data.createdBy)).data(true, false, true);
         if(!_public) {
             data.modifiedBy = await (await Manager.fetchById(data.modifiedBy)).data(true, false, true);
         }
-        const cat = await Category.getById(data.category);
         data.category = await (await Category.getById(data.category)).data();
         data.category = Filter.object(data.category, ['id', 'name', 'sector']);
         return data;
@@ -327,13 +325,6 @@ class Articles extends SponsoredData{
         }
     }
 
-    async read(){
-        const req = await this.updateStats('reading', this.reading+1);
-        if(!req.error){
-            this.reading++;
-        }
-    }
-
     static async getReadStats(id){
         const article = await Articles.getById(id);
         console.log("{READ>>>");
@@ -378,11 +369,9 @@ class Articles extends SponsoredData{
         this.createdAt = new AkaDatetime(data.created_at).getDateTime();
         this.modifiedAt = new AkaDatetime(data.modified_at).getDateTime();
         this.modifiedBy = data.modified_by;
-        this.reading = data.reading;
-        this.likes = data.likes;
-        this.dislikes = data.dislikes;
         this.category = data.category;
         this.branch = data.branch;
+        this.stats = data.stats;
         this.theme = data.theme;
         this.resume = data.resume;
         this.duration = data.duration;

@@ -15,14 +15,14 @@ export default function ContactUs(){
                             <div className="contact-info-icon">✉</div>
                             <div>
                                 <p className="contact-info-label">Email</p>
-                                <p className="contact-info-value">contact@pulse-culture.com</p>
+                                <p className="contact-info-value">museautop@gmail.com</p>
                             </div>
                         </div>
                         <div className="contact-info-item">
                             <div className="contact-info-icon">📍</div>
                             <div>
                                 <p className="contact-info-label">Basé à</p>
-                                <p className="contact-info-value">Port-au-Prince, Haïti</p>
+                                <p className="contact-info-value">Cap-Haitien, Haïti</p>
                             </div>
                         </div>
                         <div className="contact-info-item">
@@ -34,7 +34,7 @@ export default function ContactUs(){
                         </div>
                     </div>
 
-                    <div className="contact-socials">
+                    <div className="contact-socials hidden!">
                         <a className="social-link" href="#">ig</a>
                         <a className="social-link" href="#">tw</a>
                         <a className="social-link" href="#">yt</a>

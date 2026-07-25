@@ -38,9 +38,10 @@ class Stats{
     static async getById(id){
         let stats = null;
         try{
-            const request = await Pdo.prepare("select * from interaction where id=:id").execute({id});
+            const request = await Pdo.prepare("select * from interaction where id=:id for update ").execute({id});
             if(request.rowCount){
-                stats = new Stats().hydrate(request.fetch());
+                const data = request.fetch();
+                stats = new Stats().hydrate(data);
             }
         }catch (e){
             Channel.logError(e);

@@ -3,12 +3,20 @@ const fs = require("fs");
 const path = require("path");
 const MongoSql = require("./utils/MongoSql");
 const {parseCookie} = require("cookie");
+const Maria = require("./utils/Maria");
 
 const currpath = (res)=> path.join(__dirname, res);
 global.DIR = {
     ROOT: fs.realpathSync(currpath('../')),
     PUBLIC : fs.realpathSync(currpath('../public'))
 };
+global.mariadb = new Maria({
+    host: 'localhost',
+    user: 'root',
+    password: 'root',
+    database: 'museautop'
+});
+
 MongoSql.host = "queed.dev";
 MongoSql.dbName = "museautop";
 

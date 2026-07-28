@@ -13,7 +13,6 @@ export default class Home extends React.Component{
         super(props);
         this.state = null
         this.mounted = false;
-        Home.openStorage();
     }
 
     static async openStorage(){
@@ -42,8 +41,9 @@ export default class Home extends React.Component{
         this.setState(state => !r ?  <Login/> : <Main>{this.props.children}</Main>);
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         this.mounted = true;
+        await Home.openStorage();
         this.setView();
         Events.on('reset-view', ()=>{
             this.setView();

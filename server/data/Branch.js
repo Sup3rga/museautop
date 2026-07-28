@@ -1,4 +1,4 @@
-let {Pdo} = require('../utils/Connect'),
+let {mariadb} = require('../utils/Connect'),
     Channel = require('../utils/Channel'),
     Data = require('./Data'),
     code = require('../utils/ResponseCode'),
@@ -29,7 +29,7 @@ class Branch extends Data{
                 p2: this.name
             };
             if(!this.id){
-                await Pdo.prepare(`
+                await mariadb.prepare(`
                     insert into branch (domain, name, created_at) 
                     values (:p1,:p2,:p3)
                 `).execute({
@@ -38,7 +38,7 @@ class Branch extends Data{
                 })
             }
             else{
-                await Pdo.prepare(`
+                await mariadb.prepare(`
                     update branch set domain=:p1, name=:p2 where id=:p3
                 `).execute({
                     ...base,
@@ -80,7 +80,7 @@ class Branch extends Data{
             arg = {p2: new AkaDatetime(src.createdAt).getDateTime()};
         }
         try{
-            const req = await Pdo.prepare("select * from branch "+queue+" order by id desc LIMIT 1")
+            const req = await mariadb.prepare("select * from branch "+queue+" order by id desc LIMIT 1")
                 .execute(arg);
             if(req.rowCount){
                 branch = new Branch().hydrate(req.fetch());
@@ -94,7 +94,7 @@ class Branch extends Data{
     static async getById(id){
         let branch = null;
         try{
-            const request = await Pdo.prepare("select * from branch where id=:id")
+            const request = await mariadb.prepare("select * from branch where id=:id")
                 .execute({id});
             if(request.rowCount){
                 branch = new Branch().hydrate(request.fetch());
@@ -106,7 +106,7 @@ class Branch extends Data{
     }
 
     static async fetchAll(onlyData = true){
-        let result = await Pdo.prepare(`
+        let result = await mariadb.prepare(`
             select * from branch
         `).execute({p1: this.id});
         let data, list = [];

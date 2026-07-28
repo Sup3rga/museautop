@@ -217,7 +217,7 @@ class Punchlines extends StatsData{
     static async getById(id){
         let punchline = null;
         try{
-            console.log('[ID]', id);
+            // console.trace('[ID] punchline', id);
             const request = await Pdo.prepare("select * from punchlines where id=:id").execute({id});
             if(request.rowCount){
                 punchline = new Punchlines().hydrate(request.fetch());

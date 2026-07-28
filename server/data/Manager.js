@@ -1,8 +1,7 @@
-let {Connect,Channel, Pdo} = require('../utils/Connect'),
+let {Channel, Pdo} = require('../utils/Connect'),
     SocketableData = require('./SocketableData'),
     AkaDatetime = require('../utils/AkaDatetime'),
     Filter = require('../utils/Filter');
-const {promisify} = require('util');
 const code = require('../utils/ResponseCode');
 const {groups,summary} = require('./Privileges');
 const {is_file} = require('../utils/procedures');
@@ -220,9 +219,8 @@ class Manager extends SocketableData{
     }
 
     async fetchBranch(){
-        let result = await Connect.query("select distinct b.id, b.domain, b.name, c.access from communauty c, branch b where c.manager=? and c.branch=b.id",[
-            this.id
-        ]);
+        let result = await Pdo.prepare("select distinct b.id, b.domain, b.name, c.access from communauty c, branch b where c.manager=:p1 and c.branch=b.id")
+            .execute({p1: this.id});
         if(result.length){
             for(let i in result){
                 this.branches[result[i].id] = result[i].access.split(',');

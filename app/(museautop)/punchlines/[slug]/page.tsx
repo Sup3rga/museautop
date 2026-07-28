@@ -5,6 +5,7 @@ import {Props} from "@/app/types"
 
 async function extractData(params : Promise<Record<any, any>>){
     const {slug} = await params;
+    console.log('[SLUG]', slug);
     return await Wayto.getPunchline(slug);
 }
 export async function generateMetadata({params} : Props){

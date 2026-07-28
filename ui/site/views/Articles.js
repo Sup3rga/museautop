@@ -77,7 +77,7 @@ export default class Articles extends React.Component{
                                     if(article.title !== null){
                                         this.state.seemore = true;
                                     }
-                                    console.log('[Current]',this.state.currentCategorie, article.category);
+                                    // console.log('[Current]',this.state.currentCategorie, article.category);
                                     if([article.category ? article.category.id : 0, 0].indexOf(this.state.currentCategorie * 1) < 0 && article.title !== null){
                                         return;
                                     }

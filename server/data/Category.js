@@ -1,4 +1,4 @@
-let {Connect,Channel, Pdo} = require('../utils/Connect'),
+let {Channel, Pdo} = require('../utils/Connect'),
     Filter = require('../utils/Filter'),
     code = require('../utils/ResponseCode'),
     AkaDatetime = require('../utils/AkaDatetime'),
@@ -46,13 +46,15 @@ class Category extends TracableData{
             return Channel.message({error: false, code: code.SUCCESS});
         }
         try{
-            await Connect.query(`
-                update category set name = ?, modified_by = ?, modified_at = ?
-                where id = ?
-            `, [
-                this.name, this.modifiedBy, new AkaDatetime(this.modifiedAt).getDateTime(),
-                this.id
-            ]);
+            await Pdo.prepare(`
+                update category set name = :p1, modified_by = :p2, modified_at = :p3
+                where id = :p4
+            `).execute({
+                p1: this.name,
+                p2: this.modifiedBy,
+                p3: new AkaDatetime(this.modifiedAt).getDateTime(),
+                p4: this.id
+            });
         }catch(e){
             Channel.logError(e);
             return Channel.message({code: code.INTERNAL});
@@ -90,9 +92,11 @@ class Category extends TracableData{
             return Channel.message({code: code.INVALID});
         }
         try{
-            await Connect.query(`
-                delete from category where id = ?   
-            `, [this.id]);
+            await Pdo.prepare(`
+                delete from category where id = :p1   
+            `).execute({
+                p1: this.id
+            });
         }catch(e){
             return Channel.logError(e).message({code: code.INVALID});
         }

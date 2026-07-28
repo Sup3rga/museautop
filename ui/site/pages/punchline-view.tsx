@@ -14,6 +14,7 @@ interface _PunchlineViewProps{
 export default function PunchlineView({punchline} : _PunchlineViewProps){
     streaming.init(Ressources.apis, {punchid: punchline.id});
     useEffect(() => {
+        console.log('[Punchline>>>', punchline);
         setVisites({"punchid": punchline.id}).catch((err)=>console.log('[Err]',err));
         setTimeout(()=>{
             streaming.upstream({url: "/punchline/set/views"})

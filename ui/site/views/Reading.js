@@ -185,7 +185,7 @@ export default class Reading extends React.Component{
     }
 
     render() {
-        console.log('[THis]',this);
+        // console.log('[THis]',this);
         return (
             <DefaultPage title={this.data.title}>
                 {this.renderArticle()}

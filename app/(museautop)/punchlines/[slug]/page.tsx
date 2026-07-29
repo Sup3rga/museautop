@@ -18,7 +18,7 @@ export async function generateMetadata({params} : Props){
         openGraph:{
             title: punchline.title,
             description: punchline.comment,
-            sitename: punchline.title + " - Museautop",
+            sitename: punchline.title + " - Musautop",
             url: "/punchlines/"+punchline.id,
             images:[
                 {

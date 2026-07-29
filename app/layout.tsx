@@ -14,20 +14,20 @@ const notoSans = Noto_Sans({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
     title: {
-        template: "%s - Museautop",
-        default: "Museautop"
+        template: "%s - Musautop",
+        default: "Musautop"
     },
     icons:{
         icon: "/assets/logo.jpg"
     },
     description: "Tout ce qu'il vous faut sur l'actualité",
-    metadataBase: new URL('https://museautop.com'),
+    metadataBase: new URL('https://musautop.com'),
     alternates: { canonical: '/' },
     openGraph:{
-        title: "Museautop",
+        title: "Musautop",
         description: "Tout ce qu'il vous faut sur l'actualité",
-        sitename: "Museautop",
-        url: "https://museautop.com",
+        sitename: "Musautop",
+        url: "https://musautop.com",
         images:[
             {
                 url: "/assets/logo.png",

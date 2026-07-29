@@ -18,7 +18,7 @@ export async function generateMetadata({params} : Props){
         openGraph:{
             title: article.title,
             description: article.resume,
-            sitename: article.title + " - Museautop",
+            sitename: article.title + " - Musautop",
             url: "/articles/"+article.slug,
             images:[
                 {

@@ -37,7 +37,7 @@ export default function ArticlesPage({totalArticles, themes, categories, article
                 }
             </div>
 
-            <div className="articles-body">
+            <div className="articles-body flex! flex-col-reverse! lg:flex-row!">
                 <div className="articles-list">
                     {
                         articles.map((article, key)=>(

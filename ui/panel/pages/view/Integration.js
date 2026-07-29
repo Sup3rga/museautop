@@ -332,7 +332,7 @@ export default class Integration extends AlertableComponent{
                                         }
                                         return (
                                             <>
-                                                <div className="ui-container ui-size-fluid privileges-group">
+                                                <div key={key} className="ui-container ui-size-fluid privileges-group">
                                                     <FormControlLabel
                                                         key={name}
                                                         control={<Checkbox

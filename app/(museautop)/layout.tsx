@@ -19,7 +19,7 @@ export default async function RootLayout({
         <AnimatePresence mode={"wait"}>
             {children}
         </AnimatePresence>
-        <footer>
+        <footer className={"flex flex-col-reverse lg:flex-row gap-2 lg:gap-0.5"}>
           <div className="footer-logo"><span>●</span> {Ressources.getProjectName()}</div>
           <p className="footer-copy">© 2025 {Ressources.getProjectName()} — Tous droits réservés</p>
           <ul className="footer-nav">

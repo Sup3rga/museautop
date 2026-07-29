@@ -52,7 +52,7 @@ export default function NavBar(){
                             {link.label}
                         </Link>
                     </li>
-                ))}
+              ))}
             </ul>
             <div className="nav-right hidden!">
                 <div className="nav-search">⌕</div>

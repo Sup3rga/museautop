@@ -211,10 +211,6 @@ export default class Main extends React.Component{
         return view;
     }
 
-    setupRef(link){
-        return "/cmgr"+link;
-    }
-
     renderSideMenu(){
         return (
             <div className="ui-fluid-height sidemenu ui-hide ui-md-element ui-all-center">
@@ -237,7 +233,7 @@ export default class Main extends React.Component{
                         let active = (this.state.route == key && key == '/') || (Url.match(key,this.state.route) && key != '/');
                         if(this.routes[key].privilege && !Management.isGranted(this.routes[key].privilege)) return null;
                         return (
-                            <Link href={this.setupRef(key)} key={index} className={
+                            <Link href={Ressources.setupRef(key)} key={index} className={
                                 "ui-container ui-all-center ui-size-fluid ui-unwrap link ui-nowrap " +
                                 (active ? 'active' : '')
                             }>
@@ -249,7 +245,7 @@ export default class Main extends React.Component{
                         )
                     })
                 }
-                <Link href={this.setupRef("/usr")} className="ui-container ui-size-fluid user-zone ui-horizontal-center ui-vertical-bottom">
+                <Link href={Ressources.setupRef("/usr")} className="ui-container ui-size-fluid user-zone ui-horizontal-center ui-vertical-bottom">
                     <IconButton>
                         <Avatar className="avatar" src={Management.data.avatar} size={"30px"}>
                             {Management.data.firstname[0].toUpperCase()}

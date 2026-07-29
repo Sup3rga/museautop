@@ -10,6 +10,7 @@ import UserRow from "../widget/UserRow";
 import Main from "../Main";
 import AuthBox from "../widget/AuthBox";
 import {EmptyView} from "../widget/BlankLoader";
+import Ressources from "@/ui/panel/utils/Ressources";
 
 function ManagerRow(props){
     const {modifier = null, state = null} = props;
@@ -18,7 +19,7 @@ function ManagerRow(props){
         <div className="ui-container ui-size-fluid row">
            <UserRow
              name={props.firstname+' ' +props.lastname}
-             link={"./communauty/usr/"+props.id}
+             link={Ressources.setupRef("/communauty/usr/"+props.id)}
              avatar={props.avatar}
              options={[
                  {

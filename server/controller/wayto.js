@@ -207,7 +207,7 @@ Wayto.getLogo = async (data)=>{
         return Channel.message({code: code.LOGOUT})
     }
     try {
-        const data = await promisify(fs.readFile)('public/assets/white-logo.jpg');
+        const data = await promisify(fs.readFile)('public/assets/logo.png');
         // console.log('[logo...]',data);
         return Channel.message({
             error: false,
@@ -1071,7 +1071,10 @@ Wayto.getHomeSummary = async ()=>{
             response.lastArticles.push(await article.data(true));
         }
     }
+    response.lastPunchlines = await Punchlines.getLast(null, 3);
     response.totalArticles = await Articles.getCount();
+    response.totalPunchlines = await Punchlines.getCount();
+
     return Channel.message({
         error: false,
         message: null,
@@ -1124,6 +1127,7 @@ Wayto.getVisiteStats = async()=>{
     }catch (e) {
         Channel.logError("During fetchin :: ", e);
     }
+    console.log('[VISITE]', data);
     return Channel.message({
         error,
         code: error ? code.ERROR : code.SUCCESS,

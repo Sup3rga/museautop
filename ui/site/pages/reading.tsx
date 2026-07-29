@@ -53,7 +53,7 @@ export default function Reading({themes, article, similars} : _ReadingProps){
     }, []);
     return (
     <div className={"w-full"}>
-        <section className="article-hero">
+        <section className="article-hero flex! flex-col-reverse! lg:flex-row!">
             <div className="article-hero-left">
                 <div>
                     <motion.div layoutId={`article-themes-${article.id}`} className="article-tag-line">
@@ -71,24 +71,24 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                     <p className="article-standfirst">
                         {article.resume}
                     </p>
-                    <div className="article-meta-bar">
+                    <div className="article-meta-bar flex!">
                         <div className="author-avatar">{`${article.createdBy.firstname[0].toUpperCase()}${article.createdBy.lastname[0].toUpperCase()}`}</div>
                         <div className="author-info">
                             <p className="author-name">{`${article.createdBy.firstname} ${article.createdBy.lastname}`}</p>
                             {/*<p className="author-role">Critique musical · Contributeur</p>*/}
                             <p className="author-role">Rédacteur</p>
                         </div>
-                        <div className="meta-divider"></div>
+                        <div className="meta-divider m-2! lg:mx-[20px]!"></div>
                         <div className="meta-item">
                             <span className="meta-value">{dateutils.getDay()} {months[dateutils.getMonth()-1]}</span>
                             <span className="meta-label">{dateutils.getFullYear()}</span>
                         </div>
-                        <div className="meta-divider"></div>
+                        <div className="meta-divider m-2! lg:mx-[20px]!"></div>
                         <div className="meta-item">
                             <span className="meta-value">{article.duration} min</span>
                             <span className="meta-label">lecture</span>
                         </div>
-                        <div className="meta-divider"></div>
+                        <div className="meta-divider m-2! lg:mx-[20px]!"></div>
                         <div className="meta-item">
                             <span className="meta-value">
                                 <streaming.ui.text url={"/article/get/stats"} filter={"views"} placeholder={article.stats.views}/>
@@ -98,7 +98,7 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                     </div>
                 </div>
             </div>
-            <motion.div layoutId={`article-image-${article.id}`} className="article-hero-right relative">
+            <motion.div layoutId={`article-image-${article.id}`} className="article-hero-right lg:h-auto h-[40vh]! relative">
                 <div className="hero-image-fill">
                     <span className="hero-image-placeholder">🎵</span>
                 </div>
@@ -108,7 +108,6 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                 </div>
                 <div className={"bg-cover absolute! article-image top-0 left-0 right-0 bottom-0 bg-red"} style={{backgroundImage: `url(${article.caption})`}}/>
                 <div className="hero-image-caption bg-[#1a1410]/30 backdrop-blur-lg">
-                    <p>Photo : Studio Lakay, Port-au-Prince</p>
                     <div className="hero-share-btns">
                         <button className="share-btn">tw</button>
                         <button className="share-btn">ig</button>
@@ -118,8 +117,8 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                 </div>
             </motion.div>
         </section>
-        <div className="article-body-layout">
-            <article className="article-content" id="article-content">
+        <div className="article-body-layout flex! flex-col! lg:flex-row!">
+            <article className="article-content flex-[1]" id="article-content">
                 <div className="w-full" ref={ref}>
                     {parser(article.content, {
                         replace: (el : any)=>{

@@ -67,7 +67,6 @@ export default class Ressources{
     static getUrl(){
         return window.location.pathname;
     }
-
     static getLocalStorage(key,object = false){
         let data = localStorage.getItem(key);
         if(!data){
@@ -87,7 +86,7 @@ export default class Ressources{
     }
 
     static getProjectName(){
-        return "Muse Au Top";
+        return "Mus Au Top";
     }
     
     static getSelfAdsText(){

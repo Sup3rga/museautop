@@ -125,7 +125,7 @@ body {
 }
 /* line 44, ../../sass/web.scss */
 .nav-logo .navbar-logo {
-  background-image: url(../public/assets/white-logo.jpg);
+  background-image: url(../public/assets/logo.png);
   height: 43px;
   width: 43px;
   background-size: contain;

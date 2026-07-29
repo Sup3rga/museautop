@@ -205,6 +205,10 @@ export default class Ressources{
         element.innerHTML = content;
         return element.innerText;
     }
+    
+    static setupRef(link){
+        return (/localhost/.test(window.location.hostname) ? "/cmgr" : "")+link;
+    }
 
     static async getSlidesData(){
         const data = await Ressources.fetch('/fetch', {

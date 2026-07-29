@@ -32,6 +32,7 @@ class Client {
 
     static async attend(){
         const uuid = await Client.get();
+        console.log('[Get client]', uuid);
         if(!uuid) return;
         try{
             await Pdo.prepare("update visitors set visites = visites + 1, last_seen=NOW() where uid=:p1").execute({

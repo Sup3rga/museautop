@@ -281,6 +281,51 @@ class Punchlines extends StatsData{
         }
         return list;
     }
+
+
+    static async getLast(src = null, limit = 1, _public = true){
+        let punchlines = limit > 1 ? [] : null,
+            queue = "",
+            arg = {limit};
+        if(src){
+            queue = 'where created_by=:p1 and created_at=:p2';
+            arg = {p1: src.createdBy, p2: new AkaDatetime(src.createdAt).getDateTime()};
+        }
+        if(_public){
+            // queue = (src ? " and" : "where") + " published=1"
+        }
+        try{
+            const req = await Pdo.prepare("select * from punchlines "+queue+" order by id desc LIMIT :limit")
+                .execute(arg);
+            if(req.rowCount){
+                if(limit == 1) {
+                    punchlines = new Punchlines().hydrate(req.fetch());
+                }
+                else{
+                    let data;
+                    while(data = req.fetch()){
+                        punchlines.push(new Punchlines().hydrate(data));
+                    }
+                }
+            }
+        }catch(e){
+            Channel.logError(e);
+        }
+        return punchlines;
+    }
+
+
+    static async getCount(){
+        try{
+            const req = await Pdo.prepare("select count(*) as total from punchlines").execute();
+            if(req.rowCount){
+                return req.fetch().total * 1;
+            }
+        }catch (e) {
+            Channel.logError(e);
+        }
+        return 0;
+    }
 }
 
 module.exports = Punchlines;

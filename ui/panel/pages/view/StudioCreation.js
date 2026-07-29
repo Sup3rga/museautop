@@ -272,7 +272,7 @@ export default class StudioCreation extends AlertableComponent{
         }catch (message){
             return this.setReloadable(message);
         }
-        if(/\/studio\/new\/([0-9]+)$/.test(Url.get())){
+        if(/(\/cmgr)?\/studio\/new\/([0-9]+)$/.test(Url.get())){
             const id = RegExp.$1;
             this.changeValue('edit', await Management.getPunchlinesData(id));
             if(this.state.edit) {

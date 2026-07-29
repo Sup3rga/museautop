@@ -10,6 +10,7 @@ import {createRef} from "react";
 import Events from "../../utils/Events";
 import Route from "../../utils/Route";
 import Main from "../Main";
+import Ressources from "@/ui/panel/utils/Ressources";
 
 export default class UserInfo extends AlertableComponent{
     constructor(props) {
@@ -50,12 +51,12 @@ export default class UserInfo extends AlertableComponent{
     }
 
     reload(){
-        this.state.self = /^\/usr/.test(Url.get());
+        this.state.self = /^(?:\/cmgr)?\/usr$/.test(Url.get());
         if(this.state.self){
             this.setReady(Management.data);
         }
         else{
-            /^\/communauty\/usr\/([0-9]+)$/.exec(Url.get());
+            /^(?:\/cmgr)?\/communauty\/usr\/([0-9]+)$/.exec(Url.get());
             const id = RegExp.$1;
             if(!id){
                 return this.changeValue('loadingError', true);
@@ -140,7 +141,7 @@ export default class UserInfo extends AlertableComponent{
                             <Button
                                 startIcon={ <Icon icon="pen"/>}
                                 className="mui-button"
-                                onClick={()=>Route.pushState("/communauty/integration/"+this.state.id)}
+                                onClick={()=>Route.pushState(Ressources.setupRef("/communauty/integration/"+this.state.id))}
                             >
                                Modifier les informations
                             </Button>

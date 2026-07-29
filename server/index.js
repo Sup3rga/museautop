@@ -5,11 +5,11 @@ const path = require("path");
 const {parseCookie} = require("cookie");
 const Maria = require("./utils/Maria");
 
-const currpath = (res)=> path.join(__dirname, res);
+const currpath = (res) => path.join(__dirname, res);
 
 global.DIR = {
     ROOT: fs.realpathSync(currpath('../')),
-    PUBLIC : fs.realpathSync(currpath('../public'))
+    PUBLIC: fs.realpathSync(currpath('../public'))
 };
 
 global.mariadb = new Maria({
@@ -27,22 +27,22 @@ const express = require('express'),
     {Server} = require('socket.io'),
     bodyParser = require('body-parser'),
     ThunderSpeed = require('./utils/thunderspeed.server'),
-    {manage,serve} = require('./controller/socketManagement');
+    {manage, serve} = require('./controller/socketManagement');
 
 const PORT = process.env.PORT || 3000;
 const dev = process.env.NODE_ENV != "production";
 
 const app = next({dev});
 console.log("{LAUNCH>>>")
-app.prepare().then(async ()=>{
+app.prepare().then(async () => {
     const httpServer = http.createServer(server);
 
     console.log("{PRETTY-READY>>>")
 
     const io = new Server(httpServer, {
-        cors:{
+        cors: {
             origin: [process.env.SERVER_URL, "https://management.musautop.com"],
-            methods: ["GET","POST"]
+            methods: ["GET", "POST"]
         }
     });
 
@@ -58,35 +58,35 @@ app.prepare().then(async ()=>{
     server.use(cors())
     server.use(bodyParser.json(requestConfig))
     server.use(bodyParser.raw(requestConfig))
-    server.use(ths.watch(['artimg','upl_pch','mailimg','upl_avt']))
+    server.use(ths.watch(['artimg', 'upl_pch', 'mailimg', 'upl_avt']))
 
-    io.use((socket, next)=>{
+    io.use((socket, next) => {
         const cookieHeader = socket.handshake.headers.cookie;
-        if(cookieHeader){
-            try{
+        if (cookieHeader) {
+            try {
                 const cookies = parseCookie(cookieHeader);
                 const uuid = cookies["clientuid"];
-                if(uuid){
+                if (uuid) {
                     socket.data.visitoruid = uuid;
                 }
 
-            }catch (e) {
-                console.log('[ERROR SOCKET]',e);
+            } catch (e) {
+                console.log('[ERROR SOCKET]', e);
             }
-            return next();
         }
+        return next();
     });
 
     global.io = io;
 
-    io.on("connection", (socket)=>manage(socket));
+    io.on("connection", (socket) => manage(socket));
 
     server
-    .post('/submit', (request,response)=> serve(request.body,response,ths))
-    .post('/fetch', (request,response)=> serve(request.body,response,ths))
-    .post('/connect', (request,response)=> serve(request.body,response,ths))
-    .post('/upl_img', (request, response)=> serve(request.body,response,ths))
-    .all("*", (req, res)=> app.getRequestHandler()(req, res));
+        .post('/submit', (request, response) => serve(request.body, response, ths))
+        .post('/fetch', (request, response) => serve(request.body, response, ths))
+        .post('/connect', (request, response) => serve(request.body, response, ths))
+        .post('/upl_img', (request, response) => serve(request.body, response, ths))
+        .all("*", (req, res) => app.getRequestHandler()(req, res));
 
     httpServer.listen(PORT);
 });

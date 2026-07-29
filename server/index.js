@@ -11,6 +11,8 @@ global.DIR = {
     PUBLIC : fs.realpathSync(currpath('../public'))
 };
 
+console.log('[PORT]', parseInt(process.env.DB_PORT));
+
 global.mariadb = new Maria({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,

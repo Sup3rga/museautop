@@ -20,12 +20,12 @@ const nextConfig: NextConfig = {
                 {
                     source: '/',
                     has: [{ type: 'host', value: 'management.musautop.com' }],
-                    destination: '/panel',
+                    destination: '/cmgr',
                 },
                 {
                     source: '/:path((?!panel).*)',
                     has: [{ type: 'host', value: 'management.musautop.com' }],
-                    destination: '/panel/:path*',
+                    destination: '/cmgr/:path*',
                 },
             ]
         }

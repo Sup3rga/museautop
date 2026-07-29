@@ -29,4 +29,5 @@ CREATE TABLE `punchlines` (
   CONSTRAINT `fk_final_pic` FOREIGN KEY (`picture`) REFERENCES `pictures` (`id`),
   CONSTRAINT `fk_man_punch_creator` FOREIGN KEY (`created_by`) REFERENCES `manager` (`id`),
   CONSTRAINT `fk_man_punch_editor` FOREIGN KEY (`modified_by`) REFERENCES `manager` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;insert into `punchlines` (`artist`, `branch`, `category`, `comment`, `created_at`, `created_by`, `id`, `lyrics`, `modified_at`, `modified_by`, `picture`, `post_on`, `presentation`, `punchline`, `stats`, `title`, `year`) values ('Fouiny', 1, 4, NULL, '2026-04-03 20:18:13', 1, 1, NULL, '2026-04-03 20:18:13', 1, 1, '2026-04-03 20:18:13', 2, 'L\'argent n\'a pas d\'odeur, mais Lafouine a du flaire', 2, 'Hello', 2026);
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+insert into `punchlines` (`artist`, `branch`, `category`, `comment`, `created_at`, `created_by`, `id`, `lyrics`, `modified_at`, `modified_by`, `picture`, `post_on`, `presentation`, `punchline`, `stats`, `title`, `year`) values ('Fouiny', 1, 4, NULL, '2026-04-03 20:18:13', 1, 1, NULL, '2026-04-03 20:18:13', 1, 1, '2026-04-03 20:18:13', 2, 'L\'argent n\'a pas d\'odeur, mais Lafouine a du flaire', 2, 'Hello', 2026);

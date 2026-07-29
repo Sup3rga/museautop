@@ -1,24 +1,22 @@
 const next = require("next");
 const fs = require("fs");
 const path = require("path");
-const MongoSql = require("./utils/MongoSql");
 const {parseCookie} = require("cookie");
 const Maria = require("./utils/Maria");
 
 const currpath = (res)=> path.join(__dirname, res);
+
 global.DIR = {
     ROOT: fs.realpathSync(currpath('../')),
     PUBLIC : fs.realpathSync(currpath('../public'))
 };
-global.mariadb = new Maria({
-    host: 'localhost',
-    user: 'root',
-    password: 'root',
-    database: 'museautop'
-});
 
-MongoSql.host = "queed.dev";
-MongoSql.dbName = "museautop";
+global.mariadb = new Maria({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
+});
 
 const express = require('express'),
     cors = require('cors'),

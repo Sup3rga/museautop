@@ -29,7 +29,6 @@ const express = require('express'),
     bodyParser = require('body-parser'),
     ThunderSpeed = require('./utils/thunderspeed.server'),
     {manage,serve} = require('./controller/socketManagement');
-const initializeDatabase = require("./utils/database_init");
 
 const PORT = process.env.PORT || 3000;
 const dev = process.env.NODE_ENV != "production";
@@ -91,5 +90,4 @@ app.prepare().then(async ()=>{
     .all("*", (req, res)=> app.getRequestHandler()(req, res));
 
     httpServer.listen(PORT);
-    await initializeDatabase();
 });

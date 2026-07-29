@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
                     destination: '/cmgr',
                 },
                 {
-                    source: '/:path((?!cmgr).*)',
+                    source: '/:path((?!cmgr_next|api|favicon.ico|.*\\..*).*)',
                     has: [{ type: 'host', value: 'management.musautop.com' }],
                     destination: '/cmgr/:path*',
                 },

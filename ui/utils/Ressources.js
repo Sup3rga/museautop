@@ -15,7 +15,7 @@ export default class Ressources{
       days: ['Dimanche','Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
     };
 
-    static apis = "";
+    static apis = process.env.NODE_ENV === "production" ? process.env.SERVER_URL : "http://localhost:3000";
 
     static getDateString(val, long = true){
         var date = new AkaDatetime(val),

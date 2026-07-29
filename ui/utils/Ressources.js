@@ -15,7 +15,7 @@ export default class Ressources{
       days: ['Dimanche','Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
     };
 
-    static apis = process.env.NEXT_PUBLIC_SERVER_URL;
+    static apis = process.env.NEXT_PUBLIC_SERVER_URL ?? "";
 
     static getDateString(val, long = true){
         var date = new AkaDatetime(val),

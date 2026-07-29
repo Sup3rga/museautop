@@ -21,8 +21,8 @@ import Settings from "../pages/view/Settings";
 import axios from  "axios";
 
 export default class Management{
-    static apis = "http://localhost:3000";
-    static server = "http://localhost:3000";
+    static apis = process.env.NEXT_PUBLIC_SERVER_URL;
+    static server = process.env.NEXT_PUBLIC_SERVER_URL;
     static storage = null;
     static data = {};
     static calendar = {

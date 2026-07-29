@@ -40,7 +40,7 @@ app.prepare().then(async ()=>{
 
     const io = new Server(httpServer, {
         cors:{
-            origin: dev ? 'http://localhost:3000' : 'https://musautop.com',
+            origin: process.env.SERVER_URL,
             methods: ["GET","POST"]
         }
     });

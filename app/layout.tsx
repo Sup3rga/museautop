@@ -30,7 +30,7 @@ export const metadata: Metadata = {
         url: "https://museautop.com",
         images:[
             {
-                url: "/assets/logo.jpg",
+                url: "/assets/logo.png",
                 height: 100,
                 width: 100
             }

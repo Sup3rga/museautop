@@ -11,7 +11,7 @@ interface _HomeProps{
 }
 export default function Home({lastArticles, headLines, lastPunchlines, totalPunchlines, totalArticles} : _HomeProps){
 
-    console.log('[Headlines>>>', headLines, lastArticles)
+    // console.log('[Headlines>>>', headLines, lastArticles)
     return (
         <div id="home" className="page flex flex-col w-full bg-yellow-300">
             <section className="hero w-full h-screen flex flex-col lg:flex-row-reverse">

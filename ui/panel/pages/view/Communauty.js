@@ -13,7 +13,7 @@ import {EmptyView} from "../widget/BlankLoader";
 
 function ManagerRow(props){
     const {modifier = null, state = null} = props;
-    console.log('[Props]',props);
+    // console.log('[Props]',props);
     return (
         <div className="ui-container ui-size-fluid row">
            <UserRow

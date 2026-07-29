@@ -16,7 +16,17 @@ const nextConfig: NextConfig = {
                 {
                     source: "/favicon.png",
                     destination: "/favicon.png",
-                }
+                },
+                {
+                    source: '/',
+                    has: [{ type: 'host', value: 'management.musautop.com' }],
+                    destination: '/panel',
+                },
+                {
+                    source: '/:path((?!panel).*)',
+                    has: [{ type: 'host', value: 'management.musautop.com' }],
+                    destination: '/panel/:path*',
+                },
             ]
         }
     },

@@ -249,7 +249,7 @@ export default class Main extends React.Component{
                         )
                     })
                 }
-                <Link href="/usr" className="ui-container ui-size-fluid user-zone ui-horizontal-center ui-vertical-bottom">
+                <Link href={this.setupRef("/usr")} className="ui-container ui-size-fluid user-zone ui-horizontal-center ui-vertical-bottom">
                     <IconButton>
                         <Avatar className="avatar" src={Management.data.avatar} size={"30px"}>
                             {Management.data.firstname[0].toUpperCase()}

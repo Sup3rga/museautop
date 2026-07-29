@@ -221,13 +221,14 @@ class Manager extends SocketableData{
     async fetchBranch(){
         let result = await Pdo.prepare("select distinct b.id, b.domain, b.name, c.access from communauty c, branch b where c.manager=:p1 and c.branch=b.id")
             .execute({p1: this.id});
-        if(result.length){
-            for(let i in result){
-                this.branches[result[i].id] = result[i].access.split(',');
-                this.branchesData[result[i].id] = {
-                    id: result[i].id,
-                    name: result[i].name,
-                    domain: result[i].domain
+        if(result.rowCount){
+            let data;
+            while(data = result.fetch()){
+                this.branches[data.id] = data.access.split(',');
+                this.branchesData[data.id] = {
+                    id: data.id,
+                    name: data.name,
+                    domain: data.domain
                 };
             }
         }
@@ -466,7 +467,7 @@ class Manager extends SocketableData{
             // console.trace('[Man][list][ttl]..',Manager.list.length, req.rowCount);
             let data;
             Manager.list = [];
-            console.log('[Before]',req.rowCount);
+            // console.log('[Before]',req.rowCount);
             while(data = req.fetch()){
                 Manager.list.push(await new Manager().hydrate(data));
             }
@@ -511,7 +512,7 @@ class Manager extends SocketableData{
           }
           console.log('[Hydrating>>>')
           let man = await new Manager().hydrate(result.fetch());
-          console.log('[MAN]', man);
+          console.log('[MAN]>>>', man);
           if (!man.active) {
               return Channel.message({code: code.DENIED_ACCESS});
           }

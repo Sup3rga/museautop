@@ -51,8 +51,10 @@ class Client {
 
     static async getTodayVisitors(){
         try{
-            const request = await Pdo.prepare("select count(*) from visitors where DATE(last_seen) = CURDATE()").execute();
-            return request.rowCount;
+            const request = await Pdo.prepare("select count(*) as total from visitors where DATE(last_seen) = CURDATE()").execute();
+            if(request.rowCount){
+                return request.fetch()["total"];
+            }
         }catch (e) {
             Channel.logError('[Error] checking visites', e);
         }
@@ -60,8 +62,10 @@ class Client {
     }
     static async getCurrentVisitors(){
         try{
-            const request = await Pdo.prepare("select count(*) from visitors where last_seen >= NOW() + interval 5 minute").execute();
-            return request.rowCount;
+            const request = await Pdo.prepare("select count(*) as total from visitors where last_seen >= NOW() + interval 5 minute").execute();
+            if(request.rowCount){
+                return request.fetch()["total"];
+            }
         }catch (e) {
             Channel.logError('[Error] checking visites', e);
         }

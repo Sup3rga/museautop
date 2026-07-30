@@ -62,7 +62,7 @@ class Client {
     }
     static async getCurrentVisitors(){
         try{
-            const request = await Pdo.prepare("select count(*) as total from visitors where last_seen >= NOW() + interval 5 minute").execute();
+            const request = await Pdo.prepare("select count(*) as total from visitors where last_seen >= NOW() - interval 5 minute").execute();
             if(request.rowCount){
                 return request.fetch()["total"];
             }

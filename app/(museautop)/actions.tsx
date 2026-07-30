@@ -7,11 +7,11 @@ import Wayto from "@/server/controller/wayto";
 export async function visites(){
     const {io} = global;
     Cookie.setProvider(await cookies(), Cookie.processModes.NEXT);
+    await Client.attend();
     if(io){
         console.log('[Emit]...');
         io.emit("/get/visitors/stats", await Wayto.getVisiteStats());
     }
-    await Client.attend();
 }
 
 export async function setVisites({artid, punchid} : never){

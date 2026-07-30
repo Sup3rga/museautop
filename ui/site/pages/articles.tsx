@@ -38,7 +38,7 @@ export default function ArticlesPage({totalArticles, themes, categories, article
             </div>
 
             <div className="articles-body flex! flex-col-reverse! lg:flex-row!">
-                <div className="articles-list">
+                <div className="articles-list flex-[1]">
                     {
                         articles.map((article, key)=>(
                             <Link href={`/articles/${article.slug}`} className="article-row" key={article.id}>
@@ -47,10 +47,10 @@ export default function ArticlesPage({totalArticles, themes, categories, article
                                     <div className="article-row-content">
                                         <motion.p layoutId={`article-themes-${article.id}`} className="article-row-tag">{article.category.name} · {article.theme}</motion.p>
                                         <h3 className="article-row-title">{article.title}</h3>
-                                        <p className="article-row-meta">{`${article.createdBy.firstname} ${article.createdBy.lastname}`} &nbsp;·&nbsp;
-                                            {new AkaDatetime(article.createdAt).toD} &nbsp;·&nbsp;
+                                        {(article.createdBy &&<p className="article-row-meta">{`${article.createdBy.firstname} ${article.createdBy.lastname}`} &nbsp;·&nbsp;
+                                            {new AkaDatetime(article.createdAt).getDate()} &nbsp;·&nbsp;
                                             {article.duration} min.
-                                        </p>
+                                        </p>)}
                                     </div>
                                     <motion.div layoutId={`article-image-${article.id}`} className={`article-row-img ${key == 0 ? 'first-image' : ''} bg-cover!`} style={{backgroundImage: `url(${article.caption})`}}/>
                                 </div>

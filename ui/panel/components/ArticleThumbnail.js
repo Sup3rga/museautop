@@ -33,19 +33,18 @@ export class ArticlePreview extends React.Component{
     renderAdmin(){
         let {
             title, caption, category,
-            likes, reading, dislikes,
-            createdBy, modifiedBy
+            stats, createdBy, modifiedBy
         } = this.props;
         return (
             <div className="flex w-full">
                 <div className="ui-container ui-size-fluid ui-vertical-center">
                     {
                         !caption ? null :
-                            <div className="ui-container bg-cover h-[100px] w-2/5 lg:w-1/5 rounded-sm" style={{
+                            <div className="ui-container bg-cover h-[100px] w-2/5 lg:w-1/6 rounded-sm" style={{
                                 backgroundImage: 'url('+caption+')'
                             }}/>
                     }
-                    <div className={"ui-container metadata  "}>
+                    <div className={"ui-container metadata flex! gap-2"}>
                         <div className="ui-container ui-size-fluid title ui-vertical-center">
                             {title}
                             <span className="ui-element category">{category.name}</span>
@@ -62,17 +61,17 @@ export class ArticlePreview extends React.Component{
                         }
                         <div className="ui-container ui-size-fluid grid stats ui-vertical-center">
                             <div className="ui-container item ui-vertical-center ui-unwrap">
-                                <span className="ui-element label">{reading}</span>
+                                <span className="ui-element label">{stats.views}</span>
                                 vues
                             </div>
                             <div className="dot"/>
                             <div className="ui-container item ui-vertical-center ui-unwrap">
-                                <span className="ui-element label">{likes}</span>
+                                <span className="ui-element label">{stats.likes}</span>
                                 J'aime
                             </div>
                             <div className="dot"/>
                             <div className="ui-container item ui-vertical-center ui-unwrap">
-                                <span className="ui-element label">{dislikes}</span>
+                                <span className="ui-element label">{stats.dislikes}</span>
                                 Je n'aime pas
                             </div>
                         </div>

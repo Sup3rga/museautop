@@ -173,8 +173,7 @@ export default class Writing extends AlertableComponent{
                                 :
                                 this.state.articles.map((data, index)=>{
                                     let props = Filter.object(data, [
-                                        'title','caption','reading','category',
-                                        'likes','dislikes','createdBy', 'modifiedBy', 'id'
+                                        'title','caption','category', 'stats', 'createdBy', 'modifiedBy', 'id'
                                     ]);
                                     if(this.state.currentCategory == 0 || props.category.id == this.state.currentCategory) {
                                         if (props.modifiedBy.id === props.createdBy.id) {
@@ -200,7 +199,8 @@ export default class Writing extends AlertableComponent{
                     ariaLabel={"ok"}>
                     <SpeedDialAction
                         name="new"
-                        icon={<Icon icon="feather"/>}
+                        sx={{width: 50, height: 50}}
+                        icon={<Icon icon="feather" className={"text-3xl"}/>}
                         title={"Nouvel article"}
                         onClick={()=>location.href = './writing/new'}
                     />
@@ -209,7 +209,8 @@ export default class Writing extends AlertableComponent{
                         <SpeedDialAction
                             title="Catégorie"
                             name="category"
-                            icon={<Icon icon="layer-group"/>}
+                            sx={{width: 50, height: 50}}
+                            icon={<Icon icon="layer-group" className={"text-3xl"}/>}
                             onClick={()=>location.href = './writing/category'}
                         />
                     }

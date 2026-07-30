@@ -8,6 +8,7 @@ const {in_array} = require("../utils/procedures");
 const AkaDatetime = require("../utils/AkaDatetime");
 const Manager = require("./Manager");
 const StatsData = require("./StatsData");
+const Sys = require("./Sys");
 
 class Punchlines extends StatsData{
 
@@ -36,6 +37,15 @@ class Punchlines extends StatsData{
         ]);
         data.card = (await Pictures.getById(data.card)).data();
         data.stats = await (await this.getStats()).data(_public);
+        const sys_pref = await Sys.getAll(data.branch);
+        if(_public){
+            if(!sys_pref?.likesVisible ||  (sys_pref.likesVisibleWithCondition && data.stats.likes < sys_pref?.likesVisibilitylimit) ){
+                delete data.stats.likes;
+            }
+            if(!sys_pref?.readingVisible ||  (sys_pref.readingVisibleWithCondition && data.stats.views < sys_pref?.readingVisibilitylimit) ){
+                delete data.stats.views;
+            }
+        }
         if(!_minimalist) {
             data.picture = (await Pictures.getById(data.picture)).data();
             data.picture = data.picture.path;

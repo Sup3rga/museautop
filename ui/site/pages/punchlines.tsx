@@ -48,7 +48,7 @@ export default function PunchlinesPage({punchlines, years, artists} : _Punchline
                 <div className="section-head">
                     <h2>Les barres du moment</h2>
                 </div>
-                <div className="grid grid-cols-3! md:grid-cols-4! lg:grid-cols-5! xl:grid-cols-6!" id="cardGrid">
+                <div className="grid grid-cols-2! md:grid-cols-4! lg:grid-cols-5! xl:grid-cols-6!" id="cardGrid">
                     {
                         punchlines.map((punchline, index)=>(
                             <Link key={punchline.id} href={`/punchlines/${punchline.id}`}>

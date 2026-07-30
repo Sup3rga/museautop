@@ -192,7 +192,7 @@
 /* line 84, ../../sass/style.scss */
 #login .logo {
   height: 3.5em;
-  background-image: url(../public/assets/white-logo.jpg);
+  background-image: url(../public/assets/logo.png);
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -594,7 +594,7 @@
 }
 /* line 439, ../../sass/style.scss */
 .article-list .article-preview .metadata .title {
-  font-family: Lexend-Medium;
+  /*font-family: Lexend-Medium;*/
   font-size: 1.2em;
 }
 /* line 442, ../../sass/style.scss */

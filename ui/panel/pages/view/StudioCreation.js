@@ -70,14 +70,14 @@ export default class StudioCreation extends AlertableComponent{
         new ModelWorker(this.canvas.element.current, model, {
             cardConfig: this.cardConfig,
             image: this.state.image,
-            text: !this.state.punchline.length ? '' : '"'+this.state.punchline+'"',
+            text: !this.state.punchline.length ? '' : '"' + this.state.punchline + '"',
             font: {
-                lyrics: this.state.card.textSize+'pt Merriweather-Bold',
-                artist: this.state.card.artistSize+'pt Rubik-Bold'
+                lyrics: this.state.card.textSize + 'pt Merriweather-Bold',
+                artist: this.state.card.artistSize + 'pt Rubik-Bold'
             },
             logo: StudioCreation.logo[Main.branch],
             artistName: this.state.artist.toUpperCase(),
-            breakLength : 20
+            breakLength: 20
         });
 
         if(frame){
@@ -208,13 +208,14 @@ export default class StudioCreation extends AlertableComponent{
 
     async getImage(file){
         const image = new Image();
-        return new Promise((res)=>{
+        return new Promise((res,rej)=>{
             if(file instanceof Blob){
                 let read = new FileReader();
                 read.onload = ()=>{
                     image.src = read.result;
                     res(image);
                 }
+                read.onerror = ()=>rej();
                 read.readAsDataURL(file);
             }
             else if(typeof file == 'string'){
@@ -222,6 +223,7 @@ export default class StudioCreation extends AlertableComponent{
                 image.onload = ()=>{
                     res(image);
                 }
+                image.onerror = ()=>rej();
             }
         })
     }
@@ -272,13 +274,17 @@ export default class StudioCreation extends AlertableComponent{
         }catch (message){
             return this.setReloadable(message);
         }
-        if(/(\/cmgr)?\/studio\/new\/([0-9]+)$/.test(Url.get())){
+        if(/(?:\/cmgr)?\/studio\/new\/([0-9]+)$/.test(Url.get())){
             const id = RegExp.$1;
             this.changeValue('edit', await Management.getPunchlinesData(id));
             if(this.state.edit) {
-                console.log('[Edit]',this.state.edit);
                 this.state.canEdit = this.state.edit.createdBy.id == Management.data.id || Management.isGranted()
-                const image = await this.getImage(this.state.edit.picture.path);
+                let image = null;
+                try {
+                    image = await await this.getImage(this.state.edit.picture);
+                }catch (e) {
+                    console.log("[ERROR] can't get image.");
+                }
                 this.setState(state => {
                     return {
                         ...state,
@@ -393,7 +399,8 @@ export default class StudioCreation extends AlertableComponent{
 
     render() {
         // console.log("{RENDER>>>",this.block == this.blockRender());
-        // if(this.block == this.blockRender()) return this.block;
+        if(this.block == this.blockRender()) return this.block;
+        console.log('[State]>>>', this.state);
         const adornment = (text = 'pixels')=>{
             return {
                 endAdornment: <InputAdornment position="start">text</InputAdornment>,
@@ -408,7 +415,7 @@ export default class StudioCreation extends AlertableComponent{
         }
         return (
             <div className="ui-container ui-fluid studio ui-column ui-unwrap">
-                <div className="ui-container ui-size-fluid ui-vertical-center header">
+                <div className="ui-container ui-size-fluid ui-vertical-center header h-auto!">
                     <label className="ui-element ui-size-6">
                         Punchline Studio
                     </label>
@@ -454,7 +461,7 @@ export default class StudioCreation extends AlertableComponent{
                             </Button>
                         </div>
                     </div>
-                    <div className="ui-container ui-size-fluid ui-md-size-6 data">
+                    <div className="ui-container ui-size-fluid ui-md-size-6 data block!">
                         <div className="ui-element ui-size-6 wrapper">
                             <TextField
                                 className="ui-size-fluid"

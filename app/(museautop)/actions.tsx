@@ -8,6 +8,7 @@ export async function visites(){
     const {io} = global;
     Cookie.setProvider(await cookies(), Cookie.processModes.NEXT);
     if(io){
+        console.log('[Emit]...');
         io.emit("/get/visitors/stats", await Wayto.getVisiteStats());
     }
     await Client.attend();

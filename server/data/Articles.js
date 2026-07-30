@@ -176,12 +176,26 @@ class Articles extends SponsoredData{
            'category', 'branch', 'postOn', 'resume', 'theme', 'duration', 'slug',
             ...(_public ? [] : ['modifiedAt','modifiedBy','published','createdAt','sponsoredUntil'])
         ]);
+        const sys_pref = await Sys.getAll(data.branch);
         if(data.caption) {
             data.caption = await (await ArticleImage.getById(data.caption)).data();
             data.caption = data.caption.path;
         }
         data.stats = await (await this.getStats()).data(_public);
-        data.createdBy = await (await Manager.fetchById(data.createdBy)).data(true, false, true);
+        if(_public){
+            if(!sys_pref?.likesVisible ||  (sys_pref.likesVisibleWithCondition && data.stats.likes < sys_pref?.likesVisibilitylimit) ){
+                delete data.stats.likes;
+            }
+            if(!sys_pref?.readingVisible ||  (sys_pref.readingVisibleWithCondition && data.stats.views < sys_pref?.readingVisibilitylimit) ){
+                delete data.stats.views;
+            }
+        }
+        if(_public && !sys_pref?.authorVisible){
+            delete data.createdBy;
+        }
+        else {
+            data.createdBy = await (await Manager.fetchById(data.createdBy)).data(true, false, true);
+        }
         if(!_public) {
             data.modifiedBy = await (await Manager.fetchById(data.modifiedBy)).data(true, false, true);
         }

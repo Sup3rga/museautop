@@ -275,7 +275,7 @@ export default class Main extends React.Component{
                     {Management.getProjectName()}
                 </div>
                 <div className="ui-container ui-vertical-center ui-unwrap ui-size-5 ui-md-size-6 ui-horizontal-right appbar-icons">
-                    <IconButton>
+                    <IconButton className={"hidden!"}>
                         <Icon icon="bell"/>
                     </IconButton>
                     <IconButton onClick={(e)=>{
@@ -325,7 +325,7 @@ export default class Main extends React.Component{
                                     this.setState(state=>{
                                         return {...state, userMenu: null};
                                     });
-                                    Route.pushState("/usr");
+                                    Route.pushState(Ressources.setupRef("/usr"));
                                 }
                             },
                             !Management.isGranted(300) ? null :
@@ -337,7 +337,7 @@ export default class Main extends React.Component{
                                     this.setState(state=>{
                                         return {...state, userMenu: null};
                                     });
-                                    Route.pushState("/settings");
+                                    Route.pushState(Ressources.setupRef("/settings"));
                                 }
                             },
                             {
@@ -416,7 +416,7 @@ export default class Main extends React.Component{
                             this.toggleDialogBox(false);
                             Management.storage.setItem('agent', null).then(()=>{
                                 Events.emit('reset-view');
-                                Route.pushState('/');
+                                Route.pushState(Ressources.setupRef('/'));
                                 Main.socket.close();
                             });
                         }}>Oui</Button>

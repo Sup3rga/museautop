@@ -146,14 +146,16 @@ export default class Studio extends AlertableComponent{
                            ariaLabel={"ok"}>
                     <SpeedDialAction
                         name="new"
-                        icon={<Icon icon="pen"/>}
+                        sx={{width: 50, height: 50}}
+                        icon={<Icon icon="pen" className={"text-3xl"}/>}
                         title={"bien"}
                         onClick={()=>Route.pushState('./studio/new')}
                     />
                     <SpeedDialAction
                         title="Catégorie"
                         name="category"
-                        icon={<Icon icon="layer-group"/>}
+                        sx={{width: 50, height: 50}}
+                        icon={<Icon icon="layer-group" className={"text-3xl"}/>}
                         onClick={()=>Route.pushState('./studio/category')}
                     />
                 </SpeedDial>

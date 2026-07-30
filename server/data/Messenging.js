@@ -13,6 +13,7 @@ class Messenging extends Data{
         this.id = 0;
         this.firstname = null;
         this.lastname = null;
+        this.subject = null;
         this.client = 0;
         this.message = null;
         this.postOn = null;
@@ -29,14 +30,15 @@ class Messenging extends Data{
         try{
             if(!this.id){
                 await Pdo.prepare(`
-                    insert into messenging (firstname, lastname, client, message, post_on)
-                    values (:p1,:p2,:p3,:p4,:p5)
+                    insert into messenging (firstname, lastname, client, subject, message, post_on)
+                    values (:p1,:p2,:p3, :p6,:p4,:p5)
                 `).execute({
                     p1: this.firstname,
                     p2: this.lastname,
                     p3: this.client,
                     p4: this.message,
-                    p5: this.postOn
+                    p5: this.postOn,
+                    p6: this.subject
                 })
             }
             else if(this.readBy){
@@ -59,7 +61,7 @@ class Messenging extends Data{
 
     async data(_public = false){
         const data = Filter.object(this, [
-            'id', 'lastname', 'firstname', 'client',
+            'id', 'lastname', 'firstname', 'client', 'subject',
             'message', 'readBy', 'postOn'
         ]);
         if(_public){
@@ -78,6 +80,7 @@ class Messenging extends Data{
         this.lastname = data.lastname;
         this.firstname = data.firstname;
         this.client = data.client;
+        this.subject = data.subject;
         this.message = data.message;
         this.readBy = data.read_by;
         this.postOn = new AkaDatetime(data.post_on).getDateTime();

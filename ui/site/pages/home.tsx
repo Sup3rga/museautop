@@ -16,10 +16,10 @@ export default function Home({lastArticles, headLines, lastPunchlines, totalPunc
     // console.log('[Headlines>>>', headLines, lastArticles)
     return (
         <div id="home" className="page flex flex-col w-full bg-yellow-300">
-            <section className="hero w-full lg:h-screen lg:flex block lg:flex-row-reverse">
-                <div className="hero-right md:h-auto h-[80vh] flex flex-col w-full lg:w-3/5">
+            <section className="hero w-full lg:h-[50vh] flex flex-col lg:flex-row-reverse">
+                <div className="hero-right md:h-auto h-[50vh] flex flex-col w-full lg:w-3/5">
                     <Headlines headLines={headLines}/>
-                    <div className="hero-stats flex flex-[2]">
+                    <div className="hero-stats hidden! flex-[2]">
                         <div className="hero-stat">
                             <div className="hero-stat-number">{totalArticles}</div>
                             <div className="hero-stat-label">Articles publiés</div>

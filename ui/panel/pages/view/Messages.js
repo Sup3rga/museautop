@@ -9,10 +9,11 @@ import AlertableComponent from "./AlertableComponent";
 import Link from "../../components/Link";
 import UserRow from "../widget/UserRow";
 import Main from "../Main";
+import Ressources from "@/ui/panel/utils/Ressources";
 
 function MessageRow(props){
     return <UserRow
-        link={'/messenging/read/'+props.id}
+        link={Ressources.setupRef('/messenging/read/'+props.id)}
         name={props.firstname+', '+props.lastname}
         date={props.postOn}
         info={props.message}
@@ -78,7 +79,7 @@ export default class Messages extends AlertableComponent{
         if(this.block = this.blockRender()) return this.block;
         return (
             <div className="ui-container ui-fluid ui-unwrap ui-column messages">
-                <div className="ui-container ui-size-fluid header">
+                <div className="ui-container ui-size-fluid header h-auto!">
                     <h1 className="ui-container ui-size-fluid">
                        Messagerie
                     </h1>

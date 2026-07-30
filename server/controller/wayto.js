@@ -342,7 +342,7 @@ Wayto.getPunchlinesConfig = async (data)=>{
 //public
 Wayto.receiveMessage = async (data)=>{
     if(!Filter.contains(data, [
-        'cli_fname', 'cli_lname', 'cli_mail', 'cli_msg','cli_bhid'
+        'cli_fname', 'cli_lname', 'cli_mail', 'cli_msg','cli_bhid', 'cli_subject'
     ])){
         return Channel.message({code: code.INVALID});
     }
@@ -364,6 +364,7 @@ Wayto.receiveMessage = async (data)=>{
     message.lastname = data.cli_lname;
     message.firstname = data.cli_fname;
     message.client = client.id;
+    message.subject = data.cli_subject;
     message.message = data.cli_msg;
     message.postOn = AkaDatetime.now();
     saving = await message.save();
@@ -966,6 +967,13 @@ Wayto.getEssentialsSettings = async (data)=>{
         code: code.SUCCESS,
         data: response
     });
+}
+
+Wayto.getSiteSettings = async (bhid, public = true)=>{
+    return Channel.message({
+        code: code.SUCCESS,
+        data: (await Sys.getAll(bhid))?.data(public)
+    })
 }
 
 Wayto.setEssentialsSettings = async (data)=>{

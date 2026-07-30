@@ -90,7 +90,7 @@ export default class Management{
     }
 
     static getProjectName(){
-        return "Mus au top"
+        return "Musautop"
     }
 
     static getDateString(val, long = true){

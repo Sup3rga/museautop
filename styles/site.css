@@ -33,15 +33,23 @@ body {
 }
 
 /* ─── NAVIGATION ────────────────────────────────────────── */
-nav {
+.nav-header{
     position: fixed;
     top: 0; left: 0; right: 0;
     z-index: 100;
+}
+.nav-header .mobile-nav{
+    box-shadow: 0 8px 8px 0 #aaa;
+    border-radius: 0 0 8px 8px;
+    z-index: 0;
+}
+nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 48px;
     height: 68px;
+    z-index: 3;
     background: var(--paper);
     border-bottom: 1px solid rgba(0,0,0,0.08);
 }

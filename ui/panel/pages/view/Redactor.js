@@ -337,18 +337,11 @@ export default class Redactor extends AlertableComponent{
                         data={this.state.content}
                         onReady={ editor => {
                             editor.plugins.get('FileRepository').createUploadAdapter = (loader)=> new UploadAdapter(loader,'artimg');
-                            // console.log( 'Redactor is ready to use!', editor );
                         } }
                         onChange={ ( data ) => {
-                            // const data = editor.getData();
                             this.state.content = data;
                         } }
                     />
-                    {/*<Editop*/}
-                    {/*    onChange={(data)=>{*/}
-                    {/*        console.log('[Data]',data);*/}
-                    {/*    }}*/}
-                    {/*/>*/}
                 </div>
                 <Main.DialogBox
                     title="Informations de l'article"

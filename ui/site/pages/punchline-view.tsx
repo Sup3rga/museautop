@@ -23,24 +23,24 @@ export default function PunchlineView({punchline} : _PunchlineViewProps){
     }, []);
     return (
         <div className="wrap punchline-view px-4!">
-            <section className="main-punchline main" id="decouvrir">
+            <section className="main-punchline main flex flex-col-reverse! lg:flex-row!" id="decouvrir">
                 <div>
                     <motion.div layoutId={"punchline-hero-h1"} className="eyebrow">Punchline</motion.div>
                     <motion.h1 layoutId={"punchline-hero-h2"}>Cette <span className="redline">phrase</span><br/>peut <em>suffire</em>.</motion.h1>
                     <motion.p layoutId={"punchline-hero-p"}>{punchline.comment}</motion.p>
                     <motion.div layoutId={"punchline-stats"} className="hero-stats">
-                        <div>
+                        {typeof punchline.stats.views !== "undefined" && (<div>
                             <b>
                                 <streaming.ui.text url={"/punchline/get/stats"} filter={"views"} placeholder={punchline.stats.views}/>
                             </b>
                             fois vue
-                        </div>
-                        <div>
+                        </div>)}
+                        {typeof punchline.stats.likes !== "undefined" &&  (<div>
                             <b>
                                 <streaming.ui.text url={"/punchline/get/stats"} filter={"likes"} placeholder={punchline.stats.likes}/>
                             </b>
                             fois likée
-                        </div>
+                        </div>)}
                     </motion.div>
                 </div>
                 <motion.div layoutId={"punchline-"+punchline.id}>

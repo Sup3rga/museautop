@@ -102,7 +102,6 @@ export default class Settings extends AlertableComponent{
                 ])
             }
         }
-
         if(Management.isGranted(301)) {
             query = {
                 ...query, ...Filter.object(this.state, [
@@ -111,13 +110,9 @@ export default class Settings extends AlertableComponent{
                 ])
             }
         }
-
-
         if(Management.isGranted(409)) {
             query = {...query, ...Filter.object(this.state, ['branches'])}
         }
-
-
         if(Management.isGranted(300)) {
             const listIndex = ['sponsoredArticles', 'sponsoredPunchlines'];
             let list, found;
@@ -723,7 +718,7 @@ export default class Settings extends AlertableComponent{
         return (
             <div className="ui-container ui-fluid settings ui-horizontal-center">
                 <div className="ui-container ui-unwrap ui-fluid-height ui-column ui-size-fluid ui-sm-size-10 ui-md-size-8 ui-horizontal-left">
-                    <div className="ui-container ui-size-fluid header">
+                    <div className="ui-container ui-size-fluid header h-auto!">
                         <div className="ui-container ui-size-fluid ui-unwrap">
                             <h1 className="ui-element ui-size-8 ellipsis-text">Gestion du site web </h1>
                             <div className="ui-container ui-size-4">

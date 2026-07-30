@@ -72,12 +72,12 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                         {article.resume}
                     </p>
                     <div className="article-meta-bar flex!">
-                        <div className="author-avatar">{`${article.createdBy.firstname[0].toUpperCase()}${article.createdBy.lastname[0].toUpperCase()}`}</div>
-                        <div className="author-info">
+                        {(article.createdBy && <div className="author-avatar">{`${article.createdBy.firstname[0].toUpperCase()}${article.createdBy.lastname[0].toUpperCase()}`}</div>)}
+                        {(article.createdBy && <div className="author-info">
                             <p className="author-name">{`${article.createdBy.firstname} ${article.createdBy.lastname}`}</p>
                             {/*<p className="author-role">Critique musical · Contributeur</p>*/}
                             <p className="author-role">Rédacteur</p>
-                        </div>
+                        </div>)}
                         <div className="meta-divider m-2! lg:mx-[20px]!"></div>
                         <div className="meta-item">
                             <span className="meta-value">{dateutils.getDay()} {months[dateutils.getMonth()-1]}</span>
@@ -89,16 +89,16 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                             <span className="meta-label">lecture</span>
                         </div>
                         <div className="meta-divider m-2! lg:mx-[20px]!"></div>
-                        <div className="meta-item">
+                        {(typeof article.stats.views != "undefined" && <div className="meta-item">
                             <span className="meta-value">
                                 <streaming.ui.text url={"/article/get/stats"} filter={"views"} placeholder={article.stats.views}/>
                             </span>
                             <span className="meta-label">lectures</span>
-                        </div>
+                        </div>)}
                     </div>
                 </div>
             </div>
-            <motion.div layoutId={`article-image-${article.id}`} className="article-hero-right lg:h-auto h-[40vh]! relative">
+            <motion.div layoutId={`article-image-${article.id}`} className="article-hero-right flex-[1] lg:h-auto h-[40vh]! relative">
                 <div className="hero-image-fill">
                     <span className="hero-image-placeholder">🎵</span>
                 </div>
@@ -118,7 +118,7 @@ export default function Reading({themes, article, similars} : _ReadingProps){
             </motion.div>
         </section>
         <div className="article-body-layout flex! flex-col! lg:flex-row!">
-            <article className="article-content flex-[1]" id="article-content">
+            <article className="article-content flex-[3]" id="article-content">
                 <div className="w-full" ref={ref}>
                     {parser(article.content, {
                         replace: (el : any)=>{
@@ -137,14 +137,14 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                         <span className="article-tag-pill" key={key}>{theme}</span>
                     ))}
                 </div>
-                <div className="author-card">
+                {(article.createdBy && <div className="author-card">
                     <div className="author-card-avatar">{`${article.createdBy.firstname[0].toUpperCase()}${article.createdBy.lastname[0].toUpperCase()}`}</div>
                     <div>
                         <p className="author-card-name">{`${article.createdBy.firstname} ${article.createdBy.lastname}`}</p>
                         <p className="author-card-role">Rédacteur</p>
                         <p className="author-card-bio hidden">Jean-Marc Pierre couvre la scène musicale haïtienne et caribéenne depuis 2016. Il a collaboré avec plusieurs publications francophones et anime régulièrement des conférences sur l'identité culturelle en Haïti.</p>
                     </div>
-                </div>
+                </div>)}
             </article>
             <article className="article-content hidden" id="article-content">
     
@@ -222,7 +222,7 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                     </div>
                 </div>
             </article>
-            <aside className="article-sidebar">
+            <aside className="article-sidebar flex-[1]">
                 <div className="sidebar-sticky">
                     {/*<div className="reading-gauge">*/}
                     {/*    <span className="sidebar-section-label">Progression</span>*/}
@@ -234,7 +234,7 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                     {/*        <span>0 min · <span id="gauge-remaining">{article.duration} min restantes</span></span>*/}
                     {/*    </div>*/}
                     {/*</div>*/}
-                    <nav className="sidebar-toc hidden">
+                    <nav className="sidebar-toc hidden!">
                         <span className="sidebar-section-label">Dans cet article</span>
                         <ol className="toc-list">
                             <li className="toc-item active" id="toc-0">

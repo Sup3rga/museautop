@@ -8,12 +8,11 @@ import Url from "../../utils/Url";
 import Route from "../../utils/Route";
 import Events from "../../utils/Events";
 import UploadAdapter from "../../utils/UploadAdapter";
-// import {CKEditor} from '@ckeditor/ckeditor5-react';
-// import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import Constraint from "../../utils/Constraint";
 import AlertableComponent from "./AlertableComponent";
 import parser from "html-react-parser";
 import dynamic from 'next/dynamic';
+import {SendIcon, SendHorizontal} from "lucide-react";
 
 const Editor = dynamic(() => import('../../components/Editor'), {
     ssr: false, // 👈 C'est ça qui règle le problème
@@ -45,7 +44,7 @@ export default class Inbox extends AlertableComponent{
     }
 
     reload(){
-        /^\/messenging\/read\/([0-9]+)$/.exec(Url.get());
+        /^(?:\/cmgr)?\/messenging\/read\/([0-9]+)$/.exec(Url.get());
         const id = RegExp.$1;
         if(!id){
             return Route.back();
@@ -158,7 +157,7 @@ export default class Inbox extends AlertableComponent{
         }
         return (
             <div className="ui-container ui-fluid ui-unwrap ui-relative ui-column inbox">
-                <div className="ui-container ui-size-fluid header">
+                <div className="ui-container ui-size-fluid header h-auto!">
                     <div className="ui-container ui-size-fluid ui-vertical-center ui-unwrap">
                         <div className="ui-container ui-size-8 name">
                             {this.state.firstname+ ' ' + this.state.lastname}
@@ -199,7 +198,7 @@ export default class Inbox extends AlertableComponent{
                             this.state.replies.map((data,key)=>{
                                 return (
                                     <div key={key} className="ui-container ui-size-fluid reply">
-                                        <div className="ui-container ui-size-fluid header">
+                                        <div className="ui-container ui-size-fluid header h-auto!">
                                             <div className="ui-container ui-size-fluid ui-vertical-center">
                                                 <Icon icon="reply"/>
                                                 <span className="ui-element subject">
@@ -223,8 +222,8 @@ export default class Inbox extends AlertableComponent{
                         }
                     </div>
                     <div className={"ui-container ui-column ui-unwrap ui-fluid ui-absolute ui-all-close replier "+(this.state.openReplier ? 'open' : '')}>
-                        <div className="ui-container ui-size-fluid header">
-                            <div className="ui-container ui-size-fluid ui-spaced">
+                        <div className="ui-container ui-size-fluid header h-auto!">
+                            <div className="ui-container ui-size-fluid ui-spaced flex!">
                                 <div className="ui-element ui-size-3 ui-md-size-2">
                                     <IconButton onClick={()=>this.changeValue('openReplier', false)}>
                                         <Icon icon="times"/>
@@ -241,7 +240,7 @@ export default class Inbox extends AlertableComponent{
                                             color: '#004'
                                         }}
                                     >
-                                        <Icon mode="ion" icon="android-send"/>
+                                        <SendHorizontal/>
                                     </IconButton>
                                 </div>
                             </div>
@@ -256,24 +255,14 @@ export default class Inbox extends AlertableComponent{
                         </div>
                         <div className="ui-container ui-fluid editor">
                             <Editor
-                                // editor={ ClassicEditor }
                                 data={this.state.replyText}
                                 onReady={ editor => {
                                     editor.plugins.get('FileRepository').createUploadAdapter = (loader)=>{
                                         return new UploadAdapter(loader,'mailimg', Management.server);
                                     }
-                                    // console.log( 'Redactor is ready to use!', editor );
                                 } }
-                                onChange={ ( event, editor ) => {
-                                    // const data = editor.getData();
-                                    this.changeValue('replyText', editor.getData());
-                                    // console.log( { event, editor, data } );
-                                } }
-                                onBlur={ ( event, editor ) => {
-                                    // console.log( 'Blur.', editor );
-                                } }
-                                onFocus={ ( event, editor ) => {
-                                    // console.log( 'Focus.', editor );
+                                onChange={ ( data ) => {
+                                    this.changeValue('replyText', data);
                                 } }
                             />
                         </div>

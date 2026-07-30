@@ -399,7 +399,7 @@ export default class StudioCreation extends AlertableComponent{
 
     render() {
         // console.log("{RENDER>>>",this.block == this.blockRender());
-        if(this.block == this.blockRender()) return this.block;
+        // if(this.block == this.blockRender()) return this.block;
         console.log('[State]>>>', this.state);
         const adornment = (text = 'pixels')=>{
             return {

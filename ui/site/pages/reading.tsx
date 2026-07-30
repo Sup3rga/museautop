@@ -71,7 +71,7 @@ export default function Reading({themes, article, similars} : _ReadingProps){
     return (
     <div className={"w-full"}>
         <section className="article-hero flex! flex-col-reverse! lg:flex-row!">
-            <div className="article-hero-left flex-[2]">
+            <div className="article-hero-left lg:flex-[2]">
                 <div>
                     <motion.div layoutId={`article-themes-${article.id}`} className="article-tag-line">
                         <span className="tag-category">{article.category.name}</span>
@@ -115,7 +115,7 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                     </div>
                 </div>
             </div>
-            <motion.div layoutId={`article-image-${article.id}`} className="article-hero-right flex-[2] lg:h-auto h-[40vh]! relative">
+            <motion.div layoutId={`article-image-${article.id}`} className="article-hero-right lg:flex-[2] lg:h-auto h-[40vh]! relative">
                 <div className="hero-image-fill">
                     <span className="hero-image-placeholder">🎵</span>
                 </div>
@@ -135,7 +135,7 @@ export default function Reading({themes, article, similars} : _ReadingProps){
             </motion.div>
         </section>
         <div className="article-body-layout flex! flex-col! lg:flex-row!">
-            <article className="article-content flex-[3]" id="article-content">
+            <article className="article-content lg:px-18! lg:pt-20! lg:pb-16! p-8!  flex-[3]" id="article-content">
                 <div className="w-full" ref={ref}>
                     <ClientOnly>
                     {parser(article.content, {

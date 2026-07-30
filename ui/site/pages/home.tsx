@@ -32,7 +32,7 @@ export default function Home({lastArticles, headLines, lastPunchlines, totalPunc
                 </div>
                 <div className="hero-left w-full lg:w-3/5">
                     <p className="hero-eyebrow">Actualités culturelles & musicales</p>
-                    <h1 className="hero-title">La culture<br/>sans <em>filtre.</em></h1>
+                    <h1 className="hero-title">Toujours au top<br/>de <em>l'actualité.</em></h1>
                     <p className="hero-sub">Articles, analyses et extraits musicaux — pour ceux qui écoutent avant de
                         parler.</p>
                     <div className="hero-cta">
@@ -44,9 +44,9 @@ export default function Home({lastArticles, headLines, lastPunchlines, totalPunc
 
             <div className="divider"></div>
 
-            <section className="recents">
+            <section className="recents lg:px-20! lg:py-16 p-4!">
                 {lastArticles.length > 0 && (
-                    <div className="recents-header">
+                    <div className="recents-header flex! items-center!">
                         <h2 className="recents-title">Derniers articles</h2>
                         <Link className="link-all" href="/ArticlesPage">Tout voir →</Link>
                     </div>
@@ -56,6 +56,10 @@ export default function Home({lastArticles, headLines, lastPunchlines, totalPunc
                         lastArticles.map((article : any)=>(
                             <Link href={`/articles/${article.slug}`} className="article-card featured-card" key={article.id}>
                                 <span className="article-tag">{article.category.name}</span>
+                                <img
+                                    src={article.caption}
+                                    className={"rounded-md"}
+                                />
                                 <h3 className="article-card-title">{article.title}</h3>
                                 <p className="article-card-excerpt">{article.resume}</p>
                                 <div className="article-card-meta">

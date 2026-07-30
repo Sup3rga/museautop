@@ -46,7 +46,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("font-sans", notoSans.variable, playfairDisplayHeading.variable)}>
       <body
-        className={`antialiased`}
+        className={`antialiased w-screen! overflow-x-hidden!`}
       >
         {children}
       </body>

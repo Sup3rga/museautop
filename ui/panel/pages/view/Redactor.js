@@ -101,6 +101,7 @@ export default class Redactor extends AlertableComponent{
                     title: data.title,
                     content: data.content,
                     category: data.category,
+                    caption: data.caption,
                     publishauto: data.publishauto,
                     date: data.date,
                     time: data.time,
@@ -125,6 +126,7 @@ export default class Redactor extends AlertableComponent{
                     title: data.title,
                     content: data.content,
                     category: data.category.id,
+                    caption: data.caption,
                     loading: false,
                     date: schedule.getDate(),
                     time: schedule.getTime(),
@@ -163,7 +165,7 @@ export default class Redactor extends AlertableComponent{
             });
             return;
         }
-        this.state.caption = null;
+        // this.state.caption = null;
         this.extractImg();
         this.showLoading();
         const schedule = this.state.publishauto || !this.state.date.length || !this.state.time.length ? null : this.state.date+' '+this.state.time;
@@ -271,6 +273,7 @@ export default class Redactor extends AlertableComponent{
                 </div>
             </div>
         }
+        console.log('[Caption]', this.state.caption);
         return (
             <div className="ui-container editor ui-size-fluid ui-fluid-height">
                 <div className="ui-container ui-size-fluid head ui-vertical-center">

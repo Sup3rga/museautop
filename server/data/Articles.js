@@ -95,7 +95,7 @@ class ArticleImage extends Data{
     static async fetchAll(id){
         const list = [];
         try{
-            const req = await Pdo.prepare("select * from articles_pictures where article=:id")
+            const req = await Pdo.prepare("select distinct a.*, p.path from articles_pictures a, pictures p where a.article=:id and a.img = p.id")
                 .execute({id});
             if(req.rowCount){
                 let data;
@@ -178,7 +178,7 @@ class Articles extends SponsoredData{
         ]);
         const sys_pref = await Sys.getAll(data.branch);
         if(data.caption) {
-            data.caption = await (await ArticleImage.getById(data.caption)).data();
+            data.caption = await (await ArticleImage.getById(data.caption))?.data();
             data.caption = data.caption.path;
         }
         data.stats = await (await this.getStats()).data(_public);
@@ -291,20 +291,37 @@ class Articles extends SponsoredData{
         }catch (e){
             return Channel.logError(e).message({code: code.INTERNAL});
         }
-        //We update the ressource list
-        await ArticleImage.setNew(article.id, article[!this.id ? 'createdBy' : 'modifiedBy'], this.pictures);
         //We get the ressource list data
         const list = await ArticleImage.fetchAll(article.id);
-        console.log('[After]',this.pictures, list);
-        //Then we update the current Caption
-        try {
-            await Pdo.prepare('update articles set caption=:p1 where id=:p2')
-                .execute({
-                    p1: list.length ? list[0].id : null,
-                    p2: article.id
-                });
-        } catch (e) {
-            Channel.logError(e);
+        let new_pict = [...this.pictures];
+        for(let picture of list){
+            if(new_pict.indexOf(picture.path) >= 0){
+                new_pict = new_pict.filter((e)=> e != picture.path);
+            }
+        }
+        if(new_pict.length) {
+            //We update the ressource list
+            await ArticleImage.setNew(article.id, article[!this.id ? 'createdBy' : 'modifiedBy'], new_pict);
+        }
+        if(this.caption && !/^[0-9]+$/.test(this.caption)) {
+            let captionId = null;
+            for (let img of list) {
+                if (img.path === this.caption) {
+                    captionId = img.id;
+                }
+            }
+            console.log('[After]', this.pictures, list, this.caption, captionId);
+            this.caption = captionId;
+            //Then we update the current Caption
+            try {
+                await Pdo.prepare('update articles set caption=:p1 where id=:p2')
+                    .execute({
+                        p1: captionId,
+                        p2: article.id
+                    });
+            } catch (e) {
+                Channel.logError(e);
+            }
         }
         return Channel.message({error: false, code: code.SUCCESS});
     }

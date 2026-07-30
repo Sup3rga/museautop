@@ -1,7 +1,6 @@
 import React, {useMemo} from "react";
 import parser from "html-react-parser";
 import {default as Ads} from "@/public/ads.json";
-import Script from "next/script";
 
 interface AdJsxProps{
     stage: "reading" | "footer";
@@ -40,7 +39,7 @@ function AdsParser(data: any, key: any = 0){
         );
     }
     if(data.tag == "script"){
-        return <Script key={key} {...(data.props ? data.props : {})}
+        return <script key={key} {...(data.props ? data.props : {})}
             dangerouslySetInnerHTML={{
                 __html: data.children ?? ""
             }}

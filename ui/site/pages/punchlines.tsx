@@ -51,7 +51,7 @@ export default function PunchlinesPage({punchlines, years, artists} : _Punchline
                 <div className="grid grid-cols-2! md:grid-cols-4! lg:grid-cols-5! xl:grid-cols-6!" id="cardGrid">
                     {
                         punchlines.map((punchline, index)=>(
-                            <Link key={punchline.id} href={`/punchlines/${punchline.id}`}>
+                            <Link key={punchline.id} href={`/punchlines/${punchline.slug}`}>
                                 <motion.div layoutId={"punchline-"+punchline.id}>
                                     <PunchlineCard punchline={punchline} active={false}/>
                                 </motion.div>

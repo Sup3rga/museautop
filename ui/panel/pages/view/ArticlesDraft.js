@@ -8,6 +8,7 @@ import Route from "../../utils/Route";
 import AlertableComponent from "./AlertableComponent";
 import Events from "../../utils/Events";
 import Link from "next/link";
+import Ressources from "@/ui/panel/utils/Ressources";
 
 class Draft extends React.Component{
     render() {
@@ -45,7 +46,7 @@ class Draft extends React.Component{
                     >
                         Supprimer
                     </Button>
-                    <Link href={"../writing/new/dft-"+id}>
+                    <Link href={Ressources.setupRef("/writing/new/dft-"+id)}>
                         <Button
                             variant="text"
                             size="small"

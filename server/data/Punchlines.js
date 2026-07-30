@@ -9,6 +9,7 @@ const AkaDatetime = require("../utils/AkaDatetime");
 const Manager = require("./Manager");
 const StatsData = require("./StatsData");
 const Sys = require("./Sys");
+const {slugNormalizer, rand} = require("../utils/procedures");
 
 class Punchlines extends StatsData{
 
@@ -23,6 +24,7 @@ class Punchlines extends StatsData{
         this.punchline = null;
         this.category = 0;
         this.comment = null;
+        this.slug = null;
         this.postOn = null;
         this.table = "punchlines";
         this.sponsoredUntil = null;
@@ -31,7 +33,7 @@ class Punchlines extends StatsData{
     async data(_public = true, _minimalist = false){
         const data = Filter.object(this, [
             'id','title','card', 'year', 'artist', 'lyrics', 'punchline',
-            'category', 'comment', 'postOn', 'stats',
+            'category', 'comment', 'postOn', 'stats', 'slug',
             'createdBy', 'branch', 'sponsoredUntil','picture',
             ...(_public ? [] : ['createdAt','modifiedAt','modifiedBy',])
         ]);
@@ -67,7 +69,7 @@ class Punchlines extends StatsData{
             Filter.flush(data, [
                 'postOn', 'sponsoredUntil', 'comment', 'picture', 'lyrics'
             ]);
-            console.log('[Data]',data);
+            // console.log('[Data]',data);
         }
         return data;
     }
@@ -84,6 +86,7 @@ class Punchlines extends StatsData{
         this.stats = data.stats;
         this.artist = data.artist;
         this.comment = data.comment;
+        this.slug = data.slug;
         this.branch = data.branch;
         this.createdBy = data.created_by;
         this.createdAt = new AkaDatetime(data.created_at).getDateTime();
@@ -170,13 +173,14 @@ class Punchlines extends StatsData{
             if(!this.id) {
                 await Pdo.prepare(`
                     insert into punchlines(presentation, picture, title, artist, lyrics, punchline, year, category,
-                                           comment, created_at, created_by, modified_at, modified_by, post_on, branch)
-                    values (:p1, :p2, :p3, :p4, :p5, :p6, :p7, :p8, :p9, :p10, :p11, :p10, :p11, :p12, :p13)
+                                           comment, created_at, created_by, modified_at, modified_by, post_on, branch, slug)
+                    values (:p1, :p2, :p3, :p4, :p5, :p6, :p7, :p8, :p9, :p10, :p11, :p10, :p11, :p12, :p13, :p14)
                 `).execute({
                     ...base,
                     p10: this.createdAt,
                     p11: this.createdBy,
-                    p13: this.branch
+                    p13: this.branch,
+                    p14: await this.createSlug()
                 });
             }else{
                 if(!base.p1){
@@ -335,6 +339,42 @@ class Punchlines extends StatsData{
             Channel.logError(e);
         }
         return 0;
+    }
+
+
+    static async getBySlug(slug){
+        let article = null;
+        try{
+            const req = await Pdo.prepare("select * from punchlines where slug=:slug")
+                .execute({slug});
+            if(req.rowCount){
+                article = new Punchlines().hydrate(req.fetch());
+            }
+        }catch(e){
+            Channel.logError(e);
+        }
+        return article;
+    }
+
+    static async slugExists(slug){
+        return (await Punchlines.getBySlug(slug)) != null;
+    }
+
+    async createSlug(){
+        const baseSlug = slugNormalizer(this.title);
+        let slug= baseSlug;
+        let existed = false;
+        do{
+            if(await Punchlines.slugExists(slug)){
+                slug = baseSlug + '-' + rand(10,600);
+                existed = true;
+            }
+            else{
+                existed = false;
+            }
+        }while(existed);
+        this.slug = slug;
+        return slug;
     }
 }
 

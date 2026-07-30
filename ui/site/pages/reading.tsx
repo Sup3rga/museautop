@@ -10,13 +10,30 @@ import { motion } from "framer-motion";
 import {setVisites} from "@/app/(museautop)/actions";
 import {ScrollAnalytics} from "@/ui/lib/scrollanalytics";
 import DateTimeUtils from "@/lib/datetimeutils";
+import {AdJsx, useAdsIndex} from "@/ui/site/partials/ads";
+import React from "react";
 
 interface _ReadingProps{
     themes: string[],
     article: Articles,
     similars: Articles[]
 }
-const months = ["janv.", "fév.", "mars", "avr.", "mai", "juin", "juil.", "aout", "sept.", "oct.", "nov.", "déc."]
+const months = ["janv.", "fév.", "mars", "avr.", "mai", "juin", "juil.", "aout", "sept.", "oct.", "nov.", "déc."];
+
+const ClientOnly = ({ children }) => {
+    const [hasMounted, setHasMounted] = useState(false);
+
+    useEffect(() => {
+        setHasMounted(true);
+    }, []);
+
+    if (!hasMounted) {
+        return null;
+    }
+
+    return children;
+};
+
 export default function Reading({themes, article, similars} : _ReadingProps){
     const ref = useRef(null);
     const allThemes = useMemo(()=>{
@@ -28,11 +45,11 @@ export default function Reading({themes, article, similars} : _ReadingProps){
     }, [similars, themes]);
     const splitTitle = article.title.split(/ +/);
     const [viewLock, lockView] = useState(false);
-    let images = 0;
+    let images = 0, nbr = 0, index = -1;
     const dateutils = useMemo(()=> new DateTimeUtils(article.postOn), []);
     const analytics = useMemo(()=>new ScrollAnalytics(0.5,-1, ref), [ref]);
     streaming.init(Ressources.apis, {artid: article.id});
-
+    const adsIndex = useAdsIndex(article.content);
     useEffect(() => {
         analytics.watch(function(){
             if(this._ready && !viewLock){
@@ -54,7 +71,7 @@ export default function Reading({themes, article, similars} : _ReadingProps){
     return (
     <div className={"w-full"}>
         <section className="article-hero flex! flex-col-reverse! lg:flex-row!">
-            <div className="article-hero-left">
+            <div className="article-hero-left flex-[2]">
                 <div>
                     <motion.div layoutId={`article-themes-${article.id}`} className="article-tag-line">
                         <span className="tag-category">{article.category.name}</span>
@@ -98,7 +115,7 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                     </div>
                 </div>
             </div>
-            <motion.div layoutId={`article-image-${article.id}`} className="article-hero-right flex-[1] lg:h-auto h-[40vh]! relative">
+            <motion.div layoutId={`article-image-${article.id}`} className="article-hero-right flex-[2] lg:h-auto h-[40vh]! relative">
                 <div className="hero-image-fill">
                     <span className="hero-image-placeholder">🎵</span>
                 </div>
@@ -120,6 +137,7 @@ export default function Reading({themes, article, similars} : _ReadingProps){
         <div className="article-body-layout flex! flex-col! lg:flex-row!">
             <article className="article-content flex-[3]" id="article-content">
                 <div className="w-full" ref={ref}>
+                    <ClientOnly>
                     {parser(article.content, {
                         replace: (el : any)=>{
                             if(el.name == 'figure' && el.children && el.attribs.class == "image"){
@@ -128,9 +146,19 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                                 }
                                 images++;
                             }
+                            index = adsIndex.indexOf(nbr);
+                            if(index >= 0){
+                                nbr++;
+                                return <React.Fragment key={`ad-${index}`}>
+                                        <AdJsx stage="reading" index={index} />
+                                        {parser(el.toString())}
+                                    </React.Fragment>
+                            }
+                            nbr++;
                             return el;
                         }
                     })}
+                    </ClientOnly>
                 </div>
                 <div className="article-tags">
                     {allThemes.map((theme, key)=>(

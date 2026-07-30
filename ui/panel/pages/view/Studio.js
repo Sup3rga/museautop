@@ -130,7 +130,7 @@ export default class Studio extends AlertableComponent{
                             }
                             nbr++;
                             return <Punchline
-                                id={data.id}
+                                id={data.slug}
                                 key={data.id}
                                 caption={data.card.path}
                                 className="ui-container"

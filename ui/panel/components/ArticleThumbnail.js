@@ -2,7 +2,6 @@ import React from 'react';
 import Link from "next/link";
 import Ressources from "../utils/Ressources";
 import Url from "../utils/Url";
-import {Icon} from "./Header";
 
 export default class ArticleThumbnail extends React.Component{
 
@@ -100,9 +99,8 @@ export class ArticlePreview extends React.Component{
     }
 
     render() {
-        let {title, className, skeleton,id,adminMod=false} = this.props,
-            linkTitle = (title+"").replace(/ +/g, '+');
-        const link = /^\/cmgr\/(writing|draft)/.test(Url.get()) ? '/cmgr/writing/new/'+id : '/articles/'+id+'/'+linkTitle;
+        let {className, skeleton,id,adminMod, slug=false} = this.props;
+        const link = /^(?:\/cmgr)?\/(writing|draft)/.test(Url.get()) ? Ressources.setupRef('/writing/new/'+id) : '/articles/'+id+'/'+slug;
         return (
             <Link href={skeleton ? '' : link} className={
                 "ui-container ui-size-fluid article-preview "+

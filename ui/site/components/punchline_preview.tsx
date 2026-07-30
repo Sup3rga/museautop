@@ -5,7 +5,7 @@ import Link from "next/link";
 export default function PunchlinePreview({punchline, className} : {punchline: Punchlines | string, className?: string}){
     punchline = (typeof punchline === "string" ? JSON.parse(punchline) : punchline) as Punchlines;
     return (
-        <Link href={"/punchlines/"+punchline.id}>
+        <Link href={"/punchlines/"+punchline.slug}>
             <motion.div layoutId={"punchline-"+punchline.id} className={`mini-punch-card ${className}`}>
                 <div className="mini-punch-card::before"></div>
                 <p className="mini-punch-text">"{punchline.punchline}"</p>

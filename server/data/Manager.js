@@ -315,7 +315,9 @@ class Manager extends SocketableData{
         clearTimeout(this.timer);
         this.timer = setTimeout(()=>{
             for(let socket of this.sockets){
-                socket.emit('/session-expiration');
+                if(socket) {
+                    socket.emit('/session-expiration');
+                }
             }
         }, 15 * 60000);
     }

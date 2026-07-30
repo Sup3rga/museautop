@@ -173,7 +173,7 @@ export default class Writing extends AlertableComponent{
                                 :
                                 this.state.articles.map((data, index)=>{
                                     let props = Filter.object(data, [
-                                        'title','caption','category', 'stats', 'createdBy', 'modifiedBy', 'id'
+                                        'title','caption','category', 'stats', 'createdBy', 'modifiedBy', 'id', 'slug'
                                     ]);
                                     if(this.state.currentCategory == 0 || props.category.id == this.state.currentCategory) {
                                         if (props.modifiedBy.id === props.createdBy.id) {

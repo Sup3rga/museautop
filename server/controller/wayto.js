@@ -239,7 +239,7 @@ Wayto.getPunchlines = async (data)=>{
 }
 
 Wayto.getPunchline = async (id)=>{
-    const punchline = await Punchlines.getById(id);
+    const punchline = /^[0-9]+$/.test(id) ? await Punchlines.getById(id) : await Punchlines.getBySlug(id);
     return Channel.message({
         error: !punchline,
         code: !punchline ? code.ERROR : code.SUCCESS,
@@ -873,6 +873,7 @@ Wayto.commitRedaction = async (data)=>{
         article.postOn = new Date();
     }
     let message = await article.save();
+    console.log('[Final result]', message);
     return message;
 }
 

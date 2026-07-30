@@ -403,7 +403,7 @@ class Articles extends SponsoredData{
             arg = {limit};
         if(src){
             queue = 'where created_by=:p1 and created_at=:p2';
-            arg = {p1: src.createdBy, p2: new AkaDatetime(src.createdAt).getDateTime()};
+            arg = {p1: src.createdBy, p2: new AkaDatetime(src.createdAt).getDateTime(), limit};
         }
         if(_public){
             // queue = (src ? " and" : "where") + " published=1"
@@ -507,7 +507,6 @@ class Articles extends SponsoredData{
     async createSlug(){
         const baseSlug = slugNormalizer(this.title);
         let slug= baseSlug;
-        console.log('[SLUG>>>', baseSlug);
         let existed = false;
         do{
             if(await Articles.slugExists(slug)){

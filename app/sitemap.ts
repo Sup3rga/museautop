@@ -9,25 +9,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const staticPages: MetadataRoute.Sitemap = [
         {
             url: baseUrl,
-            lastModified: new Date(),
+            lastModified: new Date().toISOString(),
             changeFrequency: 'daily',
             priority: 1,
         },
         {
             url: `${baseUrl}/articles`,
-            lastModified: new Date(),
+            lastModified: new Date().toISOString(),
             changeFrequency: 'daily',
             priority: 0.8,
         },
         {
             url: `${baseUrl}/punchlines`,
-            lastModified: new Date(),
+            lastModified: new Date().toISOString(),
             changeFrequency: 'daily',
             priority: 0.8,
         },
         {
             url: `${baseUrl}/contact-us`,
-            lastModified: new Date(),
+            lastModified: new Date().toISOString(),
             changeFrequency: 'yearly',
             priority: 0.5,
         },
@@ -37,7 +37,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const articles : any[] = await Articles.fetchAll(1,true, false,false);
     const articlePages: MetadataRoute.Sitemap = articles.map((article) => ({
         url: `${baseUrl}/articles/${article.slug}`,
-        lastModified: article.modifiedAt,
+        lastModified: new Date(article.modifiedAt).toISOString(),
         changeFrequency: 'monthly',
         priority: 0.6,
     }));
@@ -46,7 +46,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const cartes : any[] = await Punchlines.fetchAll(1, true, false, false, true);
     const cartePages: MetadataRoute.Sitemap = cartes.map((carte) => ({
         url: `${baseUrl}/punchlines/${carte.slug}`,
-        lastModified: carte.modifiedAt,
+        lastModified: new Date(carte.modifiedAt).toISOString(),
         changeFrequency: 'monthly',
         priority: 0.6,
     }))

@@ -29,7 +29,9 @@ export default function ContactUs(){
         }
     }, [state]);
     const submit = useCallback(async ()=>{
-        console.log('[Value]',state);
+        if(!Filter.contains(state, [
+            'cli_fname', 'cli_lname', 'cli_mail', 'cli_msg', 'cli_subject'
+        ], ["", null, undefined])) return;
         try {
             setSending(true);
             const response = await Ressources.sendMessage(Filter.object(state, [

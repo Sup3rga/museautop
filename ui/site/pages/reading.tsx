@@ -149,7 +149,6 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                                 console.log('[EL]', el,);
                                 return <React.Fragment key={`ad-${index}`}>
                                         <AdJsx stage="reading" index={index} />
-                                        <label>[HELLO WORLD]</label>
                                         {el.type == "text" ? <p>{el.data}</p> : React.createElement(el.name,el.attribs,domToReact(el.children))}
                                     </React.Fragment>
                             }

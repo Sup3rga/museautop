@@ -1,3 +1,4 @@
+import "@/server/init";
 import Articles from "@/server/data/Articles";
 import Punchlines from "@/server/data/Punchlines";
 import {MetadataRoute} from "next";

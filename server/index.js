@@ -1,9 +1,8 @@
-require('dotenv').config();
+require("./init");
 const next = require("next");
 const fs = require("fs");
 const path = require("path");
 const {parseCookie} = require("cookie");
-const Maria = require("./utils/Maria");
 
 const currpath = (res) => path.join(__dirname, res);
 
@@ -11,14 +10,6 @@ global.DIR = {
     ROOT: fs.realpathSync(currpath('../')),
     PUBLIC: fs.realpathSync(currpath('../public'))
 };
-
-global.mariadb = new Maria({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    port: parseInt(process.env.DB_PORT)
-});
 
 const express = require('express'),
     cors = require('cors'),
@@ -33,6 +24,7 @@ const PORT = process.env.PORT || 3000;
 const dev = process.env.NODE_ENV != "production";
 
 const app = next({dev});
+
 console.log("{LAUNCH>>>")
 app.prepare().then(async () => {
     const httpServer = http.createServer(server);

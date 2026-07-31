@@ -3,6 +3,8 @@ import Articles from "@/server/data/Articles";
 import Punchlines from "@/server/data/Punchlines";
 import {MetadataRoute} from "next";
 
+export const revalidate = 3600;
+
 const baseUrl = process.env.NODE_ENV === "development" ? "http://localhost:3000" : "https://musautop.com";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Pages statiques

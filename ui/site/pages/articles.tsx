@@ -48,7 +48,7 @@ export default function ArticlesPage({totalArticles, themes, categories, article
                                         <motion.p layoutId={`article-themes-${article.id}`} className="article-row-tag">{article.category.name} · {article.theme}</motion.p>
                                         <h3 className="article-row-title">{article.title}</h3>
                                         {(article.createdBy &&<p className="article-row-meta">{`${article.createdBy.firstname} ${article.createdBy.lastname}`} &nbsp;·&nbsp;
-                                            {new AkaDatetime(article.createdAt).getDate()} &nbsp;·&nbsp;
+                                            {Ressources.getDate(article.createdAt, 'dd/mm/yyyy')} &nbsp;·&nbsp;
                                             {article.duration} min.
                                         </p>)}
                                     </div>

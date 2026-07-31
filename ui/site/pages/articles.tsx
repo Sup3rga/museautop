@@ -5,6 +5,7 @@ import Articles from "@/server/data/Articles";
 import Link from "next/link";
 import AkaDatetime from "@/server/utils/AkaDatetime";
 import {motion} from "framer-motion"
+import Ressources from "@/ui/utils/Ressources";
 
 interface _ArticlesProps{
     totalArticles: number

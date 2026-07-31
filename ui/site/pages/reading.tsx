@@ -2,14 +2,13 @@
 
 import Articles from "@/server/data/Articles";
 import {useEffect, useMemo, useRef, useState} from "react";
-import parser from "html-react-parser";
+import parser, {domToReact} from "html-react-parser";
 import Link from "next/link";
-import Ressources from "@/ui/panel/utils/Ressources";
+import Ressources from "@/ui/utils/Ressources";
 import {streaming} from "@/ui/lib/streamuing";
 import { motion } from "framer-motion";
 import {setVisites} from "@/app/(museautop)/actions";
 import {ScrollAnalytics} from "@/ui/lib/scrollanalytics";
-import DateTimeUtils from "@/lib/datetimeutils";
 import {AdJsx, useAdsIndex} from "@/ui/site/partials/ads";
 import React from "react";
 
@@ -17,8 +16,7 @@ interface _ReadingProps{
     themes: string[],
     article: Articles,
     similars: Articles[]
-}
-const months = ["janv.", "fév.", "mars", "avr.", "mai", "juin", "juil.", "aout", "sept.", "oct.", "nov.", "déc."];
+};
 
 const ClientOnly = ({ children }) => {
     const [hasMounted, setHasMounted] = useState(false);
@@ -46,7 +44,6 @@ export default function Reading({themes, article, similars} : _ReadingProps){
     const splitTitle = article.title.split(/ +/);
     const [viewLock, lockView] = useState(false);
     let images = 0, nbr = 0, index = -1;
-    const dateutils = useMemo(()=> new DateTimeUtils(article.postOn), []);
     const analytics = useMemo(()=>new ScrollAnalytics(0.5,-1, ref), [ref]);
     streaming.init(Ressources.apis, {artid: article.id});
     const adsIndex = useAdsIndex(article.content);
@@ -97,8 +94,8 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                         </div>)}
                         <div className="meta-divider m-2! lg:mx-[20px]!"></div>
                         <div className="meta-item">
-                            <span className="meta-value">{dateutils.getDay()} {months[dateutils.getMonth()-1]}</span>
-                            <span className="meta-label">{dateutils.getFullYear()}</span>
+                            <span className="meta-value">{Ressources.getDate(article.postOn, ['day', 'month'])}</span>
+                            <span className="meta-label">{Ressources.getDate(article.postOn, ['year'])}</span>
                         </div>
                         <div className="meta-divider m-2! lg:mx-[20px]!"></div>
                         <div className="meta-item">
@@ -120,8 +117,8 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                     <span className="hero-image-placeholder">🎵</span>
                 </div>
                 <div className="hero-date-badge">
-                    <span className="day">{dateutils.getDay()}</span>
-                    <span className="month">{months[dateutils.getMonth()-1]} {dateutils.getFullYear()}</span>
+                    <span className="day">{Ressources.getDate(article.postOn, ['day'])}</span>
+                    <span className="month">{Ressources.getDate(article.postOn, ['month', 'year'])}</span>
                 </div>
                 <div className={"bg-cover absolute! article-image top-0 left-0 right-0 bottom-0 bg-red"} style={{backgroundImage: `url(${article.caption})`}}/>
                 <div className="hero-image-caption bg-[#1a1410]/30 backdrop-blur-lg">
@@ -149,9 +146,11 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                             index = adsIndex.indexOf(nbr);
                             if(index >= 0){
                                 nbr++;
+                                console.log('[EL]', el,);
                                 return <React.Fragment key={`ad-${index}`}>
                                         <AdJsx stage="reading" index={index} />
-                                        {parser(el.toString())}
+                                        <label>[HELLO WORLD]</label>
+                                        {el.type == "text" ? <p>{el.data}</p> : React.createElement(el.name,el.attribs,domToReact(el.children))}
                                     </React.Fragment>
                             }
                             nbr++;

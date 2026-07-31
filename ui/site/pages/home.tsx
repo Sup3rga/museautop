@@ -3,6 +3,7 @@ import Articles from "@/server/data/Articles";
 import Punchlines from "@/server/data/Punchlines";
 import Headlines from "@/ui/site/components/headlines";
 import PunchlinePreview from "@/ui/site/components/punchline_preview";
+import Ressources from "@/ui/utils/Ressources";
 
 interface _HomeProps{
     lastArticles: Articles[]
@@ -63,7 +64,7 @@ export default function Home({lastArticles, headLines, lastPunchlines, totalPunc
                                 <h3 className="article-card-title">{article.title}</h3>
                                 <p className="article-card-excerpt">{article.resume}</p>
                                 <div className="article-card-meta">
-                                    <span>{`${article.createdBy.firstname} ${article.createdBy.lastname}`}</span> · 18 nov. 2024 · {article.duration} min
+                                    <span>{`${article.createdBy.firstname} ${article.createdBy.lastname}`}</span> · {Ressources.getDate(article.postOn, 'dd/mm/yyyy')} · {article.duration} min
                                 </div>
                             </Link>
                         ))

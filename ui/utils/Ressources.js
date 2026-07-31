@@ -17,6 +17,28 @@ export default class Ressources{
 
     static apis = process.env.NEXT_PUBLIC_SERVER_URL ?? "";
 
+    static getDate(val, parts = ['day', 'month', 'year']){
+        const partsMap = {dd: 'day', mm: 'month', yy: 'minYear', yyyy: 'year'};
+        if(typeof parts === "string"){
+            const split = parts.split("/");
+            parts = [];
+            for(let part of split){
+                if(part in partsMap){
+                    parts.push(partsMap[part]);
+                }
+            }
+        }
+        const dateParts = ['day', 'month', 'year', 'minYear'];
+        var date = new AkaDatetime(val);
+        const dateString = [date.getDay(), Ressources.calendar.months[date.getMonth() * 1 - 1], date.getFullYear(), date.getYear()];
+        const result = [];
+        for(let part of parts){
+            if(dateParts.indexOf(part) >= 0){
+                result.push(dateString[dateParts.indexOf(part)]);
+            }
+        }
+        return result.join(" ");
+    }
     static getDateString(val, long = true){
         var date = new AkaDatetime(val),
             calendar = Ressources.calendar,

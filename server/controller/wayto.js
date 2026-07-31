@@ -153,7 +153,6 @@ Wayto.getArticles = async (data, admin = true)=>{
         });
     }
     if(!admin){
-        await article.read();
         Manager.broadcast('/article-data-update', await article.data(), data.bhid * 1);
     }
     return Channel.message({
@@ -248,6 +247,7 @@ Wayto.getPunchline = async (id)=>{
         }
     });
 }
+
 Wayto.punchlineVisites = async(id)=>{
     const punchline = await Punchlines.getById(id);
     if(punchline){

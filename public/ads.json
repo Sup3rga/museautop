@@ -2,6 +2,8 @@
   "reading": [
     {
       "tag": "group",
+      "width": 320,
+      "height": 50,
       "children": [
         {
           "tag": "script",
@@ -20,6 +22,8 @@
     },
     {
       "tag": "group",
+      "width": 300,
+      "height": 250,
       "children": [
         {
           "tag": "script",

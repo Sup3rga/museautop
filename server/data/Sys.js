@@ -19,6 +19,7 @@ class Sys{
         this.likesVisibilitylimit = 0;
         this.readingVisibleWithCondition = 0;
         this.likesVisibleWithCondition = 0;
+        this.homeArticleQty = 4;
     }
 
     static cache = {};

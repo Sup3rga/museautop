@@ -73,14 +73,14 @@ export default function Home({lastArticles, headLines, lastPunchlines, totalPunc
             </section>
 
             <section className={`home-punch flex gap-8 items-center flex-col lg:flex-row! ${totalPunchlines ? '' : 'hidden'}`}>
-                <div className="home-punch-left">
+                <div className="home-punch-left lg:flex-[1]!">
                     <p className="home-punch-label">✦ Punchline Cards</p>
                     <h2 className="home-punch-title">Les mots qui<br/>restent.</h2>
                     <p className="home-punch-sub">Des extraits soigneusement choisis, mis en scène pour qu'ils frappent
                         encore plus fort.</p>
                     <Link className="btn-outline-light" href="/punchlines">Explorer les cartes</Link>
                 </div>
-                <div className="home-punch-right grid grid-cols-1! lg:grid-cols-2! gap-2">
+                <div className="home-punch-right lg:flex-[3]! grid grid-cols-1! lg:grid-cols-2! gap-2">
                     {
                         lastPunchlines.map((punchline, key)=>(
                             <PunchlinePreview punchline={JSON.stringify(punchline)} className={key == 3 ? "lg:col-span-2!" : ""} key={key}/>

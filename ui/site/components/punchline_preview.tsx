@@ -17,7 +17,7 @@ export default function PunchlinePreview({punchline, className} : {punchline: Pu
                     fontFamily: "var(--ff-mono)",
                     letterSpacing: "0.12em",
                     textTransform: "uppercase"
-                }}>{punchline.title}</p>
+                }}>{punchline.title} — {punchline.year}</p>
             </motion.div>
         </Link>
     )

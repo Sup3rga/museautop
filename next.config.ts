@@ -27,7 +27,7 @@ const nextConfig: NextConfig = {
             fallback: [
                 {
                     source: '/assets/:path*',
-                    destination: 'http://musautop-image-1:3000/assets/:path*',
+                    destination: 'http://musautop.com:3880/assets/:path*',
                 },
             ]
         }

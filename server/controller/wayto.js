@@ -1073,7 +1073,7 @@ Wayto.getHomeSummary = async ()=>{
         totalArticles: 0,
         totalPunchlines: 0
     }
-    const articles = await Articles.getLast(null, 4);
+    const articles = await Articles.getLast(null, 7);
     if(articles.length >= 1){
         response.headLines = await articles[0].data(true);
         for(let article of articles.slice(1, articles.length)) {

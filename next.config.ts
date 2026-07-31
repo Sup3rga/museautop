@@ -23,6 +23,12 @@ const nextConfig: NextConfig = {
                     has: [{ type: 'host', value: 'management.musautop.com' }],
                     destination: '/cmgr/:path*',
                 },
+            ],
+            fallback: [
+                {
+                    source: '/assets/:path*',
+                    destination: 'http://musautop-image-1:3000/assets/:path*',
+                },
             ]
         }
     },

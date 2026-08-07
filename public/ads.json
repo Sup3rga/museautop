@@ -44,6 +44,8 @@
   "footer": [
     {
       "tag": "group",
+      "width": "auto",
+      "height": "25vmax",
       "children": [
         {
           "tag": "script",

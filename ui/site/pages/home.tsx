@@ -4,6 +4,7 @@ import Punchlines from "@/server/data/Punchlines";
 import Headlines from "@/ui/site/components/headlines";
 import PunchlinePreview from "@/ui/site/components/punchline_preview";
 import Ressources from "@/ui/utils/Ressources";
+import {AdJsx} from "@/ui/site/partials/ads";
 
 interface _HomeProps{
     lastArticles: Articles[]
@@ -33,7 +34,7 @@ export default function Home({lastArticles, headLines, lastPunchlines, totalPunc
                 </div>
                 <div className="hero-left w-full lg:w-3/5">
                     <p className="hero-eyebrow">Actualités culturelles & musicales</p>
-                    <h1 className="hero-title">Toujours au top<br/>de <em>l'actualité.</em></h1>
+                    <h1 className="hero-title">Toujours au top<br/>de l'actualité <em>musicale.</em></h1>
                     <p className="hero-sub">Articles, analyses et extraits musicaux — pour ceux qui écoutent avant de
                         parler.</p>
                     <div className="hero-cta">
@@ -52,6 +53,7 @@ export default function Home({lastArticles, headLines, lastPunchlines, totalPunc
                         <Link className="link-all" href="/ArticlesPage">Tout voir →</Link>
                     </div>
                 )}
+                <AdJsx stage={"reading"} index={0}/>
                 <div className="recents-grid grid grid-cols-1! gap-1 lg:grid-cols-3!">
                     {
                         lastArticles.map((article : any)=>(
@@ -71,7 +73,7 @@ export default function Home({lastArticles, headLines, lastPunchlines, totalPunc
                     }
                 </div>
             </section>
-
+            <AdJsx stage={"footer"} index={0}/>
             <section className={`home-punch flex gap-8 items-center flex-col lg:flex-row! ${totalPunchlines ? '' : 'hidden'}`}>
                 <div className="home-punch-left lg:flex-[1]!">
                     <p className="home-punch-label">✦ Punchline Cards</p>

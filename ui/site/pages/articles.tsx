@@ -39,7 +39,7 @@ export default function ArticlesPage({totalArticles, themes, categories, article
             </div>
 
             <div className="articles-body flex! flex-col-reverse! lg:flex-row!">
-                <div className="articles-list flex-[1]">
+                <div className="articles-list flex-[3]">
                     {
                         articles.map((article, key)=>(
                             <Link href={`/articles/${article.slug}`} className="article-row" key={article.id}>
@@ -60,7 +60,7 @@ export default function ArticlesPage({totalArticles, themes, categories, article
                     }
                 </div>
 
-                <aside className="articles-sidebar">
+                <aside className="articles-sidebar flex-[1]">
                     <div className="sidebar-section">
                         <h3 className="sidebar-title">Explorer par thème</h3>
                         <div className="sidebar-tags">

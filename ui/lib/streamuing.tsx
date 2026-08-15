@@ -28,9 +28,11 @@ export const streaming : any = {
                 transports: ['websocket', 'polling']
             });
             this.__[0] = socket;
+            this.__[1] = this.connector;
         }
         else if (socket instanceof Socket && this.__[1] !== socket){
             this.connector = socket;
+            this.__[1] = this.connector;
         }
         this.__[2] = params;
     },

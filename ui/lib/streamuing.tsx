@@ -1,5 +1,5 @@
 "use client";
-import {useEffect, useMemo, useState, memo} from "react";
+import {useEffect, useState, memo} from "react";
 import {io} from "socket.io-client";
 import {default as routes} from "@/streamuing.routes.json";
 import {Socket} from "engine.io-client";
@@ -20,13 +20,14 @@ export const streaming : any = {
     init(socket : any, params : Record<never, never> = {}){
         if(typeof socket == "string" && this.__[0] != socket){
             //@ts-expect-error
-            this.connector = io.connect(socket, {
+            this.connector = io(socket, {
                 withCredentials: true,
                 reconnection: true,
                 reconnectionAttempts: 5,
                 reconnectionDelay: 1000,
                 transports: ['websocket', 'polling']
             });
+            this.__[0] = socket;
         }
         else if (socket instanceof Socket && this.__[1] !== socket){
             this.connector = socket;

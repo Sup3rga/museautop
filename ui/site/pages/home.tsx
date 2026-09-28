@@ -4,7 +4,7 @@ import Punchlines from "@/server/data/Punchlines";
 import Headlines from "@/ui/site/components/headlines";
 import PunchlinePreview from "@/ui/site/components/punchline_preview";
 import Ressources from "@/ui/utils/Ressources";
-import {AdJsx} from "@/ui/site/partials/ads";
+// import {AdJsx} from "@/ui/site/partials/ads";
 
 interface _HomeProps{
     lastArticles: Articles[]
@@ -53,7 +53,7 @@ export default function Home({lastArticles, headLines, lastPunchlines, totalPunc
                         <Link className="link-all" href="/ArticlesPage">Tout voir →</Link>
                     </div>
                 )}
-                <AdJsx stage={"reading"} index={0}/>
+                {/*<AdJsx stage={"reading"} index={0}/>*/}
                 <div className="recents-grid grid grid-cols-1! gap-1 lg:grid-cols-3!">
                     {
                         lastArticles.map((article : any)=>(
@@ -73,12 +73,12 @@ export default function Home({lastArticles, headLines, lastPunchlines, totalPunc
                     }
                 </div>
             </section>
-            <AdJsx stage={"footer"} index={0}/>
+            {/*<AdJsx stage={"footer"} index={0}/>*/}
             <section className={`home-punch flex gap-8 items-center flex-col lg:flex-row! ${totalPunchlines ? '' : 'hidden'}`}>
                 <div className="home-punch-left lg:flex-[1]!">
                     <p className="home-punch-label">✦ Punchline Cards</p>
                     <h2 className="home-punch-title">Les mots qui<br/>restent.</h2>
-                    <p className="home-punch-sub">Des extraits soigneusement choisis, mis en scène pour qu'ils frappent
+                    <p className="home-punch-sub">Des extraits soigneusement choisis, mis en scène pour qu&apos;ils frappent
                         encore plus fort.</p>
                     <Link className="btn-outline-light" href="/punchlines">Explorer les cartes</Link>
                 </div>

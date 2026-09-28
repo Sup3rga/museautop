@@ -9,7 +9,7 @@ import {streaming} from "@/ui/lib/streamuing";
 import { motion } from "framer-motion";
 import {setVisites} from "@/app/(museautop)/actions";
 import {ScrollAnalytics} from "@/ui/lib/scrollanalytics";
-import {AdJsx, useAdsIndex} from "@/ui/site/partials/ads";
+// import {AdJsx, useAdsIndex} from "@/ui/site/partials/ads";
 import React from "react";
 
 interface _ReadingProps{
@@ -46,7 +46,7 @@ export default function Reading({themes, article, similars} : _ReadingProps){
     let images = 0, nbr = 0, index = -1;
     const analytics = useMemo(()=>new ScrollAnalytics(0.5,-1, ref), [ref]);
     streaming.init(Ressources.apis, {artid: article.id});
-    const adsIndex = useAdsIndex(article.content);
+    // const adsIndex = useAdsIndex(article.content);
     useEffect(() => {
         analytics.watch(function(){
             if(this._ready && !viewLock){
@@ -143,16 +143,16 @@ export default function Reading({themes, article, similars} : _ReadingProps){
                                 }
                                 images++;
                             }
-                            index = adsIndex.indexOf(nbr);
-                            if(index >= 0){
-                                nbr++;
-                                console.log('[EL]', el,);
-                                return <React.Fragment key={`ad-${index}`}>
-                                        <AdJsx stage="reading" index={index} />
-                                        {el.type == "text" ? <p>{el.data}</p> : React.createElement(el.name,el.attribs,domToReact(el.children))}
-                                    </React.Fragment>
-                            }
-                            nbr++;
+                            // index = adsIndex.indexOf(nbr);
+                            // if(index >= 0){
+                            //     nbr++;
+                            //     console.log('[EL]', el,);
+                            //     return <React.Fragment key={`ad-${index}`}>
+                            //             <AdJsx stage="reading" index={index} />
+                            //             {el.type == "text" ? <p>{el.data}</p> : React.createElement(el.name,el.attribs,domToReact(el.children))}
+                            //         </React.Fragment>
+                            // }
+                            // nbr++;
                             return el;
                         }
                     })}
